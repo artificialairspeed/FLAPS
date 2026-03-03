@@ -1,5 +1,6 @@
 /* global io */
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 // ---------- Config ----------
 const SOCKET_URL = 'https://flaps-production.up.railway.app';
@@ -8,10 +9,15 @@ const SOCKET_URL = 'https://flaps-production.up.railway.app';
 try { localStorage.debug = localStorage.debug || 'socket.io-client:*'; } catch {}
 
 =======
+=======
+>>>>>>> Stashed changes
 // ---------- Config ----------
 const SOCKET_URL = 'https://flaps-production.up.railway.app';
 // Optional: enable socket.io client debug logs (remove after verifying)
 try { localStorage.debug = localStorage.debug || 'socket.io-client:*'; } catch {}
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 // ---------- DOM helpers ----------
 const el = (id) => document.getElementById(id);
@@ -23,6 +29,7 @@ function normalizeUrl(raw) {
 }
 function escapeHtml(s) {
   return String(s || '')
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -66,6 +73,34 @@ async function copyToClipboard(text) {
     t.remove();
   }
 }
+=======
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, "'");
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g, '"');
+}
+function setPill(pillEl, text, kind = '') {
+  pillEl.textContent = text;
+  pillEl.classList.toggle('good', kind === 'good');
+  pillEl.classList.toggle('warn', kind === 'warn');
+}
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const t = document.createElement('textarea');
+    t.value = text;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    t.remove();
+  }
+}
+>>>>>>> Stashed changes
 function setShareLinks(roomId, mk) {
   const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
   const participant = base;
@@ -79,7 +114,10 @@ function setShareLinks(roomId, mk) {
   el('copyModBtn').onclick = () => copyToClipboard(facilitator);
 }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 // ---------- URL params ----------
@@ -87,7 +125,10 @@ let currentRoom = null;
 let modKey = null;
 let lastState = null;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 (function parseFromUrl() {
@@ -98,7 +139,10 @@ let lastState = null;
   if (currentRoom) el('roomId').value = currentRoom;
 })();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 // ---------- Socket.IO ----------
@@ -106,6 +150,7 @@ const socket = io(SOCKET_URL, {
   transports: ['websocket', 'polling'],
   withCredentials: false
 });
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
 socket.on('connect', () => {
@@ -161,6 +206,8 @@ socket.on('room:state', (state) => {
   renderDeck(state.deck);
   renderFinalPointsOptions(state.deck);
 =======
+=======
+>>>>>>> Stashed changes
 socket.on('connect', () => {
   console.log('[socket] connected', socket.id);
   // auto-join if room is present in URL
@@ -198,6 +245,7 @@ function sanitizeDeck(rawDeck){
   }
   return out;
 }
+<<<<<<< Updated upstream
 
 socket.on('room:state', (state) => {
   console.log('[socket] room:state', state);
@@ -227,6 +275,32 @@ socket.on('room:state', (state) => {
 
 =======
 >>>>>>> Stashed changes
+=======
+
+socket.on('room:state', (state) => {
+  console.log('[socket] room:state', state);
+  lastState = state;
+  // Mode / phase display
+  setPill(el('modePill'), state.youAreModerator ? 'Facilitator' : 'Participant', state.youAreModerator ? 'good' : '');
+  setPill(el('phasePill'), state.phase === 'revealed' ? 'Revealed' : 'Voting', state.phase === 'revealed' ? 'warn' : '');
+  // Share links (facilitator only)
+  if (state.youAreModerator && modKey) setShareLinks(state.roomId, modKey);
+  // Enable/disable controls (removed Set Story per redesign)
+  el('revealBtn').disabled = !state.youAreModerator;
+  el('clearBtn').disabled = !state.youAreModerator;
+  const canFinalize = state.youAreModerator && state.phase === 'revealed' && !!state.activeStoryId;
+  el('finalPointsSelect').disabled = !canFinalize;
+  el('finalizeEstimateBtn').disabled = !canFinalize;
+  // Render sections with sanitized deck
+  const safeDeck = sanitizeDeck(state.deck);
+  renderDeck(safeDeck);
+  renderFinalPointsOptions(safeDeck);
+  renderUsers(state.users, state.phase);
+  renderStory(state.story);
+  renderResults(state);
+  renderQueue(state);
+});
+>>>>>>> Stashed changes
 // ---------- UI → Server events ----------
 el('createRoomBtn').onclick = () => {
   const desiredRoomId = (el('roomId').value || '').trim();
@@ -244,6 +318,7 @@ el('joinBtn').onclick = () => {
   socket.emit('room:join', { roomId, name, modKey });
 };
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 el('setStoryBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
@@ -257,6 +332,9 @@ el('setStoryBtn').onclick = () => {
   });
 };
 
+=======
+// Removed: setStoryBtn handler per redesign
+>>>>>>> Stashed changes
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
 el('clearBtn').onclick  = () => currentRoom && socket.emit('vote:clear',   { roomId: currentRoom });
 
@@ -264,6 +342,9 @@ el('clearBtn').onclick  = () => currentRoom && socket.emit('vote:clear',   { roo
 // Removed: setStoryBtn handler per redesign
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
 el('clearBtn').onclick = () => currentRoom && socket.emit('vote:clear', { roomId: currentRoom });
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 el('addToQueueBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
@@ -292,7 +373,10 @@ el('finalizeEstimateBtn').onclick = () => {
   socket.emit('storyQueue:finalize', { roomId: currentRoom, storyId: lastState.activeStoryId, finalPoints: pts });
 };
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 // ---------- Renderers ----------
@@ -334,7 +418,11 @@ function renderUsers(users, phase) {
     const status = phase === 'revealed'
       ? (u.vote ?? '—')
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       : (u.vote === 'selected' ? '✔ Selected' : '—');
+=======
+      : (u.vote === 'selected' ? '✓ Selected' : '—');
+>>>>>>> Stashed changes
 =======
       : (u.vote === 'selected' ? '✓ Selected' : '—');
 >>>>>>> Stashed changes
@@ -384,17 +472,23 @@ function renderResults(state) {
   r.innerHTML =
     `<div class="summary">` +
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       `${final}` +
       `<div><b>Min</b>: ${min}</div>` +
       `<div><b>Max</b>: ${max}</div>` +
       `<div><b>Avg</b>: ${avg}</div>` +
       `<div><b>Median</b>: ${median}</div>` +
 =======
+=======
+>>>>>>> Stashed changes
     `${final}` +
     `<div><b>Min</b>: ${min}</div>` +
     `<div><b>Max</b>: ${max}</div>` +
     `<div><b>Avg</b>: ${avg}</div>` +
     `<div><b>Median</b>: ${median}</div>` +
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     `</div>`;
 }
@@ -403,7 +497,10 @@ function renderQueue(state) {
   const list = el('storyQueueList');
   list.innerHTML = '';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   if (!queue.length) {
@@ -422,16 +519,22 @@ function renderQueue(state) {
     left.innerHTML =
       `<div class="queueTitleRow">` +
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         `<span class="queueTitle">${escapeHtml(s.title)}</span>` +
         `<span class="queuePoints">${escapeHtml(ptsText)}</span>` +
       `</div>` +
       `<div class="queueMeta">${state.activeStoryId === s.id ? 'Active Story' : ''}</div>`;
 
 =======
+=======
+>>>>>>> Stashed changes
       `<span class="queueTitle">${escapeHtml(s.title)}</span>` +
       `<span class="queuePoints">${escapeHtml(ptsText)}</span>` +
       `</div>` +
       `<div class="queueMeta">${state.activeStoryId === s.id ? 'Active Story' : ''}</div>`;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     const actions = document.createElement('div');
     actions.className = 'queueActions';
