@@ -23,11 +23,20 @@ h2{margin:0;font-size:16px}
 .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:var(--panel2)}
 .pill.good{color:#bff7dd;border-color:rgba(110,231,183,.45)}
 .pill.warn{color:#ffe4a3;border-color:rgba(251,191,36,.45)}
-.deck{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
-.deckBtn{min-width:60px;padding:14px 12px;font-weight:800;font-size:16px}
-.controls{display:flex;gap:10px;margin:8px 0 6px}
+
+/* --- Voting deck: 2 rows × 5 columns --- */
+.deck{display:grid;grid-template-columns:repeat(5, 1fr);grid-auto-rows:1fr;gap:14px;margin:12px 0}
+
+/* Make the card buttons fill their grid cell and scale up nicely */
+.deckBtn{width:100%;height:100%;aspect-ratio:1.2/1;display:flex;align-items:center;justify-content:center;padding:0;font-weight:900;font-size:clamp(18px,2.6vw,28px);border-radius:14px;min-width:unset}
+
+.controls{display:flex;gap:10px;margin:14px 0 6px}
 .finalizeRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
 #finalPointsSelect{min-width:180px}
+
+/* Optional: better small-screen fallback */
+@media (max-width:700px){.deck{grid-template-columns:repeat(3, 1fr)}}
+
 .users{list-style:none;padding:0;margin:0}
 .users li{display:flex;justify-content:space-between;gap:10px;padding:10px;border-bottom:1px solid rgba(53,80,106,.7)}
 .users li:last-child{border-bottom:none}
@@ -61,3 +70,8 @@ a{color:var(--accent)}
 .shareRow{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;padding:8px 0}
 .shareLabel{color:var(--muted);font-size:12px}
 @media (max-width:980px){.grid{grid-template-columns:1fr}.shareRow{grid-template-columns:1fr}}
+/* Spans full grid width when inside .grid */
+#shareBox{grid-column:1/-1;margin:0}
+
+/* Optional hover emphasis for deck cards */
+.deckBtn:hover{border-color:rgba(122,162,255,.65);box-shadow:0 0 0 2px rgba(122,162,255,.25) inset}

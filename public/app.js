@@ -1,4 +1,5 @@
 /* global io */
+<<<<<<< Updated upstream
 
 // ---------- Config ----------
 const SOCKET_URL = 'https://flaps-production.up.railway.app';
@@ -6,18 +7,23 @@ const SOCKET_URL = 'https://flaps-production.up.railway.app';
 // Optional: enable socket.io client debug logs (remove after verifying)
 try { localStorage.debug = localStorage.debug || 'socket.io-client:*'; } catch {}
 
+=======
+// ---------- Config ----------
+const SOCKET_URL = 'https://flaps-production.up.railway.app';
+// Optional: enable socket.io client debug logs (remove after verifying)
+try { localStorage.debug = localStorage.debug || 'socket.io-client:*'; } catch {}
+>>>>>>> Stashed changes
 // ---------- DOM helpers ----------
 const el = (id) => document.getElementById(id);
-
 function normalizeUrl(raw) {
   const s = String(raw || '').trim();
   if (!s) return '';
   if (/^https?:\/\//i.test(s)) return s;
   return `https://${s}`;
 }
-
 function escapeHtml(s) {
   return String(s || '')
+<<<<<<< Updated upstream
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -28,12 +34,26 @@ function escapeAttr(s) {
   return escapeHtml(s).replace(/"/g, '&quot;');
 }
 
+=======
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, "'");
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g, '"');
+}
+>>>>>>> Stashed changes
 function setPill(pillEl, text, kind = '') {
   pillEl.textContent = text;
   pillEl.classList.toggle('good', kind === 'good');
   pillEl.classList.toggle('warn', kind === 'warn');
 }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 async function copyToClipboard(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -46,27 +66,30 @@ async function copyToClipboard(text) {
     t.remove();
   }
 }
-
 function setShareLinks(roomId, mk) {
   const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
   const participant = base;
   const facilitator = `${base}?mod=${encodeURIComponent(mk)}`;
-
   el('shareBox').style.display = 'block';
   el('shareParticipant').textContent = participant;
   el('shareParticipant').href = participant;
   el('shareMod').textContent = facilitator;
   el('shareMod').href = facilitator;
-
   el('copyParticipantBtn').onclick = () => copyToClipboard(participant);
   el('copyModBtn').onclick = () => copyToClipboard(facilitator);
 }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // ---------- URL params ----------
 let currentRoom = null;
 let modKey = null;
 let lastState = null;
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 (function parseFromUrl() {
   const url = new URL(window.location.href);
   const parts = url.pathname.split('/').filter(Boolean);
@@ -74,12 +97,16 @@ let lastState = null;
   modKey = url.searchParams.get('mod') || null;
   if (currentRoom) el('roomId').value = currentRoom;
 })();
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // ---------- Socket.IO ----------
 const socket = io(SOCKET_URL, {
   transports: ['websocket', 'polling'],
   withCredentials: false
 });
+<<<<<<< Updated upstream
 
 socket.on('connect', () => {
   console.log('[socket] connected', socket.id);
@@ -133,12 +160,73 @@ socket.on('room:state', (state) => {
   // Render sections
   renderDeck(state.deck);
   renderFinalPointsOptions(state.deck);
+=======
+socket.on('connect', () => {
+  console.log('[socket] connected', socket.id);
+  // auto-join if room is present in URL
+  if (currentRoom) {
+    const nameVal = (el('name').value || '').trim() || 'Facilitator';
+    socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+  }
+});
+socket.on('connect_error', (err) => {
+  console.error('[socket] connect_error', err);
+});
+socket.on('disconnect', (reason) => {
+  console.warn('[socket] disconnected', reason);
+});
+// ----- Server → Client events -----
+socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
+  console.log('[socket] room:created', roomId);
+  currentRoom = roomId;
+  modKey = createdModKey;
+  setShareLinks(roomId, createdModKey);
+  const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(createdModKey)}`;
+  window.history.replaceState({}, '', newUrl);
+  setPill(el('modePill'), 'Facilitator', 'good');
+});
+
+// --- NEW: sanitize deck to remove 89 and cap to 10 values ---
+function sanitizeDeck(rawDeck){
+  const d = Array.isArray(rawDeck) ? rawDeck.slice() : [];
+  const out = [];
+  for (const v of d){
+    const sv = String(v);
+    if (sv === '89') continue; // remove 89
+    out.push(v);
+    if (out.length === 10) break; // keep only first 10
+  }
+  return out;
+}
+
+socket.on('room:state', (state) => {
+  console.log('[socket] room:state', state);
+  lastState = state;
+  // Mode / phase display
+  setPill(el('modePill'), state.youAreModerator ? 'Facilitator' : 'Participant', state.youAreModerator ? 'good' : '');
+  setPill(el('phasePill'), state.phase === 'revealed' ? 'Revealed' : 'Voting', state.phase === 'revealed' ? 'warn' : '');
+  // Share links (facilitator only)
+  if (state.youAreModerator && modKey) setShareLinks(state.roomId, modKey);
+  // Enable/disable controls (removed Set Story per redesign)
+  el('revealBtn').disabled = !state.youAreModerator;
+  el('clearBtn').disabled = !state.youAreModerator;
+  const canFinalize = state.youAreModerator && state.phase === 'revealed' && !!state.activeStoryId;
+  el('finalPointsSelect').disabled = !canFinalize;
+  el('finalizeEstimateBtn').disabled = !canFinalize;
+  // Render sections with sanitized deck
+  const safeDeck = sanitizeDeck(state.deck);
+  renderDeck(safeDeck);
+  renderFinalPointsOptions(safeDeck);
+>>>>>>> Stashed changes
   renderUsers(state.users, state.phase);
   renderStory(state.story);
   renderResults(state);
   renderQueue(state);
 });
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // ---------- UI → Server events ----------
 el('createRoomBtn').onclick = () => {
   const desiredRoomId = (el('roomId').value || '').trim();
@@ -155,6 +243,7 @@ el('joinBtn').onclick = () => {
   currentRoom = roomId;
   socket.emit('room:join', { roomId, name, modKey });
 };
+<<<<<<< Updated upstream
 
 el('setStoryBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
@@ -171,6 +260,11 @@ el('setStoryBtn').onclick = () => {
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
 el('clearBtn').onclick  = () => currentRoom && socket.emit('vote:clear',   { roomId: currentRoom });
 
+=======
+// Removed: setStoryBtn handler per redesign
+el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
+el('clearBtn').onclick = () => currentRoom && socket.emit('vote:clear', { roomId: currentRoom });
+>>>>>>> Stashed changes
 el('addToQueueBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
   const title = (el('storyTitle').value || '').trim();
@@ -197,7 +291,10 @@ el('finalizeEstimateBtn').onclick = () => {
   if (!pts) return alert('Select final points.');
   socket.emit('storyQueue:finalize', { roomId: currentRoom, storyId: lastState.activeStoryId, finalPoints: pts });
 };
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // ---------- Renderers ----------
 function renderFinalPointsOptions(deck) {
   const d = Array.isArray(deck) ? deck : [];
@@ -214,7 +311,6 @@ function renderFinalPointsOptions(deck) {
     sel.appendChild(o);
   });
 }
-
 function renderDeck(deck) {
   const d = Array.isArray(deck) ? deck : [];
   const deckDiv = el('deck');
@@ -227,7 +323,6 @@ function renderDeck(deck) {
     deckDiv.appendChild(b);
   });
 }
-
 function renderUsers(users, phase) {
   const list = el('users');
   list.innerHTML = '';
@@ -238,14 +333,17 @@ function renderUsers(users, phase) {
     const li = document.createElement('li');
     const status = phase === 'revealed'
       ? (u.vote ?? '—')
+<<<<<<< Updated upstream
       : (u.vote === 'selected' ? '✔ Selected' : '—');
+=======
+      : (u.vote === 'selected' ? '✓ Selected' : '—');
+>>>>>>> Stashed changes
     li.innerHTML =
       `<span class="uname">${escapeHtml(u.name)}</span>` +
       `<span class="ustatus">${escapeHtml(String(status))}</span>`;
     list.appendChild(li);
   });
 }
-
 function renderStory(story) {
   const view = el('storyView');
   const linkHtml = story?.link
@@ -259,7 +357,6 @@ function renderStory(story) {
     `<div class="storyDesc">${escapeHtml(story?.desc || '')}</div>` +
     `<div class="storyLink">${linkHtml}</div>`;
 }
-
 function renderResults(state) {
   const r = el('results');
   if (state.phase !== 'revealed') {
@@ -286,19 +383,29 @@ function renderResults(state) {
     : '';
   r.innerHTML =
     `<div class="summary">` +
+<<<<<<< Updated upstream
       `${final}` +
       `<div><b>Min</b>: ${min}</div>` +
       `<div><b>Max</b>: ${max}</div>` +
       `<div><b>Avg</b>: ${avg}</div>` +
       `<div><b>Median</b>: ${median}</div>` +
+=======
+    `${final}` +
+    `<div><b>Min</b>: ${min}</div>` +
+    `<div><b>Max</b>: ${max}</div>` +
+    `<div><b>Avg</b>: ${avg}</div>` +
+    `<div><b>Median</b>: ${median}</div>` +
+>>>>>>> Stashed changes
     `</div>`;
 }
-
 function renderQueue(state) {
   const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];
   const list = el('storyQueueList');
   list.innerHTML = '';
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
   if (!queue.length) {
     const li = document.createElement('li');
     li.className = 'queueItem';
@@ -306,24 +413,28 @@ function renderQueue(state) {
     list.appendChild(li);
     return;
   }
-
   queue.forEach((s) => {
     const li = document.createElement('li');
     li.className = 'queueItem' + (state.activeStoryId === s.id ? ' queueActive' : '');
     const ptsText = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
-
     const left = document.createElement('div');
     left.className = 'queueLeft';
     left.innerHTML =
       `<div class="queueTitleRow">` +
+<<<<<<< Updated upstream
         `<span class="queueTitle">${escapeHtml(s.title)}</span>` +
         `<span class="queuePoints">${escapeHtml(ptsText)}</span>` +
       `</div>` +
       `<div class="queueMeta">${state.activeStoryId === s.id ? 'Active Story' : ''}</div>`;
 
+=======
+      `<span class="queueTitle">${escapeHtml(s.title)}</span>` +
+      `<span class="queuePoints">${escapeHtml(ptsText)}</span>` +
+      `</div>` +
+      `<div class="queueMeta">${state.activeStoryId === s.id ? 'Active Story' : ''}</div>`;
+>>>>>>> Stashed changes
     const actions = document.createElement('div');
     actions.className = 'queueActions';
-
     if (s.link) {
       const a = document.createElement('a');
       a.className = 'queueBtn queueLinkBtn';
@@ -334,23 +445,19 @@ function renderQueue(state) {
       a.title = 'Open Link';
       actions.appendChild(a);
     }
-
     if (state.youAreModerator) {
       const setBtn = document.createElement('button');
       setBtn.className = 'queueBtn primary';
       setBtn.textContent = 'Set Active';
       setBtn.disabled = state.activeStoryId === s.id;
       setBtn.onclick = () => socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: s.id });
-
       const rmBtn = document.createElement('button');
       rmBtn.className = 'queueBtn';
       rmBtn.textContent = 'Remove';
       rmBtn.onclick = () => socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: s.id });
-
       actions.appendChild(setBtn);
       actions.appendChild(rmBtn);
     }
-
     li.appendChild(left);
     li.appendChild(actions);
     list.appendChild(li);
