@@ -4,68 +4,110 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
+  <meta name="theme-color" content="#213346" />
 
-  <!-- Styles: relative path (works when public/ is served at root) -->
+  <!-- (Best as an HTTP response header) Fallback CSP for local/static hosting -->
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          script-src 'self' https://flaps-production.up.railway.app;
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data:;
+          connect-src 'self' https://flaps-production.up.railway.app;
+          font-src 'self';
+          frame-ancestors 'none';
+          base-uri 'none';
+          form-action 'none';
+          upgrade-insecure-requests;
+        ">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="./styles.css" />
 
-  <!-- Favicons (optional): place these files in public/ or adjust paths -->
+  <!-- Favicons (optional) -->
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+
+  <!-- Performance hint for socket origin -->
+  <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
 </head>
 <body>
+  <noscript>
+    <div class="card" style="margin:14px">
+      JavaScript is required for FLAPS to work. Please enable JavaScript.
+    </div>
+  </noscript>
+
   <header>
     <div class="brand">
-      <div class="logo">
-        <img class="logoImg" src="./logo.png" alt="App Icon" />
+      <div class="logo" aria-hidden="true">
+        <!-- Define intrinsic size to avoid layout shift -->
+        <img class="logoImg" src="./logo.png" alt="" width="40" height="40" loading="lazy" decoding="async" />
       </div>
       <div><h1>FLAPS — Fibonacci Lean Agile Pointing System</h1></div>
     </div>
 
-    <div class="roombar">
-      <button id="createRoomBtn" class="primary">Create Room</button>
-      <input id="roomId" placeholder="Team Name" required />
-      <input id="name" placeholder="Your Name" />
-      <button id="joinBtn">Join</button>
+    <!-- Top bar -->
+    <div class="roombar" role="group" aria-label="Room and user controls">
+      <label class="vh" for="roomId">Team Name</label>
+      <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization" inputmode="text" aria-label="Team Name" />
+
+      <label class="vh" for="name">Your Name</label>
+      <input id="name" name="name" placeholder="Your Name" autocomplete="name" inputmode="text" aria-label="Your Name" />
+
+      <button id="createRoomBtn" class="primary" type="button">Create Room</button>
+      <button id="joinBtn" type="button">Join</button>
     </div>
   </header>
 
-  <section class="share card" id="shareBox" style="display:none;">
+  <!-- Share links -->
+  <section class="share card hidden" id="shareBox" aria-labelledby="shareHeading">
+    <h2 id="shareHeading" class="vh">Room Links</h2>
+
     <div class="shareRow">
       <div class="shareLabel">Participant Link</div>
-      <a id="shareParticipant" target="_blank" rel="noreferrer"></a>
-      <button class="tiny" id="copyParticipantBtn">Copy</button>
+      <a id="shareParticipant" target="_blank" rel="noopener noreferrer"></a>
+      <button class="tiny" id="copyParticipantBtn" type="button" aria-label="Copy Participant Link">Copy</button>
     </div>
+
     <div class="shareRow">
       <div class="shareLabel">Facilitator Link</div>
-      <a id="shareMod" target="_blank" rel="noreferrer"></a>
-      <button class="tiny" id="copyModBtn">Copy</button>
+      <a id="shareMod" target="_blank" rel="noopener noreferrer"></a>
+      <button class="tiny" id="copyModBtn" type="button" aria-label="Copy Facilitator Link">Copy</button>
     </div>
+
     <div class="hint">Share the participant link with the team. Keep the facilitator link private to control Reveal/Clear/Story.</div>
   </section>
 
   <main class="grid">
     <!-- Story / Queue -->
-    <section class="card">
+    <section class="card" aria-labelledby="storyHeader">
       <div class="cardHeader">
-        <h2>Story</h2>
-        <span id="modePill" class="pill">Not Connected</span>
+        <h2 id="storyHeader">Story</h2>
+        <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
 
       <div class="storyForm">
         <div class="queueHeader">Story Queue</div>
         <div class="queueControls">
-          <button id="addToQueueBtn">Add To Queue</button>
+          <button id="addToQueueBtn" type="button">Add To Queue</button>
         </div>
 
         <div class="queueListWrap">
           <ul id="storyQueueList" class="queueList"></ul>
         </div>
 
+        <label class="vh" for="storyTitle">Story Title</label>
         <input id="storyTitle" placeholder="Story Title" />
+
+        <label class="vh" for="storyDesc">Story Description</label>
         <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
+
+        <label class="vh" for="storyLink">Story Link</label>
         <input id="storyLink" placeholder="Link (optional)" />
-        <button id="setStoryBtn" class="primary">Set Story</button>
+
+        <button id="setStoryBtn" class="primary" type="button">Set Story</button>
         <div id="modHint" class="hint"></div>
       </div>
 
@@ -73,31 +115,32 @@
     </section>
 
     <!-- Vote -->
-    <section class="card">
+    <section class="card" aria-labelledby="voteHeader">
       <div class="cardHeader">
-        <h2>Vote</h2>
-        <span id="phasePill" class="pill">—</span>
+        <h2 id="voteHeader">Vote</h2>
+        <span id="phasePill" class="pill" aria-live="polite">—</span>
       </div>
 
-      <div id="deck" class="deck"></div>
+      <div id="deck" class="deck" role="group" aria-label="Estimation Cards"></div>
 
       <div class="controls">
-        <button id="revealBtn" class="primary">Reveal</button>
-        <button id="clearBtn">Clear / Revote</button>
+        <button id="revealBtn" class="primary" type="button">Reveal</button>
+        <button id="clearBtn" type="button">Clear / Revote</button>
       </div>
 
       <div class="finalizeRow">
-        <select id="finalPointsSelect"></select>
-        <button id="finalizeEstimateBtn" class="primary">Finalize Estimate</button>
+        <label class="vh" for="finalPointsSelect">Finalize Points</label>
+        <select id="finalPointsSelect" aria-label="Finalize Points"></select>
+        <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
       </div>
 
-      <div id="results" class="results"></div>
+      <div id="results" class="results" aria-live="polite"></div>
     </section>
 
     <!-- Participants -->
-    <section class="card">
+    <section class="card" aria-labelledby="participantsHeader">
       <div class="cardHeader">
-        <h2>Participants</h2>
+        <h2 id="participantsHeader">Participants</h2>
         <span id="countPill" class="pill">0</span>
       </div>
       <ul id="users" class="users"></ul>
@@ -105,19 +148,8 @@
   </main>
 
   <!-- Load Socket.IO client from your Railway backend -->
-  <script src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
-
+  <script src="https://flaps-production.up.railway.app/socket.io/socket.io.js" defer></script>
   <!-- App client code -->
   <script src="./app.js" defer></script>
-</body>
-</html>      <div class="cardHeader"><h2>Participants</h2><span id="countPill" class="pill">0</span></div>
-      <ul id="users" class="users"></ul>
-    </section>
-  </main>
-
-<link rel="stylesheet" href="./styles.css" />
-<script src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
-<script src="./app.js" defer></script>
-  
 </body>
 </html>
