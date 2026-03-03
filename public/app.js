@@ -1,5 +1,5 @@
 /* global io */
-const socket = io();
+const socket = io("https://flaps-production.up.railway.app");
 
 let currentRoom = null;
 let modKey = null;
