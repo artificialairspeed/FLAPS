@@ -33,16 +33,22 @@
   <main class="grid">
     <section class="card">
       <div class="cardHeader"><h2>Story</h2><span id="modePill" class="pill">Not Connected</span></div>
-      <div class="storyForm">
-        <input id="storyTitle" placeholder="Story Title" />
-        <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
-        <input id="storyLink" placeholder="Link (optional)" />
-        <div class="queueHeader">Story Queue</div>
-        <div class="queueControls"><button id="addToQueueBtn">Add To Queue</button></div>
-        <div class="queueListWrap"><ul id="storyQueueList" class="queueList"></ul></div>
-        <button id="setStoryBtn" class="primary">Set Story</button>
-        <div id="modHint" class="hint"></div>
-      </div>
+     <div class="storyForm">
+       
+  <div class="queueHeader">Story Queue</div>
+  <div class="queueControls">
+    <button id="addToQueueBtn">Add To Queue</button>
+  </div>
+  <div class="queueListWrap">
+    <ul id="storyQueueList" class="queueList"></ul>
+  </div>
+  <input id="storyTitle" placeholder="Story Title" />
+  <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
+  <input id="storyLink" placeholder="Link (optional)" />
+
+  <button id="setStoryBtn" class="primary">Set Story</button>
+  <div id="modHint" class="hint"></div>
+</div>
       <div id="storyView" class="storyView"></div>
     </section>
 
