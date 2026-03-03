@@ -97,11 +97,25 @@ addToQueueBtn.onclick = () => {
   if (!currentRoom) return alert('Join a room first');
   const title = el('storyTitle').value.trim();
   if (!title) return alert('Enter a Story Title to add to the queue.');
-  socket.emit('storyQueue:add', { roomId: currentRoom, story: {
-    title,
-    desc: el('storyDesc').value,
-    link: el('storyLink').value
-  }});
+
+  socket.emit('storyQueue:add', {
+    roomId: currentRoom,
+    story: {
+      title,
+      desc: el('storyDesc').value,
+      link: el('storyLink').value
+    }
+  });
+
+  // ✅ Reset fields for next entry
+  el('storyTitle').value = '';
+  el('storyDesc').value = '';
+  el('storyLink').value = '';
+
+  // Optional: put cursor back in title for faster entry
+  el('storyTitle').focus();
+};
+``
 };
 
 finalizeEstimateBtn.onclick = () => {
