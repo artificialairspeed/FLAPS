@@ -5,33 +5,36 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
+
   <!-- (Best as an HTTP header) CSP fallback for static hosting -->
-<meta http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self';
-    script-src 'self' https://flaps-production.up.railway.app;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data:;
-    connect-src 'self'
-      https://flaps-production.up.railway.app
-      wss://flaps-production.up.railway.app;
-    font-src 'self';
-    frame-ancestors 'none';
-    base-uri 'none';
-    form-action 'none';
-    upgrade-insecure-requests;
-  ">
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          script-src 'self' https://flaps-production.up.railway.app;
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data:;
+          connect-src 'self'
+            https://flaps-production.up.railway.app
+            wss://flaps-production.up.railway.app;
+          font-src 'self';
+          frame-ancestors 'none';
+          base-uri 'none';
+          form-action 'none';
+          upgrade-insecure-requests;
+        ">
+
   <!-- Performance -->
   <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
   <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
-  <!-- Styles -->
-  <link rel="stylesheet" href="./styles.css" />
-  <!-- Favicons (optional) -->
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-</head>
 
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Favicons (optional) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+</head>
 <body>
   <noscript>
     <div class="card" style="margin:14px">
@@ -42,7 +45,7 @@
   <header>
     <div class="brand">
       <div class="logo" aria-hidden="true">
-        <img class="logoImg" src="./logo.png" alt="" loading="lazy" width="40" height="40" />
+        <img class="logoImg" src="/logo.png" alt="" loading="lazy" width="40" height="40" />
       </div>
       <div><h1>FLAPS — Fibonacci Lean Agile Pointing System</h1></div>
     </div>
@@ -52,7 +55,6 @@
       <label class="vh" for="roomId">Team Name</label>
       <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization" inputmode="text" aria-label="Team Name" />
       <button id="createRoomBtn" class="primary" type="button">Create Room</button>
-
       <label class="vh" for="name">Your Name</label>
       <input id="name" name="name" placeholder="Your Name" autocomplete="name" inputmode="text" aria-label="Your Name" />
       <button id="joinBtn" class="primary" type="button">Join</button>
@@ -66,30 +68,22 @@
         <h2 id="storyHeader">Story</h2>
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
-
       <!-- Selected Story FIRST -->
       <div id="storyView" class="storyView"></div>
-
       <!-- Queue SECOND, Inputs THIRD -->
       <div class="storyForm">
         <div class="queueHeader">Story Queue</div>
-
         <div class="queueListWrap">
           <ul id="storyQueueList" class="queueList"></ul>
         </div>
-
         <label class="vh" for="storyTitle">Story Title</label>
         <input id="storyTitle" placeholder="Story Title" />
-
         <label class="vh" for="storyDesc">Story Description</label>
         <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
-
         <label class="vh" for="storyLink">Story Link</label>
         <input id="storyLink" placeholder="Link (optional)" />
-
         <!-- Add To Queue moved to former Set Story location -->
         <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
-
         <div id="modHint" class="hint"></div>
       </div>
     </section>
@@ -100,15 +94,12 @@
         <h2 id="voteHeader">Vote</h2>
         <span id="phasePill" class="pill" aria-live="polite">—</span>
       </div>
-
       <div id="deck" class="deck" role="group" aria-label="Estimation Cards"></div>
-
       <!-- Full-width stacked buttons -->
       <div class="controls">
         <button id="revealBtn" class="primary" type="button">Reveal</button>
         <button id="clearBtn" type="button">Clear / Revote</button>
       </div>
-
       <!-- Bottom: Finalize (left 2/3) + Results (right 1/3) -->
       <div class="voteBottom">
         <div class="finalizeRow">
@@ -116,7 +107,6 @@
           <select id="finalPointsSelect" aria-label="Finalize Points"></select>
           <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
         </div>
-
         <div id="results" class="results" aria-live="polite"></div>
       </div>
     </section>
@@ -133,19 +123,16 @@
     <!-- Share links moved BELOW the 3 containers, spanning full width -->
     <section class="share card hidden" id="shareBox" aria-labelledby="shareHeading">
       <h2 id="shareHeading" class="vh">Room Links</h2>
-
       <div class="shareRow">
         <div class="shareLabel">Participant Link</div>
         <a id="shareParticipant" target="_blank" rel="noopener noreferrer"></a>
         <button class="tiny" id="copyParticipantBtn" type="button" aria-label="Copy Participant Link">Copy</button>
       </div>
-
       <div class="shareRow">
         <div class="shareLabel">Facilitator Link</div>
         <a id="shareMod" target="_blank" rel="noopener noreferrer"></a>
         <button class="tiny" id="copyModBtn" type="button" aria-label="Copy Facilitator Link">Copy</button>
       </div>
-
       <div class="hint">
         Share the participant link with the team. Keep the facilitator link private to control Reveal/Clear/Story.
       </div>
@@ -153,8 +140,3 @@
   </main>
 
   <!-- Load Socket.IO client from your Railway backend (must come before app.js) -->
-  <script defer src="https://flaps-development.up.railway.app/socket.io/socket.io.js"></script>
-  <!-- App client code -->
-  <script defer src="./app.js"></script>
-</body>
-</html>
