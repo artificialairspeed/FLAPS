@@ -20,7 +20,14 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 });
 
 const rooms = new Map();
-const FIBONACCI_DECK = ["0","1","2","3","5","8","13","21","34","55","89"]; 
+
+// ✅ Deck updates:
+// - Removed "89"
+// - Removed "0.5" (we use "0" instead)
+// - Added coffee card "☕" (non-numeric, selectable)
+const COFFEE_CARD = "☕";
+const FIBONACCI_DECK = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55"];
+const ROOM_DECK = [...FIBONACCI_DECK, COFFEE_CARD];
 
 function randomId(len = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -33,12 +40,18 @@ function normalizeRoomId(roomId) {
   return String(roomId || "").trim().toUpperCase();
 }
 
+function isFiniteNumberString(v) {
+  const n = Number(String(v).trim());
+  return Number.isFinite(n);
+}
+
 function getOrCreateRoom(roomId) {
   roomId = normalizeRoomId(roomId);
+
   if (!rooms.has(roomId)) {
     rooms.set(roomId, {
       roomId,
-      deck: FIBONACCI_DECK,
+      deck: ROOM_DECK,
       phase: "voting",
       story: { title: "Add a story to estimate", desc: "", link: "", finalPoints: null },
       storyQueue: [],
@@ -49,6 +62,7 @@ function getOrCreateRoom(roomId) {
       lastActiveAt: Date.now()
     });
   }
+
   return rooms.get(roomId);
 }
 
@@ -82,8 +96,11 @@ function makeRoomState(room, socket) {
 async function broadcastRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
+
   const sockets = await io.in(roomId).fetchSockets();
-  for (const s of sockets) s.emit("room:state", makeRoomState(room, s));
+  for (const s of sockets) {
+    s.emit("room:state", makeRoomState(room, s));
+  }
 }
 
 function requireModerator(room, socket) {
@@ -101,9 +118,14 @@ io.on("connection", (socket) => {
 
     socket.data.roomId = room.roomId;
     socket.data.modKey = room.moderatorKey;
+
     socket.join(room.roomId);
 
-    room.users[socket.id] = { name: (name || "Facilitator").trim() || "Facilitator", vote: null };
+    room.users[socket.id] = {
+      name: (name || "Facilitator").trim() || "Facilitator",
+      vote: null
+    };
+
     room.lastActiveAt = Date.now();
     broadcastRoom(room.roomId);
   });
@@ -118,7 +140,11 @@ io.on("connection", (socket) => {
     socket.data.modKey = modKey || null;
 
     socket.join(roomId);
-    room.users[socket.id] = { name: (name || "Anonymous").trim() || "Anonymous", vote: null };
+
+    room.users[socket.id] = {
+      name: (name || "Anonymous").trim() || "Anonymous",
+      vote: null
+    };
 
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
@@ -130,7 +156,10 @@ io.on("connection", (socket) => {
     if (!room || room.phase !== "voting") return;
     if (!room.users[socket.id]) return;
 
-    const v = String(vote);
+    const v = String(vote ?? "").trim();
+    if (!v) return;
+
+    // Only allow votes that exist in the deck (includes ☕)
     if (!room.deck.includes(v)) return;
 
     room.users[socket.id].vote = v;
@@ -174,8 +203,8 @@ io.on("connection", (socket) => {
       link: String(story?.link || "").trim(),
       finalPoints: null
     };
-    room.activeStoryId = null;
 
+    room.activeStoryId = null;
     room.phase = "voting";
     for (const id of Object.keys(room.users)) room.users[id].vote = null;
 
@@ -211,7 +240,7 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     const id = String(storyId || "");
-    room.storyQueue = room.storyQueue.filter(s => s.id !== id);
+    room.storyQueue = room.storyQueue.filter((s) => s.id !== id);
     if (room.activeStoryId === id) room.activeStoryId = null;
 
     room.lastActiveAt = Date.now();
@@ -225,11 +254,16 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     const id = String(storyId || "");
-    const found = room.storyQueue.find(s => s.id === id);
+    const found = room.storyQueue.find((s) => s.id === id);
     if (!found) return;
 
     room.activeStoryId = id;
-    room.story = { title: found.title, desc: found.desc, link: found.link, finalPoints: found.finalPoints || null };
+    room.story = {
+      title: found.title,
+      desc: found.desc,
+      link: found.link,
+      finalPoints: found.finalPoints || null
+    };
 
     room.phase = "voting";
     for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
@@ -247,9 +281,13 @@ io.on("connection", (socket) => {
     const id = String(storyId || "");
     const points = String(finalPoints || "").trim();
     if (!id || !points) return;
+
+    // ✅ Final points must be numeric AND in the deck.
+    // This prevents ☕ from ever being finalized (even if a client tries).
+    if (!isFiniteNumberString(points)) return;
     if (!room.deck.includes(points)) return;
 
-    const item = room.storyQueue.find(s => s.id === id);
+    const item = room.storyQueue.find((s) => s.id === id);
     if (!item) return;
 
     item.finalPoints = points;
@@ -262,6 +300,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
+
     const room = rooms.get(roomId);
     if (!room) return;
 
@@ -271,6 +310,7 @@ io.on("connection", (socket) => {
   });
 });
 
+// Room cleanup
 setInterval(() => {
   const now = Date.now();
   for (const [roomId, room] of rooms.entries()) {
