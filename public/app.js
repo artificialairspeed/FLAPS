@@ -460,70 +460,51 @@ function renderResults(state) {
 }
 
 function renderQueue(state) {
-  const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];
-  const list = el('storyQueueList');
-  if (!list) return;
+function renderResults(state) {
+  const r = el('results');
+  if (!r) return;
 
-  list.innerHTML = '';
+  const phase = String(state.phase || '').trim().toLowerCase();
+  const isRevealed = phase === 'revealed';
 
-  if (!queue.length) {
-    const li = document.createElement('li');
-    li.className = 'queueItem';
-    li.innerHTML =
-      '<div class="queueLeft"><div class="queueTitleRow"><span class="queueTitle">No Stories In Queue</span></div></div>';
-    list.appendChild(li);
+  // If your UI uses .hidden to hide sections, this guarantees results appear on reveal
+  r.classList.toggle('hidden', !isRevealed);
+
+  if (!isRevealed) {
+    r.innerHTML = '<div class="hint">Votes are hidden until the facilitator reveals.</div>';
     return;
   }
 
-  queue.forEach((s) => {
-    const li = document.createElement('li');
-    li.className = 'queueItem' + (state.activeStoryId === s.id ? ' queueActive' : '');
+  const votes = Object.values(state.users || {})
+    // Supports servers that store real votes in a different field
+    .map((u) => u.voteValue ?? u.actualVote ?? u.vote)
+    .filter((v) => v != null && !Number.isNaN(Number(v)))
+    .map(Number)
+    .sort((a, b) => a - b);
 
-    const ptsText = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
+  if (!votes.length) {
+    r.innerHTML = '<div class="hint">No votes recorded.</div>';
+    return;
+  }
 
-    const left = document.createElement('div');
-    left.className = 'queueLeft';
-    left.innerHTML =
-      `<div class="queueTitleRow">` +
-      `<span class="queueTitle">${escapeHtml(s.title)}</span>` +
-      `<span class="queuePoints">${escapeHtml(ptsText)}</span>` +
-      `</div>` +
-      `<div class="queueMeta">${state.activeStoryId === s.id ? 'Active Story' : ''}</div>`;
+  const min = votes[0];
+  const max = votes[votes.length - 1];
+  const avg = (votes.reduce((a, b) => a + b, 0) / votes.length).toFixed(1);
+  const median = votes.length % 2
+    ? votes[(votes.length - 1) / 2]
+    : ((votes[votes.length / 2 - 1] + votes[votes.length / 2]) / 2).toFixed(1);
 
-    const actions = document.createElement('div');
-    actions.className = 'queueActions';
+  const final = state.story?.finalPoints
+    ? `<div><b>Final</b>: ${escapeHtml(state.story.finalPoints)}</div>`
+    : '';
 
-    if (s.link) {
-      const a = document.createElement('a');
-      a.className = 'queueBtn queueLinkBtn';
-      a.textContent = '🔗';
-      a.href = normalizeUrl(s.link);
-      a.target = '_blank';
-      a.rel = 'noreferrer noopener';
-      a.title = 'Open Link';
-      actions.appendChild(a);
-    }
-
-    if (state.youAreModerator) {
-      const setBtn = document.createElement('button');
-      setBtn.className = 'queueBtn primary';
-      setBtn.textContent = 'Set Active';
-      setBtn.disabled = state.activeStoryId === s.id;
-      setBtn.onclick = () =>
-        socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: s.id });
-
-      const rmBtn = document.createElement('button');
-      rmBtn.className = 'queueBtn';
-      rmBtn.textContent = 'Remove';
-      rmBtn.onclick = () =>
-        socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: s.id });
-
-      actions.appendChild(setBtn);
-      actions.appendChild(rmBtn);
-    }
-
-    li.appendChild(left);
-    li.appendChild(actions);
-    list.appendChild(li);
-  });
+  r.innerHTML =
+    `<div class="summary">` +
+      `${final}` +
+      `<div><b>Min</b>: ${min}</div>` +
+      `<div><b>Max</b>: ${max}</div>` +
+      `<div><b>Avg</b>: ${avg}</div>` +
+      `<div><b>Median</b>: ${median}</div>` +
+    `</div>`;
+};
 }
