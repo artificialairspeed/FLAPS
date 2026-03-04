@@ -6,19 +6,21 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
   <!-- (Best as an HTTP header) CSP fallback for static hosting -->
-  <meta http-equiv="Content-Security-Policy"
-    content="
-      default-src 'self';
-      script-src 'self' https://flaps-production.up.railway.app;
-      style-src 'self' 'unsafe-inline';
-      img-src 'self' data:;
-      connect-src 'self' https://flaps-production.up.railway.app;
-      font-src 'self';
-      frame-ancestors 'none';
-      base-uri 'none';
-      form-action 'none';
-      upgrade-insecure-requests;
-    ">
+<meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    script-src 'self' https://flaps-production.up.railway.app;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    connect-src 'self'
+      https://flaps-production.up.railway.app
+      wss://flaps-production.up.railway.app;
+    font-src 'self';
+    frame-ancestors 'none';
+    base-uri 'none';
+    form-action 'none';
+    upgrade-insecure-requests;
+  ">
   <!-- Performance -->
   <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
   <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
@@ -151,7 +153,7 @@
   </main>
 
   <!-- Load Socket.IO client from your Railway backend (must come before app.js) -->
-  <script defer src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
+  <script defer src="https://flaps-development.up.railway.app/socket.io/socket.io.js"></script>
   <!-- App client code -->
   <script defer src="./app.js"></script>
 </body>
