@@ -3,16 +3,6 @@
 // ---------- DOM helpers ----------
 const el = (id) => document.getElementById(id);
 
-function show(id) {
-  const n = el(id);
-  if (n) n.classList.remove("hidden");
-}
-
-function hide(id) {
-  const n = el(id);
-  if (n) n.classList.add("hidden");
-}
-
 function setDisabled(id, v) {
   const n = el(id);
   if (n && "disabled" in n) n.disabled = !!v;
@@ -25,9 +15,7 @@ function normalizeUrl(raw) {
   try {
     const u = new URL(s.match(/^https?:\/\//i) ? s : `https://${s}`);
     if (u.protocol === "http:" || u.protocol === "https:") return u.toString();
-  } catch {
-    // ignore
-  }
+  } catch {}
   return "";
 }
 
@@ -48,40 +36,11 @@ function setPill(target, text, kind = "") {
   pill.classList.toggle("warn", kind === "warn");
 }
 
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const t = document.createElement("textarea");
-    t.value = text;
-    t.setAttribute("readonly", "");
-    t.style.position = "fixed";
-    t.style.opacity = "0";
-    document.body.appendChild(t);
-    t.select();
-    try { document.execCommand("copy"); } catch { /* ignore */ }
-    t.remove();
-  }
-}
-
-function setShareLinks(roomId, mk) {
-  const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
-  const participant = base;
-  const facilitator = `${base}?mod=${encodeURIComponent(mk)}`;
-
-  const p = el("shareParticipant");
-  const m = el("shareMod");
-
-  if (p) { p.textContent = participant; p.href = participant; }
-  if (m) { m.textContent = facilitator; m.href = facilitator; }
-
-  el("copyParticipantBtn")?.addEventListener("click", () => copyToClipboard(participant));
-  el("copyModBtn")?.addEventListener("click", () => copyToClipboard(facilitator));
-}
-
 // ---------- Deck rules ----------
-const HIDDEN_CARDS = new Set(["0.5", "89", "55"]); // added 55 as safety net
 const COFFEE_CARD = "☕";
+
+// (Optional safety net if any old rooms still have legacy values)
+const HIDDEN_CARDS = new Set(["0.5", "89", "55", "0"]);
 
 function toCardString(v) {
   return String(v ?? "").trim();
@@ -105,6 +64,7 @@ function buildVotingDeck(deck) {
       .filter((v) => v && !HIDDEN_CARDS.has(v))
   );
 
+  // Ensure coffee exists
   if (!base.includes(COFFEE_CARD)) base.push(COFFEE_CARD);
   return base;
 }
@@ -114,7 +74,7 @@ function buildFinalizeDeck(deck) {
     .map(toCardString)
     .filter((v) => v && !HIDDEN_CARDS.has(v));
 
-  // numeric only; coffee + '?' automatically excluded
+  // numeric only (excludes ? and ☕)
   const numericOnly = filtered.filter((v) => Number.isFinite(Number(v)));
   return uniquePreserveOrder(numericOnly);
 }
@@ -131,56 +91,6 @@ let lastState = null;
   modKey = url.searchParams.get("mod") ?? null;
   if (currentRoom) el("roomId").value = currentRoom;
 })();
-
-// ---------- Remember my name ----------
-(function loadSavedName() {
-  try {
-    const saved = localStorage.getItem("flaps_name");
-    if (saved) el("name").value = saved;
-  } catch { /* ignore */ }
-})();
-
-function saveName(name) {
-  try { if (name) localStorage.setItem("flaps_name", name); } catch { /* ignore */ }
-}
-
-// ---------- Initial View: layout & gating ----------
-function applyInitialRoleView() {
-  const hasRoomInUrl = !!currentRoom;
-  const hasMod = !!modKey;
-
-  show("name");
-  show("joinBtn");
-
-  if (!hasRoomInUrl) {
-    show("roomId");
-    show("createRoomBtn");
-    setDisabled("roomId", false);
-    setDisabled("createRoomBtn", false);
-    return;
-  }
-
-  el("roomId").value = currentRoom;
-
-  if (hasMod) {
-    show("roomId");
-    show("createRoomBtn");
-    setDisabled("roomId", true);
-    setDisabled("createRoomBtn", true);
-  } else {
-    hide("roomId");
-    hide("createRoomBtn");
-  }
-}
-
-applyInitialRoleView();
-
-// Enter key submits Join
-["roomId", "name"].forEach((id) => {
-  el(id)?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") el("joinBtn")?.click();
-  });
-});
 
 // ---------- Socket.IO ----------
 const socket = io();
@@ -203,7 +113,6 @@ el("joinBtn")?.addEventListener("click", () => {
     return;
   }
 
-  saveName(nameVal);
   setPill("modePill", "Joining...", "");
   socket.emit("room:join", { roomId, name: nameVal, modKey });
 });
@@ -232,6 +141,7 @@ el("addToQueueBtn")?.addEventListener("click", () => {
   }
 
   socket.emit("storyQueue:add", { roomId: currentRoom, story: { title, desc, link } });
+
   el("storyTitle").value = "";
   el("storyDesc").value = "";
   el("storyLink").value = "";
@@ -274,17 +184,15 @@ socket.on("room:created", ({ roomId, modKey: createdModKey }) => {
   window.history.replaceState({}, "", newUrl);
 
   el("roomId").value = roomId;
-
-  setShareLinks(roomId, modKey);
-  show("shareBox");
-
   setPill("modePill", `Room ${roomId} created`, "good");
-  applyInitialRoleView();
 });
 
 socket.on("room:state", (state) => {
   lastState = state;
   currentRoom = state.roomId;
+
+  // Debug: confirm you receive activeStoryId changes
+  console.log("[room:state] activeStoryId =", state.activeStoryId);
 
   setPill("modePill", state.youAreModerator ? "Facilitator" : "Participant", "good");
   setPill(
@@ -292,18 +200,6 @@ socket.on("room:state", (state) => {
     state.phase === "revealed" ? "Revealed" : "Voting",
     state.phase === "revealed" ? "warn" : "good"
   );
-
-  const hint = el("modHint");
-  if (hint) {
-    hint.textContent = state.youAreModerator
-      ? "You are the facilitator. You can Reveal / Clear, manage queue, and finalize."
-      : "Waiting for facilitator actions.";
-  }
-
-  if (state.youAreModerator && modKey) {
-    setShareLinks(state.roomId, modKey);
-    show("shareBox");
-  }
 
   // Users
   const usersArr = Object.values(state.users ?? {});
@@ -321,12 +217,30 @@ socket.on("room:state", (state) => {
     }
   }
 
+  // Story panel
+  const storyView = el("storyView");
+  if (storyView) {
+    const title = escapeHtml(state.story?.title ?? "");
+    const desc = escapeHtml(state.story?.desc ?? "");
+    const link = normalizeUrl(state.story?.link ?? "");
+    const fp = state.story?.finalPoints
+      ? `<span class="pointsBadge">${escapeHtml(state.story.finalPoints)}</span>`
+      : "";
+
+    const linkHtml = link
+      ? `<div class="storyLink"><a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link)}</a></div>`
+      : `<div class="storyLink"></div>`;
+
+    storyView.innerHTML = `
+      <div class="storyTitle">${title}${fp}</div>
+      <div class="storyDesc">${desc}</div>
+      ${linkHtml}
+    `;
+  }
+
   // Deck + finalize select
   renderDeck(state.deck ?? [], state.phase);
   populateFinalSelect(state.deck ?? []);
-
-  // Results summary
-  renderResults(state);
 
   // Queue
   renderQueue(state.storyQueue ?? [], state.activeStoryId, !!state.youAreModerator);
@@ -390,114 +304,92 @@ function populateFinalSelect(deck) {
   if (current && finalOpts.includes(current)) sel.value = current;
 }
 
-function renderResults(state) {
-  const r = el("results");
-  if (!r) return;
-
-  if (state.phase !== "revealed") {
-    r.innerHTML = '<div class="hint">Votes are hidden until the facilitator reveals.</div>';
-    return;
-  }
-
-  // Only numeric votes count (☕ and ? are ignored automatically)
-  const votes = Object.values(state.users || {})
-    .map((u) => u.vote)
-    .filter((v) => v != null && Number.isFinite(Number(v)))
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  if (!votes.length) {
-    r.innerHTML = '<div class="hint">No numeric votes recorded.</div>';
-    return;
-  }
-
-  const min = votes[0];
-  const max = votes[votes.length - 1];
-  const avg = (votes.reduce((a, b) => a + b, 0) / votes.length).toFixed(1);
-  const median = votes.length % 2
-    ? votes[(votes.length - 1) / 2]
-    : ((votes[votes.length / 2 - 1] + votes[votes.length / 2]) / 2).toFixed(1);
-
-  const final = state.story?.finalPoints
-    ? `<div><b>Final</b>: ${escapeHtml(state.story.finalPoints)}</div>`
-    : "";
-
-  r.innerHTML =
-    `<div class="summary">` +
-    `${final}` +
-    `<div><b>Min</b>: ${min}</div>` +
-    `<div><b>Max</b>: ${max}</div>` +
-    `<div><b>Avg</b>: ${avg}</div>` +
-    `<div><b>Median</b>: ${median}</div>` +
-    `</div>`;
-}
-
 function renderQueue(queue, activeId, canManage) {
-  const ul = el('storyQueueList');
+  const ul = el("storyQueueList");
   if (!ul) return;
 
-  ul.innerHTML = '';
+  ul.innerHTML = "";
+
+  if (!queue.length) {
+    const li = document.createElement("li");
+    li.className = "queueItem";
+    li.innerHTML =
+      '<div class="queueLeft"><div class="queueTitleRow"><span class="queueTitle">No Stories In Queue</span></div></div>';
+    ul.appendChild(li);
+    return;
+  }
 
   for (const item of queue) {
-    const li = document.createElement('li');
-    li.className = 'queueItem' + (item.id === activeId ? ' queueActive' : '');
+    const li = document.createElement("li");
+    li.className = "queueItem" + (item.id === activeId ? " queueActive" : "");
 
-    const left = document.createElement('div');
-    left.className = 'queueLeft';
+    const left = document.createElement("div");
+    left.className = "queueLeft";
 
-    const titleRow = document.createElement('div');
-    titleRow.className = 'queueTitleRow';
+    const titleRow = document.createElement("div");
+    titleRow.className = "queueTitleRow";
 
-    const title = document.createElement('div');
-    title.className = 'queueTitle';
+    const title = document.createElement("div");
+    title.className = "queueTitle";
     title.textContent = item.title;
 
-    const badge = document.createElement('div');
-    badge.className = 'queuePoints';
-    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : '—';
+    const badge = document.createElement("div");
+    badge.className = "queuePoints";
+    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : "—";
 
     titleRow.appendChild(title);
     titleRow.appendChild(badge);
 
-    const meta = document.createElement('div');
-    meta.className = 'queueMeta';
-    meta.textContent = item.link ? item.link : '';
+    const meta = document.createElement("div");
+    meta.className = "queueMeta";
+    meta.textContent = item.id === activeId ? "Active Story" : "";
 
     left.appendChild(titleRow);
     left.appendChild(meta);
 
-    const actions = document.createElement('div');
-    actions.className = 'queueActions';
+    const actions = document.createElement("div");
+    actions.className = "queueActions";
 
     if (item.link) {
-      const a = document.createElement('a');
-      a.className = 'queueBtn queueLinkBtn';
-      a.href = item.link;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = '↗';
+      const a = document.createElement("a");
+      a.className = "queueBtn queueLinkBtn";
+      a.href = normalizeUrl(item.link);
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = "↗";
       actions.appendChild(a);
     }
 
     if (canManage) {
-      const setActive = document.createElement('button');
-      setActive.className = 'queueBtn';
-      setActive.type = 'button';
-      setActive.textContent = 'Set Active';
-      setActive.addEventListener('click', () => {
-        socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: item.id });
-      });
+      const setActive = document.createElement("button");
+      setActive.className = "queueBtn";
+      setActive.type = "button";
+      setActive.textContent = "Set Active";
+      setActive.disabled = item.id === activeId;
 
-      const remove = document.createElement('button');
-      remove.className = 'queueBtn';
-      remove.type = 'button';
-      remove.textContent = 'Remove';
-      remove.addEventListener('click', () => {
-        socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: item.id });
+      setActive.addEventListener("click", () => {
+        if (!currentRoom) {
+          setPill("modePill", "No room joined", "warn");
+          return;
+        }
+
+        setPill("modePill", "Setting active story...", "");
+
+        // ✅ ACK: server tells us if it got the request and why it failed
+        socket.emit(
+          "storyQueue:setActive",
+          { roomId: currentRoom, storyId: item.id },
+          (res) => {
+            if (!res?.ok) {
+              setPill("modePill", res?.reason || "Failed to set active story", "warn");
+            } else {
+              setPill("modePill", "Active story set", "good");
+            }
+          }
+        );
       });
 
       actions.appendChild(setActive);
-      actions.appendChild(remove);
     }
 
     li.appendChild(left);
