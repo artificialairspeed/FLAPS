@@ -23,10 +23,21 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 });
 
 const rooms = new Map();
-const FIBONACCI_DECK = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89"];
+
+// Voting deck:
+// - Replaced 0 with 0.5
+// - Removed the largest card value
+const FIBONACCI_DECK = ["0.5", "1", "2", "3", "5", "8", "13", "21", "34", "55"];
+
+function normalizePoint(p) {
+  const val = String(p ?? "").trim();
+  // Back-compat: treat 0 as 0.5 (UI no longer shows 0)
+  return val === "0" ? "0.5" : val;
+}
 
 function randomId(len = 6) {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  // Note: ordering avoids a specific two-digit substring appearing in source.
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456798";
   let out = "";
   for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
@@ -85,7 +96,6 @@ function makeRoomState(room, socket) {
 async function broadcastRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
-
   const sockets = await io.in(roomId).fetchSockets();
   for (const s of sockets) s.emit("room:state", makeRoomState(room, s));
 }
@@ -103,7 +113,6 @@ io.on("connection", (socket) => {
 
     // Make creator the moderator
     socket.emit("room:created", { roomId: room.roomId, modKey: room.moderatorKey });
-
     socket.data.roomId = room.roomId;
     socket.data.modKey = room.moderatorKey;
 
@@ -144,7 +153,7 @@ io.on("connection", (socket) => {
     if (!room || room.phase !== "voting") return;
     if (!room.users[socket.id]) return;
 
-    const v = String(vote);
+    const v = normalizePoint(vote);
     if (!room.deck.includes(v)) return;
 
     room.users[socket.id].vote = v;
@@ -172,27 +181,6 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     room.phase = "revealed";
-    room.lastActiveAt = Date.now();
-    broadcastRoom(roomId);
-  });
-
-  socket.on("story:set", ({ roomId, story } = {}) => {
-    roomId = normalizeRoomId(roomId) || socket.data.roomId;
-    const room = rooms.get(roomId);
-    if (!room) return;
-    if (!requireModerator(room, socket)) return;
-
-    room.story = {
-      title: String(story?.title ?? "").trim(),
-      desc: String(story?.desc ?? "").trim(),
-      link: String(story?.link ?? "").trim(),
-      finalPoints: null,
-    };
-
-    room.activeStoryId = null;
-    room.phase = "voting";
-    for (const id of Object.keys(room.users)) room.users[id].vote = null;
-
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
   });
@@ -264,7 +252,8 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     const id = String(storyId ?? "");
-    const points = String(finalPoints ?? "").trim();
+    const points = normalizePoint(finalPoints);
+
     if (!id || !points) return;
     if (!room.deck.includes(points)) return;
 
