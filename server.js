@@ -21,12 +21,13 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 
 const rooms = new Map();
 
-// ✅ Deck updates:
+// ✅ Deck updates per request:
 // - Removed "89"
-// - Removed "0.5" (we use "0" instead)
+// - Removed "55"
+// - Replaced "0" with "?" (non-numeric, selectable)
 // - Added coffee card "☕" (non-numeric, selectable)
 const COFFEE_CARD = "☕";
-const FIBONACCI_DECK = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55"];
+const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34"]; // no 55
 const ROOM_DECK = [...FIBONACCI_DECK, COFFEE_CARD];
 
 function randomId(len = 6) {
@@ -159,7 +160,7 @@ io.on("connection", (socket) => {
     const v = String(vote ?? "").trim();
     if (!v) return;
 
-    // Only allow votes that exist in the deck (includes ☕)
+    // Only allow votes that exist in the deck (includes ? and ☕)
     if (!room.deck.includes(v)) return;
 
     room.users[socket.id].vote = v;
@@ -282,8 +283,8 @@ io.on("connection", (socket) => {
     const points = String(finalPoints || "").trim();
     if (!id || !points) return;
 
-    // ✅ Final points must be numeric AND in the deck.
-    // This prevents ☕ from ever being finalized (even if a client tries).
+    // Final points must be numeric AND in the deck
+    // This prevents ☕ and ? from ever being finalized.
     if (!isFiniteNumberString(points)) return;
     if (!room.deck.includes(points)) return;
 
@@ -322,3 +323,4 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`${APP_NAME} running at http://localhost:${PORT}`));
+``
