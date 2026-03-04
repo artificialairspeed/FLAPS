@@ -6,7 +6,7 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
 
-  <!-- CSP fallback for static hosting (note: frame-ancestors must be set via HTTP header) -->
+  <!-- CSP fallback for static hosting (frame-ancestors must be sent via HTTP response header) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -65,8 +65,10 @@
         <h2 id="storyHeader">Story</h2>
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
+
       <!-- Selected Story FIRST -->
       <div id="storyView" class="storyView"></div>
+
       <!-- Queue SECOND, Inputs THIRD -->
       <div class="storyForm">
         <div class="queueHeader">Story Queue</div>
@@ -90,11 +92,14 @@
         <h2 id="voteHeader">Vote</h2>
         <span id="phasePill" class="pill" aria-live="polite">—</span>
       </div>
+
       <div id="deck" class="deck" role="group" aria-label="Estimation Cards"></div>
+
       <div class="controls">
         <button id="revealBtn" class="primary" type="button">Reveal</button>
         <button id="clearBtn" type="button">Clear / Revote</button>
       </div>
+
       <div class="voteBottom">
         <div class="finalizeRow">
           <label class="vh" for="finalPointsSelect">Finalize Points</label>
@@ -135,62 +140,8 @@
 
   <!-- Load Socket.IO client from your Railway backend (must come before app.js) -->
   <script defer src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
+
   <!-- App client code -->
   <script defer src="/app.js"></script>
 </body>
-</html>        <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
-      </div>
-      <!-- Selected Story FIRST -->
-      <div id="storyView" class="storyView"></div>
-      <!-- Queue SECOND, Inputs THIRD -->
-      <div class="storyForm">
-        <div class="queueHeader">Story Queue</div>
-        <div class="queueListWrap">
-          <ul id="storyQueueList" class="queueList"></ul>
-        </div>
-        <label class="vh" for="storyTitle">Story Title</label>
-        <input id="storyTitle" placeholder="Story Title" />
-        <label class="vh" for="storyDesc">Story Description</label>
-        <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
-        <label class="vh" for="storyLink">Story Link</label>
-        <input id="storyLink" placeholder="Link (optional)" />
-        <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
-        <div id="modHint" class="hint"></div>
-      </div>
-    </section>
-
-    <!-- Vote -->
-    <section class="card" aria-labelledby="voteHeader">
-      <div class="cardHeader">
-        <h2 id="voteHeader">Vote</h2>
-        <span id="phasePill" class="pill" aria-live="polite">—</span>
-      </div>
-      <div id="deck" class="deck" role="group" aria-label="Estimation Cards"></div>
-      <div class="controls">
-        <button id="revealBtn" class="primary" type="button">Reveal</button>
-        <button id="clearBtn" type="button">Clear / Revote</button>
-      </div>
-      <div class="voteBottom">
-        <div class="finalizeRow">
-          <label class="vh" for="finalPointsSelect">Finalize Points</label>
-          <select id="finalPointsSelect" aria-label="Finalize Points"></select>
-          <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
-        </div>
-        <div id="results" class="results" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <!-- Participants -->
-    <section class="card" aria-labelledby="participantsHeader">
-      <div class="cardHeader">
-        <h2 id="participantsHeader">Participants</h2>
-        <span id="countPill" class="pill">0</span>
-      </div>
-      <ul id="users" class="users"></ul>
-    </section>
-
-    <!-- Share links (visible to facilitators only) -->
-    <section class="share card hidden" id="shareBox" aria-labelledby="shareHeading">
-      <h2 id="shareHeading" class="vh">Room Links</h2>
-      <div class="shareRow">
-        <div class="shareLabel">Participant Link</div>
+</html>
