@@ -6,7 +6,7 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
 
-  <!-- (Best as an HTTP response header) Fallback CSP for local/static hosting -->
+  <!-- (Best as an HTTP header) CSP fallback for static hosting -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -21,6 +21,10 @@
           upgrade-insecure-requests;
         ">
 
+  <!-- Performance -->
+  <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
+  <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
+
   <!-- Styles -->
   <link rel="stylesheet" href="./styles.css" />
 
@@ -28,9 +32,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
   <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-
-  <!-- Performance hint for socket origin -->
-  <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
 </head>
 <body>
   <noscript>
@@ -42,8 +43,7 @@
   <header>
     <div class="brand">
       <div class="logo" aria-hidden="true">
-        <!-- Define intrinsic size to avoid layout shift -->
-        <img class="logoImg" src="./logo.png" alt="" width="40" height="40" loading="lazy" decoding="async" />
+        <img class="logoImg" src="./logo.png" alt="" loading="lazy" width="40" height="40" />
       </div>
       <div><h1>FLAPS — Fibonacci Lean Agile Pointing System</h1></div>
     </div>
@@ -147,9 +147,9 @@
     </section>
   </main>
 
-  <!-- Load Socket.IO client from your Railway backend -->
-  <script src="https://flaps-production.up.railway.app/socket.io/socket.io.js" defer></script>
+  <!-- Load Socket.IO client from your Railway backend (must come before app.js) -->
+  <script defer src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
   <!-- App client code -->
-  <script src="./app.js" defer></script>
+  <script defer src="./app.js"></script>
 </body>
 </html>
