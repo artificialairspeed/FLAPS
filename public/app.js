@@ -445,21 +445,25 @@ function renderResults(state) {
   r.innerHTML = '';
   r.appendChild(summary);
 }
-
 function renderQueue(state) {
   const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];
-  const list = el('storyQueueList'); list.innerHTML = '';
+  const list = el('storyQueueList'); 
+  list.innerHTML = '';
 
   if (!queue.length) {
     const li = document.createElement('li');
     li.className = 'queueItem';
+
     const left = document.createElement('div');
     left.className = 'queueLeft';
+
     const row = document.createElement('div');
     row.className = 'queueTitleRow';
+
     const title = document.createElement('span');
     title.className = 'queueTitle';
     title.textContent = 'No Stories In Queue';
+
     row.appendChild(title);
     left.appendChild(row);
     li.appendChild(left);
@@ -469,4 +473,72 @@ function renderQueue(state) {
 
   const frag = document.createDocumentFragment();
 
-  queue.forEach((s)=>{
+  queue.forEach((s) => {
+    const li = document.createElement('li');
+    li.className = 'queueItem' + (state.activeStoryId === s.id ? ' queueActive' : '');
+
+    const left = document.createElement('div');
+    left.className = 'queueLeft';
+
+    const titleRow = document.createElement('div');
+    titleRow.className = 'queueTitleRow';
+
+    const title = document.createElement('span');
+    title.className = 'queueTitle';
+    title.textContent = s.title;
+
+    const points = document.createElement('span');
+    points.className = 'queuePoints';
+    points.textContent = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
+
+    titleRow.appendChild(title);
+    titleRow.appendChild(points);
+    left.appendChild(titleRow);
+
+    const meta = document.createElement('div');
+    meta.className = 'queueMeta';
+    meta.textContent = (state.activeStoryId === s.id ? 'Active Story' : '');
+    left.appendChild(meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'queueActions';
+
+    if (s.link) {
+      const safe = normalizeUrl(s.link);
+      if (safe) {
+        const a = document.createElement('a');
+        a.className = 'queueBtn queueLinkBtn';
+        a.href = safe;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.title = 'Open Link';
+        a.textContent = '🔗';
+        actions.appendChild(a);
+      }
+    }
+
+    if (state.youAreModerator) {
+      const setBtn = document.createElement('button');
+      setBtn.className = 'queueBtn primary';
+      setBtn.type = 'button';
+      setBtn.textContent = 'Set Active';
+      setBtn.disabled = state.activeStoryId === s.id;
+      setBtn.onclick = () => socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: s.id });
+
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'queueBtn';
+      rmBtn.type = 'button';
+      rmBtn.textContent = 'Remove';
+      rmBtn.onclick = () => socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: s.id });
+
+      actions.appendChild(setBtn);
+      actions.appendChild(rmBtn);
+    }
+
+    li.appendChild(left);
+    li.appendChild(actions);
+    frag.appendChild(li);
+  });
+
+  list.appendChild(frag);
+}
