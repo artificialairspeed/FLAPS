@@ -21,13 +21,14 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 
 const rooms = new Map();
 
-// ✅ Deck updates per request:
-// - Removed "89"
-// - Removed "55"
-// - Replaced "0" with "?" (non-numeric, selectable)
-// - Added coffee card "☕" (non-numeric, selectable)
+// Deck updates:
+// - removed 0.5 (never existed server-side, was client normalization before)
+// - removed 89
+// - removed 55
+// - replaced 0 with "?" (non-numeric)
+// - added ☕ (non-numeric)
 const COFFEE_CARD = "☕";
-const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34"]; // no 55
+const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34"];
 const ROOM_DECK = [...FIBONACCI_DECK, COFFEE_CARD];
 
 function randomId(len = 6) {
@@ -98,10 +99,9 @@ async function broadcastRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
 
+  // Per-socket state because moderator view differs per user
   const sockets = await io.in(roomId).fetchSockets();
-  for (const s of sockets) {
-    s.emit("room:state", makeRoomState(room, s));
-  }
+  for (const s of sockets) s.emit("room:state", makeRoomState(room, s));
 }
 
 function requireModerator(room, socket) {
@@ -159,8 +159,6 @@ io.on("connection", (socket) => {
 
     const v = String(vote ?? "").trim();
     if (!v) return;
-
-    // Only allow votes that exist in the deck (includes ? and ☕)
     if (!room.deck.includes(v)) return;
 
     room.users[socket.id].vote = v;
@@ -188,27 +186,6 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     room.phase = "revealed";
-    room.lastActiveAt = Date.now();
-    broadcastRoom(roomId);
-  });
-
-  socket.on("story:set", ({ roomId, story } = {}) => {
-    roomId = normalizeRoomId(roomId) || socket.data.roomId;
-    const room = rooms.get(roomId);
-    if (!room) return;
-    if (!requireModerator(room, socket)) return;
-
-    room.story = {
-      title: String(story?.title || "").trim(),
-      desc: String(story?.desc || "").trim(),
-      link: String(story?.link || "").trim(),
-      finalPoints: null
-    };
-
-    room.activeStoryId = null;
-    room.phase = "voting";
-    for (const id of Object.keys(room.users)) room.users[id].vote = null;
-
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
   });
@@ -248,15 +225,27 @@ io.on("connection", (socket) => {
     broadcastRoom(roomId);
   });
 
-  socket.on("storyQueue:setActive", ({ roomId, storyId } = {}) => {
+  // ✅ ADD ACK + REASONS HERE
+  socket.on("storyQueue:setActive", ({ roomId, storyId } = {}, ack) => {
     roomId = normalizeRoomId(roomId) || socket.data.roomId;
     const room = rooms.get(roomId);
-    if (!room) return;
-    if (!requireModerator(room, socket)) return;
+
+    if (!room) {
+      if (typeof ack === "function") ack({ ok: false, reason: "Room not found" });
+      return;
+    }
+    if (!requireModerator(room, socket)) {
+      if (typeof ack === "function") ack({ ok: false, reason: "Not facilitator / moderator" });
+      return;
+    }
 
     const id = String(storyId || "");
     const found = room.storyQueue.find((s) => s.id === id);
-    if (!found) return;
+
+    if (!found) {
+      if (typeof ack === "function") ack({ ok: false, reason: "Story not found in queue" });
+      return;
+    }
 
     room.activeStoryId = id;
     room.story = {
@@ -271,6 +260,8 @@ io.on("connection", (socket) => {
 
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
+
+    if (typeof ack === "function") ack({ ok: true });
   });
 
   socket.on("storyQueue:finalize", ({ roomId, storyId, finalPoints } = {}) => {
@@ -283,8 +274,7 @@ io.on("connection", (socket) => {
     const points = String(finalPoints || "").trim();
     if (!id || !points) return;
 
-    // Final points must be numeric AND in the deck
-    // This prevents ☕ and ? from ever being finalized.
+    // numeric-only finalization (prevents ☕ and ?)
     if (!isFiniteNumberString(points)) return;
     if (!room.deck.includes(points)) return;
 
@@ -323,4 +313,3 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`${APP_NAME} running at http://localhost:${PORT}`));
-``
