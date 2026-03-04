@@ -1,240 +1,309 @@
 /* global io */
 
-// ---------- DOM helpers ----------
+/** ---------- DOM helpers ---------- */
 const el = (id) => document.getElementById(id);
+function show(id) { const n = el(id); if (n) n.classList.remove('hidden'); }
+function hide(id) { const n = el(id); if (n) n.classList.add('hidden'); }
+function setDisabled(id, v) { const n = el(id); if (n && 'disabled' in n) n.disabled = !!v; }
 
-function setDisabled(id, v) {
-  const n = el(id);
-  if (n && "disabled" in n) n.disabled = !!v;
-}
-
-// ---------- Utilities ----------
+/** ---------- Utilities ---------- */
 function normalizeUrl(raw) {
-  const s = String(raw ?? "").trim();
-  if (!s) return "";
+  const s = String(raw ?? '').trim();
+  if (!s) return '';
   try {
     const u = new URL(s.match(/^https?:\/\//i) ? s : `https://${s}`);
-    if (u.protocol === "http:" || u.protocol === "https:") return u.toString();
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
   } catch {}
-  return "";
+  return '';
 }
 
 function escapeHtml(s) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function setPill(target, text, kind = "") {
-  const pill = typeof target === "string" ? el(target) : target;
+function setPill(target, text, kind = '') {
+  const pill = typeof target === 'string' ? el(target) : target;
   if (!pill) return;
   pill.textContent = text;
-  pill.classList.toggle("good", kind === "good");
-  pill.classList.toggle("warn", kind === "warn");
+  pill.classList.toggle('good', kind === 'good');
+  pill.classList.toggle('warn', kind === 'warn');
 }
 
-// ---------- Deck rules ----------
-const COFFEE_CARD = "☕";
-
-// (Optional safety net if any old rooms still have legacy values)
-const HIDDEN_CARDS = new Set(["0.5", "89", "55", "0"]);
-
-function toCardString(v) {
-  return String(v ?? "").trim();
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const t = document.createElement('textarea');
+    t.value = text;
+    t.setAttribute('readonly', '');
+    t.style.position = 'fixed';
+    t.style.opacity = '0';
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand('copy'); } catch {}
+    t.remove();
+  }
 }
+
+function setShareLinks(roomId, mk) {
+  const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
+  const participant = base;
+  const facilitator = `${base}?mod=${encodeURIComponent(mk)}`;
+  const p = el('shareParticipant');
+  const m = el('shareMod');
+
+  if (p) { p.textContent = participant; p.href = participant; }
+  if (m) { m.textContent = facilitator; m.href = facilitator; }
+
+  el('copyParticipantBtn')?.addEventListener('click', () => copyToClipboard(participant));
+  el('copyModBtn')?.addEventListener('click', () => copyToClipboard(facilitator));
+}
+
+/** ---------- Deck rules (client safety net) ----------
+ *  - hides legacy cards if they ever appear from old rooms
+ *  - keeps coffee selectable
+ *  - finalize dropdown is numeric-only
+ */
+const COFFEE_CARD = '☕';
+const HIDDEN_CARDS = new Set(['0.5', '89', '55', '0']); // legacy safety net
 
 function uniquePreserveOrder(arr) {
   const out = [];
   const seen = new Set();
   for (const x of arr) {
-    if (!x || seen.has(x)) continue;
-    seen.add(x);
-    out.push(x);
+    const v = String(x ?? '').trim();
+    if (!v || seen.has(v)) continue;
+    if (HIDDEN_CARDS.has(v)) continue;
+    seen.add(v);
+    out.push(v);
   }
   return out;
 }
 
 function buildVotingDeck(deck) {
-  const base = uniquePreserveOrder(
-    (Array.isArray(deck) ? deck : [])
-      .map(toCardString)
-      .filter((v) => v && !HIDDEN_CARDS.has(v))
-  );
-
-  // Ensure coffee exists
+  const base = uniquePreserveOrder(Array.isArray(deck) ? deck : []);
   if (!base.includes(COFFEE_CARD)) base.push(COFFEE_CARD);
   return base;
 }
 
 function buildFinalizeDeck(deck) {
-  const filtered = (Array.isArray(deck) ? deck : [])
-    .map(toCardString)
-    .filter((v) => v && !HIDDEN_CARDS.has(v));
-
-  // numeric only (excludes ? and ☕)
-  const numericOnly = filtered.filter((v) => Number.isFinite(Number(v)));
-  return uniquePreserveOrder(numericOnly);
+  const base = uniquePreserveOrder(Array.isArray(deck) ? deck : []);
+  return base.filter((v) => Number.isFinite(Number(v))); // numeric only (excludes ? and ☕)
 }
 
-// ---------- URL params ----------
+/** ---------- URL params ---------- */
 let currentRoom = null;
 let modKey = null;
 let lastState = null;
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
-  const parts = url.pathname.split("/").filter(Boolean);
-  if (parts[0] === "room" && parts[1]) currentRoom = parts[1].toUpperCase();
-  modKey = url.searchParams.get("mod") ?? null;
-  if (currentRoom) el("roomId").value = currentRoom;
+  const parts = url.pathname.split('/').filter(Boolean);
+  if (parts[0] === 'room' && parts[1]) currentRoom = parts[1].toUpperCase();
+  modKey = url.searchParams.get('mod') ?? null;
+  if (currentRoom) el('roomId').value = currentRoom;
 })();
 
-// ---------- Socket.IO ----------
+/** ---------- Remember my name ---------- */
+(function loadSavedName() {
+  try {
+    const saved = localStorage.getItem('flaps_name');
+    if (saved) el('name').value = saved;
+  } catch {}
+})();
+function saveName(name) {
+  try { if (name) localStorage.setItem('flaps_name', name); } catch {}
+}
+
+/** ---------- Initial View: layout & gating ---------- */
+function applyInitialRoleView() {
+  const hasRoomInUrl = !!currentRoom;
+  const hasMod = !!modKey;
+
+  show('name');
+  show('joinBtn');
+
+  if (!hasRoomInUrl) {
+    show('roomId');
+    show('createRoomBtn');
+    setDisabled('roomId', false);
+    setDisabled('createRoomBtn', false);
+    return;
+  }
+
+  el('roomId').value = currentRoom;
+
+  if (hasMod) {
+    show('roomId');
+    show('createRoomBtn');
+    setDisabled('roomId', true);
+    setDisabled('createRoomBtn', true);
+  } else {
+    hide('roomId');
+    hide('createRoomBtn');
+  }
+}
+applyInitialRoleView();
+
+// Enter key submits Join
+['roomId', 'name'].forEach((id) => {
+  el(id)?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') el('joinBtn')?.click();
+  });
+});
+
+/** ---------- Socket.IO (same-origin) ---------- */
 const socket = io();
 
-// ---------- Client → Server actions ----------
-el("createRoomBtn")?.addEventListener("click", () => {
-  const desiredRoomId = (el("roomId").value ?? "").trim().toUpperCase();
-  const nameVal = (el("name").value ?? "").trim() || "Facilitator";
-  setPill("modePill", "Creating room...", "");
-  socket.emit("room:create", { desiredRoomId, name: nameVal });
+/** ---------- Client → Server actions ---------- */
+el('createRoomBtn')?.addEventListener('click', () => {
+  const desiredRoomId = (el('roomId').value ?? '').trim().toUpperCase();
+  const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
+  saveName(nameVal);
+  setPill('modePill', 'Creating room...', '');
+  socket.emit('room:create', { desiredRoomId, name: nameVal });
 });
 
-el("joinBtn")?.addEventListener("click", () => {
-  const roomId = ((el("roomId").value ?? "").trim().toUpperCase()) || currentRoom;
-  const nameVal = (el("name").value ?? "").trim() || "Anonymous";
+el('joinBtn')?.addEventListener('click', () => {
+  const roomId = ((el('roomId').value ?? '').trim().toUpperCase()) || currentRoom;
+  const nameVal = (el('name').value ?? '').trim() || 'Anonymous';
 
   if (!roomId) {
-    setPill("modePill", "Enter a Team Name", "warn");
-    el("roomId")?.focus();
+    setPill('modePill', 'Enter a Team Name', 'warn');
+    el('roomId')?.focus();
     return;
   }
 
-  setPill("modePill", "Joining...", "");
-  socket.emit("room:join", { roomId, name: nameVal, modKey });
+  saveName(nameVal);
+  setPill('modePill', 'Joining...', '');
+  socket.emit('room:join', { roomId, name: nameVal, modKey });
 });
 
-el("revealBtn")?.addEventListener("click", () => {
+el('revealBtn')?.addEventListener('click', () => {
   if (!currentRoom) return;
-  socket.emit("vote:reveal", { roomId: currentRoom });
+  socket.emit('vote:reveal', { roomId: currentRoom });
 });
 
-el("clearBtn")?.addEventListener("click", () => {
+el('clearBtn')?.addEventListener('click', () => {
   if (!currentRoom) return;
-  socket.emit("vote:clear", { roomId: currentRoom });
+  socket.emit('vote:clear', { roomId: currentRoom });
 });
 
-el("addToQueueBtn")?.addEventListener("click", () => {
+el('addToQueueBtn')?.addEventListener('click', () => {
   if (!currentRoom) return;
 
-  const title = (el("storyTitle")?.value ?? "").trim();
-  const desc = (el("storyDesc")?.value ?? "").trim();
-  const link = normalizeUrl((el("storyLink")?.value ?? "").trim());
+  const title = (el('storyTitle')?.value ?? '').trim();
+  const desc = (el('storyDesc')?.value ?? '').trim();
+  const link = normalizeUrl((el('storyLink')?.value ?? '').trim());
 
   if (!title) {
-    setPill("modePill", "Story title required", "warn");
-    el("storyTitle")?.focus();
+    setPill('modePill', 'Story title required', 'warn');
+    el('storyTitle')?.focus();
     return;
   }
 
-  socket.emit("storyQueue:add", { roomId: currentRoom, story: { title, desc, link } });
-
-  el("storyTitle").value = "";
-  el("storyDesc").value = "";
-  el("storyLink").value = "";
+  socket.emit('storyQueue:add', { roomId: currentRoom, story: { title, desc, link } });
+  el('storyTitle').value = '';
+  el('storyDesc').value = '';
+  el('storyLink').value = '';
 });
 
-el("finalizeEstimateBtn")?.addEventListener("click", () => {
+el('finalizeEstimateBtn')?.addEventListener('click', () => {
   if (!currentRoom) return;
 
   const storyId = lastState?.activeStoryId;
-  const finalPoints = el("finalPointsSelect")?.value;
+  const finalPoints = el('finalPointsSelect')?.value;
 
   if (!storyId) {
-    setPill("modePill", "Set an active story before finalizing", "warn");
-    return;
-  }
-  if (!finalPoints) {
-    setPill("modePill", "Select final points", "warn");
+    setPill('modePill', 'Set an active story before finalizing', 'warn');
     return;
   }
 
-  socket.emit("storyQueue:finalize", { roomId: currentRoom, storyId, finalPoints });
+  if (!finalPoints) {
+    setPill('modePill', 'Select final points', 'warn');
+    return;
+  }
+
+  socket.emit('storyQueue:finalize', { roomId: currentRoom, storyId, finalPoints });
 });
 
-// ---------- Server → Client events ----------
-socket.on("connect", () => {
-  setPill("modePill", "Connected (not in room)", "");
-
+/** ---------- Server → Client events ---------- */
+socket.on('connect', () => {
+  setPill('modePill', 'Connected (not in room)', '');
   // Facilitator link: auto-join
   if (currentRoom && modKey) {
-    const nameVal = (el("name").value ?? "").trim() || "Facilitator";
-    socket.emit("room:join", { roomId: currentRoom, name: nameVal, modKey });
+    const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
+    socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
   }
 });
 
-socket.on("room:created", ({ roomId, modKey: createdModKey }) => {
+socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   currentRoom = roomId;
   modKey = createdModKey;
 
   const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(modKey)}`;
-  window.history.replaceState({}, "", newUrl);
+  window.history.replaceState({}, '', newUrl);
+  el('roomId').value = roomId;
 
-  el("roomId").value = roomId;
-  setPill("modePill", `Room ${roomId} created`, "good");
+  setShareLinks(roomId, modKey);
+  show('shareBox');
+
+  setPill('modePill', `Room ${roomId} created`, 'good');
+  applyInitialRoleView();
 });
 
-socket.on("room:state", (state) => {
+socket.on('room:state', (state) => {
   lastState = state;
   currentRoom = state.roomId;
 
-  // Debug: confirm you receive activeStoryId changes
-  console.log("[room:state] activeStoryId =", state.activeStoryId);
+  setPill('modePill', state.youAreModerator ? 'Facilitator' : 'Participant', 'good');
+  setPill('votePill', state.phase === 'revealed' ? 'Revealed' : 'Voting', state.phase === 'revealed' ? 'warn' : 'good');
 
-  setPill("modePill", state.youAreModerator ? "Facilitator" : "Participant", "good");
-  setPill(
-    "votePill",
-    state.phase === "revealed" ? "Revealed" : "Voting",
-    state.phase === "revealed" ? "warn" : "good"
-  );
+  const hint = el('modHint');
+  if (hint) {
+    hint.textContent = state.youAreModerator
+      ? 'You are the facilitator. You can Reveal / Clear, manage queue, and finalize.'
+      : 'Waiting for facilitator actions.';
+  }
+
+  if (state.youAreModerator && modKey) {
+    setShareLinks(state.roomId, modKey);
+    show('shareBox');
+  }
 
   // Users
   const usersArr = Object.values(state.users ?? {});
-  if (el("usersPill")) el("usersPill").textContent = String(usersArr.length);
+  if (el('usersPill')) el('usersPill').textContent = String(usersArr.length);
 
-  const usersList = el("usersList");
+  const usersList = el('usersList');
   if (usersList) {
-    usersList.innerHTML = "";
+    usersList.innerHTML = '';
     for (const u of usersArr) {
-      const li = document.createElement("li");
-      li.innerHTML =
-        `<span class="uname">${escapeHtml(u.name)}</span>` +
-        `<span class="ustatus">${escapeHtml(u.vote ?? "")}</span>`;
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="uname">${escapeHtml(u.name)}</span><span class="ustatus">${escapeHtml(u.vote ?? '')}</span>`;
       usersList.appendChild(li);
     }
   }
 
   // Story panel
-  const storyView = el("storyView");
+  const storyView = el('storyView');
   if (storyView) {
-    const title = escapeHtml(state.story?.title ?? "");
-    const desc = escapeHtml(state.story?.desc ?? "");
-    const link = normalizeUrl(state.story?.link ?? "");
-    const fp = state.story?.finalPoints
-      ? `<span class="pointsBadge">${escapeHtml(state.story.finalPoints)}</span>`
-      : "";
+    const title = escapeHtml(state.story?.title ?? '');
+    const desc = escapeHtml(state.story?.desc ?? '');
+    const link = normalizeUrl(state.story?.link ?? '');
+    const fp = state.story?.finalPoints ? `<span class="pointsBadge">${escapeHtml(state.story.finalPoints)}</span>` : '';
 
-    const linkHtml = link
-      ? `<div class="storyLink"><a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link)}</a></div>`
-      : `<div class="storyLink"></div>`;
+    const linkHtml = link ? `${escapeHtml(link)}${escapeHtml(link)}</a>` : '';
 
     storyView.innerHTML = `
       <div class="storyTitle">${title}${fp}</div>
       <div class="storyDesc">${desc}</div>
-      ${linkHtml}
+      <div class="storyLink">${linkHtml}</div>
     `;
   }
 
@@ -242,39 +311,40 @@ socket.on("room:state", (state) => {
   renderDeck(state.deck ?? [], state.phase);
   populateFinalSelect(state.deck ?? []);
 
+  // ✅ Metrics (this is what was missing)
+  renderResults(state);
+
   // Queue
   renderQueue(state.storyQueue ?? [], state.activeStoryId, !!state.youAreModerator);
 
   // Role-based enable/disable
-  setDisabled("revealBtn", !state.youAreModerator);
-  setDisabled("clearBtn", !state.youAreModerator);
-  setDisabled("addToQueueBtn", !state.youAreModerator);
-  setDisabled("finalPointsSelect", !state.youAreModerator);
-  setDisabled("finalizeEstimateBtn", !state.youAreModerator);
+  setDisabled('revealBtn', !state.youAreModerator);
+  setDisabled('clearBtn', !state.youAreModerator);
+  setDisabled('addToQueueBtn', !state.youAreModerator);
+  setDisabled('finalPointsSelect', !state.youAreModerator);
+  setDisabled('finalizeEstimateBtn', !state.youAreModerator);
 });
 
-socket.on("connect_error", (err) => console.error("[socket] connect_error", err));
-socket.on("disconnect", (reason) => setPill("modePill", `Disconnected (${reason})`, "warn"));
+socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
+socket.on('disconnect', (reason) => setPill('modePill', `Disconnected (${reason})`, 'warn'));
 
-// ---------- Rendering helpers ----------
+/** ---------- Rendering helpers ---------- */
 function renderDeck(deck, phase) {
-  const host = el("deck");
+  const host = el('deck');
   if (!host) return;
-  host.innerHTML = "";
+  host.innerHTML = '';
 
   const shown = buildVotingDeck(deck);
-
   for (const v of shown) {
-    const btn = document.createElement("button");
-    btn.className = "deckBtn";
-    btn.type = "button";
+    const btn = document.createElement('button');
+    btn.className = 'deckBtn';
+    btn.type = 'button';
     btn.textContent = v;
+    btn.disabled = !currentRoom || phase !== 'voting';
 
-    btn.disabled = !currentRoom || phase !== "voting";
-
-    btn.addEventListener("click", () => {
+    btn.addEventListener('click', () => {
       if (!currentRoom) return;
-      socket.emit("vote:set", { roomId: currentRoom, vote: v });
+      socket.emit('vote:set', { roomId: currentRoom, vote: v });
     });
 
     host.appendChild(btn);
@@ -282,129 +352,156 @@ function renderDeck(deck, phase) {
 }
 
 function populateFinalSelect(deck) {
-  const sel = el("finalPointsSelect");
+  const sel = el('finalPointsSelect');
   if (!sel) return;
 
+  const normalized = buildFinalizeDeck(deck);
   const current = sel.value;
-  sel.innerHTML = "";
 
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "Select final points…";
+  sel.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select final points…';
   sel.appendChild(placeholder);
 
-  const finalOpts = buildFinalizeDeck(deck);
-  for (const v of finalOpts) {
-    const opt = document.createElement("option");
+  for (const v of normalized) {
+    const opt = document.createElement('option');
     opt.value = v;
     opt.textContent = v;
     sel.appendChild(opt);
   }
 
-  if (current && finalOpts.includes(current)) sel.value = current;
+  if (current && normalized.includes(current)) sel.value = current;
 }
 
+/** ---------- Metrics renderer ---------- */
+function renderResults(state) {
+  const r = el('results');
+  if (!r) return;
+
+  if (state.phase !== 'revealed') {
+    r.innerHTML = '<div class="hint">Votes are hidden until the facilitator reveals.</div>';
+    return;
+  }
+
+  const votes = Object.values(state.users || {})
+    .map((u) => u.vote)
+    .filter((v) => v != null && Number.isFinite(Number(v)))
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  if (!votes.length) {
+    r.innerHTML = '<div class="hint">No numeric votes recorded.</div>';
+    return;
+  }
+
+  const min = votes[0];
+  const max = votes[votes.length - 1];
+  const avg = (votes.reduce((a, b) => a + b, 0) / votes.length).toFixed(1);
+  const median = votes.length % 2
+    ? votes[(votes.length - 1) / 2]
+    : ((votes[votes.length / 2 - 1] + votes[votes.length / 2]) / 2).toFixed(1);
+
+  const final = state.story?.finalPoints
+    ? `<div><b>Final</b>: ${escapeHtml(state.story.finalPoints)}</div>`
+    : '';
+
+  r.innerHTML =
+    `<div class="summary">` +
+      `${final}` +
+      `<div><b>Min</b>: ${min}</div>` +
+      `<div><b>Max</b>: ${max}</div>` +
+      `<div><b>Avg</b>: ${avg}</div>` +
+      `<div><b>Median</b>: ${median}</div>` +
+    `</div>`;
+}
+
+/** ---------- Queue renderer (Set Active ACK + Remove) ---------- */
 function renderQueue(queue, activeId, canManage) {
-  const ul = el("storyQueueList");
+  const ul = el('storyQueueList');
   if (!ul) return;
 
-  ul.innerHTML = "";
+  ul.innerHTML = '';
 
   if (!queue.length) {
-    const li = document.createElement("li");
-    li.className = "queueItem";
-    li.innerHTML =
-      '<div class="queueLeft"><div class="queueTitleRow"><span class="queueTitle">No Stories In Queue</span></div></div>';
+    const li = document.createElement('li');
+    li.className = 'queueItem';
+    li.innerHTML = '<div class="queueLeft"><div class="queueTitleRow"><span class="queueTitle">No Stories In Queue</span></div></div>';
     ul.appendChild(li);
     return;
   }
 
   for (const item of queue) {
-    const li = document.createElement("li");
-    li.className = "queueItem" + (item.id === activeId ? " queueActive" : "");
+    const li = document.createElement('li');
+    li.className = 'queueItem' + (item.id === activeId ? ' queueActive' : '');
 
-    const left = document.createElement("div");
-    left.className = "queueLeft";
+    const left = document.createElement('div');
+    left.className = 'queueLeft';
 
-    const titleRow = document.createElement("div");
-    titleRow.className = "queueTitleRow";
+    const titleRow = document.createElement('div');
+    titleRow.className = 'queueTitleRow';
 
-    const title = document.createElement("div");
-    title.className = "queueTitle";
+    const title = document.createElement('div');
+    title.className = 'queueTitle';
     title.textContent = item.title;
 
-    const badge = document.createElement("div");
-    badge.className = "queuePoints";
-    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : "—";
+    const badge = document.createElement('div');
+    badge.className = 'queuePoints';
+    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : '—';
 
     titleRow.appendChild(title);
     titleRow.appendChild(badge);
 
-    const meta = document.createElement("div");
-    meta.className = "queueMeta";
-    meta.textContent = item.id === activeId ? "Active Story" : "";
+    const meta = document.createElement('div');
+    meta.className = 'queueMeta';
+    meta.textContent = item.id === activeId ? 'Active Story' : '';
 
     left.appendChild(titleRow);
     left.appendChild(meta);
 
-    const actions = document.createElement("div");
-    actions.className = "queueActions";
+    const actions = document.createElement('div');
+    actions.className = 'queueActions';
 
     if (item.link) {
-      const a = document.createElement("a");
-      a.className = "queueBtn queueLinkBtn";
+      const a = document.createElement('a');
+      a.className = 'queueBtn queueLinkBtn';
       a.href = normalizeUrl(item.link);
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.textContent = "↗";
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = '↗';
       actions.appendChild(a);
     }
 
     if (canManage) {
-      // --- Set Active (with ACK) ---
-      const setActive = document.createElement("button");
-      setActive.className = "queueBtn";
-      setActive.type = "button";
-      setActive.textContent = "Set Active";
+      const setActive = document.createElement('button');
+      setActive.className = 'queueBtn';
+      setActive.type = 'button';
+      setActive.textContent = 'Set Active';
       setActive.disabled = item.id === activeId;
 
-      setActive.addEventListener("click", () => {
+      setActive.addEventListener('click', () => {
         if (!currentRoom) {
-          setPill("modePill", "No room joined", "warn");
+          setPill('modePill', 'No room joined', 'warn');
           return;
         }
+        setPill('modePill', 'Setting active story...', '');
 
-        setPill("modePill", "Setting active story...", "");
+        socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: item.id }, (res) => {
+          if (!res?.ok) setPill('modePill', res?.reason || 'Failed to set active story', 'warn');
+          else setPill('modePill', 'Active story set', 'good');
+        });
+      });
 
-        socket.emit(
-          "storyQueue:setActive",
-          { roomId: currentRoom, storyId: item.id },
-          (res) => {
-            if (!res?.ok) {
-              setPill("modePill", res?.reason || "Failed to set active story", "warn");
-            } else {
-              setPill("modePill", "Active story set", "good");
-            }
-          }
-        );
+      const remove = document.createElement('button');
+      remove.className = 'queueBtn';
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', () => {
+        if (!currentRoom) return;
+        socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: item.id });
       });
 
       actions.appendChild(setActive);
-
-      // --- Remove (restored) ---
-      const remove = document.createElement("button");
-      remove.className = "queueBtn";
-      remove.type = "button";
-      remove.textContent = "Remove";
-
-      remove.addEventListener("click", () => {
-        if (!currentRoom) {
-          setPill("modePill", "No room joined", "warn");
-          return;
-        }
-        socket.emit("storyQueue:remove", { roomId: currentRoom, storyId: item.id });
-      });
-
       actions.appendChild(remove);
     }
 
