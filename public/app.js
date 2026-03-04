@@ -433,67 +433,67 @@ function renderResults(state) {
 }
 
 function renderQueue(queue, activeId, canManage) {
-  const ul = el("storyQueueList");
+  const ul = el('storyQueueList');
   if (!ul) return;
 
-  ul.innerHTML = "";
+  ul.innerHTML = '';
 
   for (const item of queue) {
-    const li = document.createElement("li");
-    li.className = "queueItem" + (item.id === activeId ? " queueActive" : "");
+    const li = document.createElement('li');
+    li.className = 'queueItem' + (item.id === activeId ? ' queueActive' : '');
 
-    const left = document.createElement("div");
-    left.className = "queueLeft";
+    const left = document.createElement('div');
+    left.className = 'queueLeft';
 
-    const titleRow = document.createElement("div");
-    titleRow.className = "queueTitleRow";
+    const titleRow = document.createElement('div');
+    titleRow.className = 'queueTitleRow';
 
-    const title = document.createElement("div");
-    title.className = "queueTitle";
+    const title = document.createElement('div');
+    title.className = 'queueTitle';
     title.textContent = item.title;
 
-    const badge = document.createElement("div");
-    badge.className = "queuePoints";
-    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : "—";
+    const badge = document.createElement('div');
+    badge.className = 'queuePoints';
+    badge.textContent = item.finalPoints ? `Final: ${item.finalPoints}` : '—';
 
     titleRow.appendChild(title);
     titleRow.appendChild(badge);
 
-    const meta = document.createElement("div");
-    meta.className = "queueMeta";
-    meta.textContent = item.link ? item.link : "";
+    const meta = document.createElement('div');
+    meta.className = 'queueMeta';
+    meta.textContent = item.link ? item.link : '';
 
     left.appendChild(titleRow);
     left.appendChild(meta);
 
-    const actions = document.createElement("div");
-    actions.className = "queueActions";
+    const actions = document.createElement('div');
+    actions.className = 'queueActions';
 
     if (item.link) {
-      const a = document.createElement("a");
-      a.className = "queueBtn queueLinkBtn";
+      const a = document.createElement('a');
+      a.className = 'queueBtn queueLinkBtn';
       a.href = item.link;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.textContent = "↗";
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = '↗';
       actions.appendChild(a);
     }
 
     if (canManage) {
-      const setActive = document.createElement("button");
-      setActive.className = "queueBtn";
-      setActive.type = "button";
-      setActive.textContent = "Set Active";
-      setActive.addEventListener("click", () => {
-        socket.emit("storyQueue:setActive", { roomId: currentRoom, storyId: item.id });
+      const setActive = document.createElement('button');
+      setActive.className = 'queueBtn';
+      setActive.type = 'button';
+      setActive.textContent = 'Set Active';
+      setActive.addEventListener('click', () => {
+        socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: item.id });
       });
 
-      const remove = document.createElement("button");
-      remove.className = "queueBtn";
-      remove.type = "button";
-      remove.textContent = "Remove";
-      remove.addEventListener("click", () => {
-        socket.emit("storyQueue:remove", { roomId: currentRoom, storyId: item.id });
+      const remove = document.createElement('button');
+      remove.className = 'queueBtn';
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', () => {
+        socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: item.id });
       });
 
       actions.appendChild(setActive);
