@@ -32,7 +32,7 @@ header{
 }
 .brand{ display:flex; gap:12px; align-items:center }
 .logo{
-  width:40px; height:40px;
+  width:160px; height:160px;
   border:1px solid var(--border);
   border-radius:10px;
   background:var(--panel);
