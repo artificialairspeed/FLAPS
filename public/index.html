@@ -24,10 +24,10 @@
   <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
   <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
 
-  <!-- Styles (root-absolute so /room/:id works) -->
+  <!-- Styles (root-absolute so /room/:id works IF hosted at domain root) -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Favicons (root-absolute so /room/:id works) -->
+  <!-- Favicons (root-absolute so /room/:id works IF hosted at domain root) -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -62,6 +62,7 @@
   </header>
 
   <main class="grid">
+    <!-- Story -->
     <section class="card" aria-labelledby="storyHeader">
       <div class="cardHeader">
         <h2 id="storyHeader">Story</h2>
@@ -90,5 +91,22 @@
       </div>
     </section>
 
+    <!-- Vote -->
     <section class="card" aria-labelledby="voteHeader">
       <div class="cardHeader">
+        <h2 id="voteHeader">Vote</h2>
+        <span id="votePill" class="pill" aria-live="polite">Waiting</span>
+      </div>
+
+      <div id="deck" class="deck" aria-label="Voting deck"></div>
+
+      <div class="controls">
+        <button id="revealBtn" class="primary" type="button">Reveal</button>
+        <button id="clearBtn" type="button">Clear / Revote</button>
+      </div>
+
+      <div class="voteBottom">
+        <div class="finalizeRow">
+          <select id="finalPointsSelect" aria-label="Final points select"></select>
+          <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
+        </div>
