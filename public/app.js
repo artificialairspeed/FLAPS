@@ -60,20 +60,30 @@ function setShareLinks(roomId, mk){
 
 /** ---------- Deck normalization ----------
  * Rules:
- *  - Replace 0 with 0.5
- *  - Deduplicate while preserving order
+ * - Remove 0 / 0.5 (no half-point card)
+ * - Keep Fibonacci values 1 through 89 only
+ * - Deduplicate while preserving Fibonacci order
  */
 function normalizeDeck(deck){
+  const desiredOrder = ['1','2','3','5','8','13','21','34','55','89'];
   const src = Array.isArray(deck) ? deck : [];
-  const out = [];
-  const seen = new Set();
+
+  const present = new Set();
+
   for (const v of src){
-    const nv = (v === 0 || v === '0') ? '0.5' : String(v);
-    if (seen.has(nv)) continue;
-    seen.add(nv);
-    out.push(nv);
+    const s = String(v);
+
+    // Skip anything not in the allowed Fibonacci set (removes 0 and 0.5 automatically)
+    if (!desiredOrder.includes(s)) continue;
+
+    present.add(s);
   }
-  return out;
+
+  // If the server sent an unexpected deck (or only 0/0.5), fall back to our desired deck.
+  if (present.size === 0) return desiredOrder;
+
+  // Return in fixed Fibonacci order for consistent 2-row layout.
+  return desiredOrder.filter(v => present.has(v));
 }
 
 /** ---------- URL params ---------- */
