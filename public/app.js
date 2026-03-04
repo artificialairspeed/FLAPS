@@ -167,7 +167,7 @@ el('setStoryBtn')?.addEventListener('click', () => {
       link: el('storyLink').value
     }
   });
-};
+})
 
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
 el('clearBtn').onclick  = () => currentRoom && socket.emit('vote:clear',   { roomId: currentRoom });
