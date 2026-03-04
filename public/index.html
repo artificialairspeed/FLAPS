@@ -6,7 +6,7 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
 
-  <!-- CSP fallback for static hosting (meta cannot enforce frame-ancestors) -->
+  <!-- CSP fallback for static hosting (note: frame-ancestors must be set via HTTP header) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -27,7 +27,7 @@
   <!-- Styles -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Favicons -->
+  <!-- Favicons (optional) -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -65,7 +65,9 @@
         <h2 id="storyHeader">Story</h2>
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
+      <!-- Selected Story FIRST -->
       <div id="storyView" class="storyView"></div>
+      <!-- Queue SECOND, Inputs THIRD -->
       <div class="storyForm">
         <div class="queueHeader">Story Queue</div>
         <div class="queueListWrap">
@@ -112,7 +114,7 @@
       <ul id="users" class="users"></ul>
     </section>
 
-    <!-- Share -->
+    <!-- Share links (visible to facilitators only) -->
     <section class="share card hidden" id="shareBox" aria-labelledby="shareHeading">
       <h2 id="shareHeading" class="vh">Room Links</h2>
       <div class="shareRow">
