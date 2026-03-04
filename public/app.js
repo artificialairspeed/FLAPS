@@ -2,6 +2,7 @@
 
 /** ---------- Config ---------- */
 const SOCKET_URL = 'https://flaps-production.up.railway.app';
+
 try {
   // Only enable socket.io client debug if not already set
   if (typeof localStorage !== 'undefined' && localStorage.debug == null) {
@@ -12,7 +13,11 @@ try {
 /** ---------- DOM helpers ---------- */
 const el = (id) => document.getElementById(id);
 
-/** Safely normalize a URL string to http/https only. Returns '' if invalid. */
+function show(id){ const n = el(id); if (n) n.classList.remove('hidden'); }
+function hide(id){ const n = el(id); if (n) n.classList.add('hidden'); }
+function setDisabled(id, v){ const n = el(id); if (n && 'disabled' in n) n.disabled = !!v; }
+
+/** ---------- Utilities ---------- */
 function normalizeUrl(raw) {
   const s = String(raw ?? '').trim();
   if (!s) return '';
@@ -23,7 +28,6 @@ function normalizeUrl(raw) {
   return '';
 }
 
-/** Correct HTML escaping for text nodes. */
 function escapeHtml(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -33,12 +37,8 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-/** Escape for attribute values (kept for consistency; textContent preferred). */
-function escapeAttr(s) {
-  return escapeHtml(s).replace(/"/g, '&quot;');
-}
-
 function setPill(pillEl, text, kind = '') {
+  if (!pillEl) return;
   pillEl.textContent = text;
   pillEl.classList.toggle('good', kind === 'good');
   pillEl.classList.toggle('warn', kind === 'warn');
@@ -65,23 +65,47 @@ function setShareLinks(roomId, mk) {
   const participant = base;
   const facilitator = `${base}?mod=${encodeURIComponent(mk)}`;
 
-  // Use class toggling rather than inline style
-  el('shareBox').classList.remove('hidden');
+  show('shareBox');
 
   const p = el('shareParticipant');
-  p.textContent = participant; p.href = participant; p.rel = 'noopener noreferrer';
+  p.textContent = participant;
+  p.href = participant;
+  p.rel = 'noopener noreferrer';
 
   const m = el('shareMod');
-  m.textContent = facilitator; m.href = facilitator; m.rel = 'noopener noreferrer';
+  m.textContent = facilitator;
+  m.href = facilitator;
+  m.rel = 'noopener noreferrer';
 
   el('copyParticipantBtn').onclick = () => copyToClipboard(participant);
   el('copyModBtn').onclick = () => copyToClipboard(facilitator);
 }
 
-/** ---- Small UI helpers ---- */
-function show(id){ const n = el(id); if(n) n.classList.remove('hidden'); }
-function hide(id){ const n = el(id); if(n) n.classList.add('hidden'); }
-function setDisabled(id, v){ const n=el(id); if(n && 'disabled' in n) n.disabled = !!v; }
+/** ---------- Deck normalization (Approved) ----------
+ * - Replace 0 with 0.5
+ * - Remove 89
+ * - Deduplicate values while preserving order
+ */
+function normalizeDeck(deck) {
+  const src = Array.isArray(deck) ? deck : [];
+  const out = [];
+  const seen = new Set();
+
+  for (const v of src) {
+    const isEightyNine = (v === 89 || v === '89');
+    if (isEightyNine) continue;
+
+    const isZero = (v === 0 || v === '0');
+    const nv = isZero ? 0.5 : v;
+
+    const key = String(nv);
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    out.push(nv);
+  }
+  return out;
+}
 
 /** ---------- URL params ---------- */
 let currentRoom = null;
@@ -103,6 +127,7 @@ let lastState = null;
     if (saved) el('name').value = saved;
   } catch {}
 })();
+
 function saveName(name){
   try { if (name) localStorage.setItem('flaps_name', name); } catch {}
 }
@@ -116,30 +141,37 @@ function applyInitialRoleView(){
 
   // Disable name/join until a room exists (facilitator must create)
   if (!hasRoomInUrl) {
-    setDisabled('name', true); setDisabled('joinBtn', true);
-    show('roomId'); show('createRoomBtn');
-    setDisabled('roomId', false); setDisabled('createRoomBtn', false);
+    setDisabled('name', true);
+    setDisabled('joinBtn', true);
+
+    show('roomId');
+    show('createRoomBtn');
+    setDisabled('roomId', false);
+    setDisabled('createRoomBtn', false);
     return;
   }
 
   // On /room/:id
   el('roomId').value = currentRoom;
+
   if (hasModKey){
     // Facilitator deep link
     show('roomId'); show('createRoomBtn');
-    setDisabled('roomId', true); setDisabled('createRoomBtn', true);
+    setDisabled('roomId', true);
+    setDisabled('createRoomBtn', true);
   } else {
     // Participant link: hide Create + Team Name, enable name/join
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false);
+    setDisabled('joinBtn', false);
   }
 }
 applyInitialRoleView();
 
 /** Allow Enter to trigger Join for convenience */
-['roomId','name'].forEach(id=>{
+['roomId','name'].forEach(id => {
   const n = el(id);
-  n?.addEventListener('keydown', (e)=>{
+  n?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') el('joinBtn').click();
   });
 });
@@ -151,62 +183,78 @@ const socket = io(SOCKET_URL, {
 });
 
 socket.on('connect', () => {
-  console.log('[socket] connected', socket.id);
-  // Only auto-join if we have a modKey (facilitator deep-link)
+  // Auto-join only if we have a modKey (facilitator deep-link)
   if (currentRoom && modKey) {
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
     socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
   }
 });
+
 socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
 socket.on('disconnect', (reason) => console.warn('[socket] disconnected', reason));
 
 /** ----- Server → Client events ----- */
 socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
-  console.log('[socket] room:created', roomId);
-  currentRoom = roomId; modKey = createdModKey;
+  currentRoom = roomId;
+  modKey = createdModKey;
 
   setShareLinks(roomId, createdModKey);
+
   const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(createdModKey)}`;
   window.history.replaceState({}, '', newUrl);
 
   setPill(el('modePill'), 'Facilitator', 'good');
 
-  // Lock Create + Team Name; enable Name + Join now
+  // Lock Create + Team Name; enable Name + Join
   show('createRoomBtn'); show('roomId');
-  setDisabled('createRoomBtn', true); setDisabled('roomId', true);
-  setDisabled('name', false); setDisabled('joinBtn', false);
+  setDisabled('createRoomBtn', true);
+  setDisabled('roomId', true);
+  setDisabled('name', false);
+  setDisabled('joinBtn', false);
 });
 
 socket.on('room:state', (state) => {
-  // Keep lastState for finalize usage
   lastState = state;
 
-  setPill(el('modePill'), state.youAreModerator ? 'Facilitator' : 'Participant', state.youAreModerator ? 'good' : '');
-  setPill(el('phasePill'), state.phase === 'revealed' ? 'Revealed' : 'Voting', state.phase === 'revealed' ? 'warn' : '');
+  setPill(el('modePill'),
+    state.youAreModerator ? 'Facilitator' : 'Participant',
+    state.youAreModerator ? 'good' : ''
+  );
+
+  setPill(el('phasePill'),
+    state.phase === 'revealed' ? 'Revealed' : 'Voting',
+    state.phase === 'revealed' ? 'warn' : ''
+  );
 
   if (state.youAreModerator && modKey) setShareLinks(state.roomId, modKey);
 
   // Moderator controls
-  el('setStoryBtn').disabled = !state.youAreModerator;
   el('revealBtn').disabled = !state.youAreModerator;
   el('clearBtn').disabled = !state.youAreModerator;
 
-  const canFinalize = state.youAreModerator && state.phase === 'revealed' && !!state.activeStoryId;
+  const canFinalize =
+    state.youAreModerator &&
+    state.phase === 'revealed' &&
+    !!state.activeStoryId;
+
   el('finalPointsSelect').disabled = !canFinalize;
   el('finalizeEstimateBtn').disabled = !canFinalize;
 
   // Roombar behavior
   if (state.youAreModerator){
     show('createRoomBtn'); show('roomId');
-    setDisabled('createRoomBtn', true); setDisabled('roomId', true);
+    setDisabled('createRoomBtn', true);
+    setDisabled('roomId', true);
     el('createRoomBtn').title = 'Room already created';
     el('roomId').title = 'Team name is locked for this session';
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false);
+    setDisabled('joinBtn', false);
   } else {
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
-    const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
+    setDisabled('name', false);
+    setDisabled('joinBtn', false);
+    const hint = el('modHint');
+    if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
   // Renders
@@ -233,31 +281,22 @@ el('joinBtn').onclick = () => {
   if (!name) return alert('Enter your name.');
   saveName(name);
 
-  if (!currentRoom && !typedRoomId) return alert('Enter a Team Name or click Create Room.');
+  if (!currentRoom && !typedRoomId) {
+    return alert('Enter a Team Name or click Create Room.');
+  }
 
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
+
   socket.emit('room:join', { roomId: idToUse, name, modKey });
 };
 
-el('setStoryBtn').onclick = () => {
-  if (!currentRoom) return alert('Join a room first');
-
-  socket.emit('story:set', {
-    roomId: currentRoom,
-    story: {
-      title: el('storyTitle').value,
-      desc: el('storyDesc').value,
-      link: el('storyLink').value
-    }
-  });
-};
-
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
-el('clearBtn').onclick = () => currentRoom && socket.emit('vote:clear', { roomId: currentRoom });
+el('clearBtn').onclick  = () => currentRoom && socket.emit('vote:clear',  { roomId: currentRoom });
 
 el('addToQueueBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
+
   const title = (el('storyTitle').value ?? '').trim();
   if (!title) return alert('Enter a Story Title to add to the queue.');
 
@@ -270,6 +309,7 @@ el('addToQueueBtn').onclick = () => {
     }
   });
 
+  // reset inputs
   el('storyTitle').value = '';
   el('storyDesc').value = '';
   el('storyLink').value = '';
@@ -279,6 +319,7 @@ el('addToQueueBtn').onclick = () => {
 el('finalizeEstimateBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
   if (!lastState?.activeStoryId) return alert('Set an active story first.');
+
   const pts = el('finalPointsSelect').value;
   if (!pts) return alert('Select final points.');
 
@@ -291,7 +332,7 @@ el('finalizeEstimateBtn').onclick = () => {
 
 /** ---------- Renderers ---------- */
 function renderFinalPointsOptions(deck) {
-  const d = Array.isArray(deck) ? deck : [];
+  const d = normalizeDeck(deck);
   const sel = el('finalPointsSelect');
   sel.innerHTML = '';
 
@@ -309,7 +350,7 @@ function renderFinalPointsOptions(deck) {
 }
 
 function renderDeck(deck) {
-  const d = Array.isArray(deck) ? deck : [];
+  const d = normalizeDeck(deck);
   const deckDiv = el('deck');
   deckDiv.innerHTML = '';
   const frag = document.createDocumentFragment();
@@ -333,8 +374,7 @@ function renderUsers(users, phase) {
 
   const entries = Object.values(users ?? {});
   el('countPill').textContent = String(entries.length);
-
-  entries.sort((a,b)=> (a.name ?? '').localeCompare(b.name ?? ''));
+  entries.sort((a,b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
   const frag = document.createDocumentFragment();
   entries.forEach((u) => {
@@ -346,6 +386,7 @@ function renderUsers(users, phase) {
 
     const statusSpan = document.createElement('span');
     statusSpan.className = 'ustatus';
+
     if (phase === 'revealed') {
       statusSpan.textContent = (u.vote ?? '—');
     } else {
@@ -384,7 +425,9 @@ function renderStory(story) {
   const safe = normalizeUrl(story?.link ?? '');
   if (safe) {
     const a = document.createElement('a');
-    a.href = safe; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.href = safe;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
     a.textContent = 'Open Link';
     linkDiv.appendChild(a);
   }
@@ -404,10 +447,10 @@ function renderResults(state) {
   }
 
   const votes = Object.values(state.users ?? {})
-    .map((u)=>u.vote)
-    .filter((v)=>v!=null && !Number.isNaN(Number(v)))
+    .map((u) => u.vote)
+    .filter((v) => v != null && !Number.isNaN(Number(v)))
     .map(Number)
-    .sort((a,b)=>a-b);
+    .sort((a,b) => a-b);
 
   if (!votes.length) {
     r.textContent = 'No votes recorded.';
@@ -416,11 +459,11 @@ function renderResults(state) {
   }
 
   const min = votes[0];
-  const max = votes[votes.length-1];
-  const avg = (votes.reduce((a,b)=>a+b,0)/votes.length).toFixed(1);
+  const max = votes[votes.length - 1];
+  const avg = (votes.reduce((a,b) => a+b, 0) / votes.length).toFixed(1);
   const median = votes.length % 2
-    ? votes[(votes.length-1)/2]
-    : ((votes[votes.length/2-1] + votes[votes.length/2]) / 2).toFixed(1);
+    ? votes[(votes.length - 1) / 2]
+    : ((votes[votes.length/2 - 1] + votes[votes.length/2]) / 2).toFixed(1);
 
   const summary = document.createElement('div');
   summary.className = 'summary';
@@ -445,9 +488,10 @@ function renderResults(state) {
   r.innerHTML = '';
   r.appendChild(summary);
 }
+
 function renderQueue(state) {
   const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];
-  const list = el('storyQueueList'); 
+  const list = el('storyQueueList');
   list.innerHTML = '';
 
   if (!queue.length) {
@@ -467,6 +511,7 @@ function renderQueue(state) {
     row.appendChild(title);
     left.appendChild(row);
     li.appendChild(left);
+
     list.appendChild(li);
     return;
   }
