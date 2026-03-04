@@ -6,7 +6,7 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
 
-  <!-- CSP fallback for static hosting (frame-ancestors must be sent via HTTP response header) -->
+  <!-- CSP fallback for static hosting (frame-ancestors must be sent via HTTP header) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -20,18 +20,19 @@
           upgrade-insecure-requests;
         ">
 
-  <!-- Performance hints -->
+  <!-- Performance -->
   <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
   <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
 
-  <!-- Styles -->
+  <!-- Styles (root-absolute so /room/:id works) -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Favicons (optional) -->
+  <!-- Favicons (root-absolute so /room/:id works) -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
+
 <body>
   <noscript>
     <div class="card" style="margin:14px">
@@ -47,101 +48,47 @@
       <div><h1>FLAPS — Fibonacci Lean Agile Pointing System</h1></div>
     </div>
 
-    <!-- Top bar -->
     <div class="roombar" role="group" aria-label="Room and user controls">
       <label class="vh" for="roomId">Team Name</label>
-      <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization" inputmode="text" aria-label="Team Name" />
+      <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization"
+             inputmode="text" aria-label="Team Name" />
       <button id="createRoomBtn" class="primary" type="button">Create Room</button>
+
       <label class="vh" for="name">Your Name</label>
-      <input id="name" name="name" placeholder="Your Name" autocomplete="name" inputmode="text" aria-label="Your Name" />
+      <input id="name" name="name" placeholder="Your Name" autocomplete="name"
+             inputmode="text" aria-label="Your Name" />
       <button id="joinBtn" class="primary" type="button">Join</button>
     </div>
   </header>
 
   <main class="grid">
-    <!-- Story / Queue -->
     <section class="card" aria-labelledby="storyHeader">
       <div class="cardHeader">
         <h2 id="storyHeader">Story</h2>
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
 
-      <!-- Selected Story FIRST -->
       <div id="storyView" class="storyView"></div>
 
-      <!-- Queue SECOND, Inputs THIRD -->
       <div class="storyForm">
         <div class="queueHeader">Story Queue</div>
         <div class="queueListWrap">
           <ul id="storyQueueList" class="queueList"></ul>
         </div>
+
         <label class="vh" for="storyTitle">Story Title</label>
         <input id="storyTitle" placeholder="Story Title" />
+
         <label class="vh" for="storyDesc">Story Description</label>
         <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
+
         <label class="vh" for="storyLink">Story Link</label>
         <input id="storyLink" placeholder="Link (optional)" />
+
         <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
         <div id="modHint" class="hint"></div>
       </div>
     </section>
 
-    <!-- Vote -->
     <section class="card" aria-labelledby="voteHeader">
       <div class="cardHeader">
-        <h2 id="voteHeader">Vote</h2>
-        <span id="phasePill" class="pill" aria-live="polite">—</span>
-      </div>
-
-      <div id="deck" class="deck" role="group" aria-label="Estimation Cards"></div>
-
-      <div class="controls">
-        <button id="revealBtn" class="primary" type="button">Reveal</button>
-        <button id="clearBtn" type="button">Clear / Revote</button>
-      </div>
-
-      <div class="voteBottom">
-        <div class="finalizeRow">
-          <label class="vh" for="finalPointsSelect">Finalize Points</label>
-          <select id="finalPointsSelect" aria-label="Finalize Points"></select>
-          <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
-        </div>
-        <div id="results" class="results" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <!-- Participants -->
-    <section class="card" aria-labelledby="participantsHeader">
-      <div class="cardHeader">
-        <h2 id="participantsHeader">Participants</h2>
-        <span id="countPill" class="pill">0</span>
-      </div>
-      <ul id="users" class="users"></ul>
-    </section>
-
-    <!-- Share links (visible to facilitators only) -->
-    <section class="share card hidden" id="shareBox" aria-labelledby="shareHeading">
-      <h2 id="shareHeading" class="vh">Room Links</h2>
-      <div class="shareRow">
-        <div class="shareLabel">Participant Link</div>
-        <a id="shareParticipant" target="_blank" rel="noopener noreferrer"></a>
-        <button class="tiny" id="copyParticipantBtn" type="button" aria-label="Copy Participant Link">Copy</button>
-      </div>
-      <div class="shareRow">
-        <div class="shareLabel">Facilitator Link</div>
-        <a id="shareMod" target="_blank" rel="noopener noreferrer"></a>
-        <button class="tiny" id="copyModBtn" type="button" aria-label="Copy Facilitator Link">Copy</button>
-      </div>
-      <div class="hint">
-        Share the participant link with the team. Keep the facilitator link private to control Reveal/Clear/Story.
-      </div>
-    </section>
-  </main>
-
-  <!-- Load Socket.IO client from your Railway backend (must come before app.js) -->
-  <script defer src="https://flaps-production.up.railway.app/socket.io/socket.io.js"></script>
-
-  <!-- App client code -->
-  <script defer src="/app.js"></script>
-</body>
-</html>
