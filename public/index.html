@@ -6,28 +6,10 @@
   <title>FLAPS — Fibonacci Lean Agile Pointing System</title>
   <meta name="theme-color" content="#213346" />
 
-  <!-- CSP fallback for static hosting (frame-ancestors must be sent via HTTP header) -->
-  <meta http-equiv="Content-Security-Policy"
-        content="
-          default-src 'self';
-          script-src 'self' https://flaps-production.up.railway.app;
-          style-src 'self' 'unsafe-inline';
-          img-src 'self' data:;
-          connect-src 'self' https://flaps-production.up.railway.app wss://flaps-production.up.railway.app;
-          font-src 'self';
-          base-uri 'none';
-          form-action 'none';
-          upgrade-insecure-requests;
-        ">
-
-  <!-- Performance -->
-  <link rel="preconnect" href="https://flaps-production.up.railway.app" crossorigin>
-  <link rel="dns-prefetch" href="https://flaps-production.up.railway.app">
-
-  <!-- Styles (root-absolute so /room/:id works IF hosted at domain root) -->
+  <!-- Local assets served from /public at site root via express.static(...) -->
   <link rel="stylesheet" href="/styles.css" />
 
-  <!-- Favicons (root-absolute so /room/:id works IF hosted at domain root) -->
+  <!-- Optional favicons/logo if you have them -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -110,3 +92,39 @@
           <select id="finalPointsSelect" aria-label="Final points select"></select>
           <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
         </div>
+        <div id="results" aria-label="Results"></div>
+      </div>
+    </section>
+
+    <!-- Users -->
+    <section class="card" aria-labelledby="usersHeader">
+      <div class="cardHeader">
+        <h2 id="usersHeader">Users</h2>
+        <span id="usersPill" class="pill" aria-live="polite">0</span>
+      </div>
+      <ul id="usersList" class="users" aria-label="Connected users"></ul>
+    </section>
+
+    <!-- Share -->
+    <section id="shareBox" class="card share hidden" aria-label="Share links">
+      <h2>Share</h2>
+
+      <div class="shareRow">
+        <div class="shareLabel">Participant</div>
+        <a id="shareParticipant" href="#" target="_blank" rel="noopener noreferrer">—</a>
+        <button id="copyParticipantBtn" class="tiny" type="button">Copy</button>
+      </div>
+
+      <div class="shareRow">
+        <div class="shareLabel">Facilitator</div>
+        <a id="shareMod" href="#" target="_blank" rel="noopener noreferrer">—</a>
+        <button id="copyModBtn" class="tiny" type="button">Copy</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Socket.IO client served by your server.js -->
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
