@@ -4,23 +4,26 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 
-const APP_NAME = "FLAPS | Fibonacci Lean Agile Pointing System";
+const APP_NAME = "FLAPS — Fibonacci Lean Agile Pointing System";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
+
+// Same-origin Socket.IO (served at /socket.io/socket.io.js automatically)
 const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// Serve SPA for root + room routes
 app.get(["/room/:roomId", "/"], (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 const rooms = new Map();
-const FIBONACCI_DECK = ["0","1","2","3","5","8","13","21","34","55","89"]; 
+const FIBONACCI_DECK = ["0", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89"];
 
 function randomId(len = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -30,7 +33,7 @@ function randomId(len = 6) {
 }
 
 function normalizeRoomId(roomId) {
-  return String(roomId || "").trim().toUpperCase();
+  return String(roomId ?? "").trim().toUpperCase();
 }
 
 function getOrCreateRoom(roomId) {
@@ -39,14 +42,14 @@ function getOrCreateRoom(roomId) {
     rooms.set(roomId, {
       roomId,
       deck: FIBONACCI_DECK,
-      phase: "voting",
+      phase: "voting", // "voting" | "revealed"
       story: { title: "Add a story to estimate", desc: "", link: "", finalPoints: null },
       storyQueue: [],
       activeStoryId: null,
-      users: {},
+      users: {}, // socket.id -> { name, vote }
       moderatorKey: randomId(18),
       createdAt: Date.now(),
-      lastActiveAt: Date.now()
+      lastActiveAt: Date.now(),
     });
   }
   return rooms.get(roomId);
@@ -75,13 +78,14 @@ function makeRoomState(room, socket) {
     storyQueue: room.storyQueue,
     activeStoryId: room.activeStoryId,
     users,
-    youAreModerator
+    youAreModerator,
   };
 }
 
 async function broadcastRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
+
   const sockets = await io.in(roomId).fetchSockets();
   for (const s of sockets) s.emit("room:state", makeRoomState(room, s));
 }
@@ -97,13 +101,19 @@ io.on("connection", (socket) => {
 
     const room = getOrCreateRoom(roomId);
 
+    // Make creator the moderator
     socket.emit("room:created", { roomId: room.roomId, modKey: room.moderatorKey });
 
     socket.data.roomId = room.roomId;
     socket.data.modKey = room.moderatorKey;
+
     socket.join(room.roomId);
 
-    room.users[socket.id] = { name: (name || "Facilitator").trim() || "Facilitator", vote: null };
+    room.users[socket.id] = {
+      name: (name || "Facilitator").trim() || "Facilitator",
+      vote: null,
+    };
+
     room.lastActiveAt = Date.now();
     broadcastRoom(room.roomId);
   });
@@ -118,7 +128,11 @@ io.on("connection", (socket) => {
     socket.data.modKey = modKey || null;
 
     socket.join(roomId);
-    room.users[socket.id] = { name: (name || "Anonymous").trim() || "Anonymous", vote: null };
+
+    room.users[socket.id] = {
+      name: (name || "Anonymous").trim() || "Anonymous",
+      vote: null,
+    };
 
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
@@ -169,13 +183,13 @@ io.on("connection", (socket) => {
     if (!requireModerator(room, socket)) return;
 
     room.story = {
-      title: String(story?.title || "").trim(),
-      desc: String(story?.desc || "").trim(),
-      link: String(story?.link || "").trim(),
-      finalPoints: null
+      title: String(story?.title ?? "").trim(),
+      desc: String(story?.desc ?? "").trim(),
+      link: String(story?.link ?? "").trim(),
+      finalPoints: null,
     };
-    room.activeStoryId = null;
 
+    room.activeStoryId = null;
     room.phase = "voting";
     for (const id of Object.keys(room.users)) room.users[id].vote = null;
 
@@ -189,15 +203,15 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (!requireModerator(room, socket)) return;
 
-    const title = String(story?.title || "").trim();
+    const title = String(story?.title ?? "").trim();
     if (!title) return;
 
     room.storyQueue.push({
       id: randomId(8),
       title,
-      desc: String(story?.desc || "").trim(),
-      link: String(story?.link || "").trim(),
-      finalPoints: null
+      desc: String(story?.desc ?? "").trim(),
+      link: String(story?.link ?? "").trim(),
+      finalPoints: null,
     });
 
     room.lastActiveAt = Date.now();
@@ -210,8 +224,8 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (!requireModerator(room, socket)) return;
 
-    const id = String(storyId || "");
-    room.storyQueue = room.storyQueue.filter(s => s.id !== id);
+    const id = String(storyId ?? "");
+    room.storyQueue = room.storyQueue.filter((s) => s.id !== id);
     if (room.activeStoryId === id) room.activeStoryId = null;
 
     room.lastActiveAt = Date.now();
@@ -224,12 +238,17 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (!requireModerator(room, socket)) return;
 
-    const id = String(storyId || "");
-    const found = room.storyQueue.find(s => s.id === id);
+    const id = String(storyId ?? "");
+    const found = room.storyQueue.find((s) => s.id === id);
     if (!found) return;
 
     room.activeStoryId = id;
-    room.story = { title: found.title, desc: found.desc, link: found.link, finalPoints: found.finalPoints || null };
+    room.story = {
+      title: found.title,
+      desc: found.desc,
+      link: found.link,
+      finalPoints: found.finalPoints || null,
+    };
 
     room.phase = "voting";
     for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
@@ -244,12 +263,12 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (!requireModerator(room, socket)) return;
 
-    const id = String(storyId || "");
-    const points = String(finalPoints || "").trim();
+    const id = String(storyId ?? "");
+    const points = String(finalPoints ?? "").trim();
     if (!id || !points) return;
     if (!room.deck.includes(points)) return;
 
-    const item = room.storyQueue.find(s => s.id === id);
+    const item = room.storyQueue.find((s) => s.id === id);
     if (!item) return;
 
     item.finalPoints = points;
@@ -262,15 +281,18 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     const roomId = socket.data.roomId;
     if (!roomId) return;
+
     const room = rooms.get(roomId);
     if (!room) return;
 
     delete room.users[socket.id];
+
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
   });
 });
 
+// Cleanup idle empty rooms
 setInterval(() => {
   const now = Date.now();
   for (const [roomId, room] of rooms.entries()) {
