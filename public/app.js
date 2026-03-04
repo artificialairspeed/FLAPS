@@ -361,6 +361,7 @@ function renderQueue(queue, activeId, canManage) {
     }
 
     if (canManage) {
+      // --- Set Active (with ACK) ---
       const setActive = document.createElement("button");
       setActive.className = "queueBtn";
       setActive.type = "button";
@@ -375,7 +376,6 @@ function renderQueue(queue, activeId, canManage) {
 
         setPill("modePill", "Setting active story...", "");
 
-        // ✅ ACK: server tells us if it got the request and why it failed
         socket.emit(
           "storyQueue:setActive",
           { roomId: currentRoom, storyId: item.id },
@@ -390,6 +390,22 @@ function renderQueue(queue, activeId, canManage) {
       });
 
       actions.appendChild(setActive);
+
+      // --- Remove (restored) ---
+      const remove = document.createElement("button");
+      remove.className = "queueBtn";
+      remove.type = "button";
+      remove.textContent = "Remove";
+
+      remove.addEventListener("click", () => {
+        if (!currentRoom) {
+          setPill("modePill", "No room joined", "warn");
+          return;
+        }
+        socket.emit("storyQueue:remove", { roomId: currentRoom, storyId: item.id });
+      });
+
+      actions.appendChild(remove);
     }
 
     li.appendChild(left);
