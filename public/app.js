@@ -79,8 +79,8 @@ function setShareLinks(roomId, mk) {
   el("copyModBtn")?.addEventListener("click", () => copyToClipboard(facilitator));
 }
 
-// ---------- Deck rules (your request) ----------
-const HIDDEN_CARDS = new Set(["0.5", "89"]);
+// ---------- Deck rules ----------
+const HIDDEN_CARDS = new Set(["0.5", "89", "55"]); // added 55 as safety net
 const COFFEE_CARD = "☕";
 
 function toCardString(v) {
@@ -114,7 +114,7 @@ function buildFinalizeDeck(deck) {
     .map(toCardString)
     .filter((v) => v && !HIDDEN_CARDS.has(v));
 
-  // numeric only; coffee automatically excluded
+  // numeric only; coffee + '?' automatically excluded
   const numericOnly = filtered.filter((v) => Number.isFinite(Number(v)));
   return uniquePreserveOrder(numericOnly);
 }
@@ -182,7 +182,7 @@ applyInitialRoleView();
   });
 });
 
-// ---------- Socket.IO (same-origin) ----------
+// ---------- Socket.IO ----------
 const socket = io();
 
 // ---------- Client → Server actions ----------
@@ -321,27 +321,6 @@ socket.on("room:state", (state) => {
     }
   }
 
-  // Story
-  const storyView = el("storyView");
-  if (storyView) {
-    const title = escapeHtml(state.story?.title ?? "");
-    const desc = escapeHtml(state.story?.desc ?? "");
-    const link = normalizeUrl(state.story?.link ?? "");
-    const fp = state.story?.finalPoints
-      ? `<span class="pointsBadge">${escapeHtml(state.story.finalPoints)}</span>`
-      : "";
-
-    const linkHtml = link
-      ? `<div class="storyLink"><a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Open link</a></div>`
-      : `<div class="storyLink"></div>`;
-
-    storyView.innerHTML = `
-      <div class="storyTitle">${title}${fp}</div>
-      <div class="storyDesc">${desc}</div>
-      ${linkHtml}
-    `;
-  }
-
   // Deck + finalize select
   renderDeck(state.deck ?? [], state.phase);
   populateFinalSelect(state.deck ?? []);
@@ -420,7 +399,7 @@ function renderResults(state) {
     return;
   }
 
-  // Only numeric votes count (☕ is ignored automatically)
+  // Only numeric votes count (☕ and ? are ignored automatically)
   const votes = Object.values(state.users || {})
     .map((u) => u.vote)
     .filter((v) => v != null && Number.isFinite(Number(v)))
