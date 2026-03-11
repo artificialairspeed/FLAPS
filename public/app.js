@@ -238,6 +238,9 @@ el('joinBtn').onclick = () => {
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
   socket.emit('room:join', { roomId: idToUse, name, modKey });
+  
+  // Disable the Join button after clicking
+  setDisabled('joinBtn', true);
 };
 
 el('setStoryBtn').onclick = () => {
