@@ -230,8 +230,7 @@ el('createRoomBtn').onclick = () => {
   saveName(name);
   socket.emit('room:create', { desiredRoomId, name });
   
-  // Mark as joined since creating a room auto-joins
-  hasJoined = true;
+  // Don't set hasJoined here - facilitator still needs to click Join
 };
 
 el('joinBtn').onclick = () => {
