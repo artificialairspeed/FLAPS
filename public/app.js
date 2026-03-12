@@ -87,6 +87,7 @@ function setDisabled(id, v){ const n=el(id); if(n && 'disabled' in n) n.disabled
 let currentRoom = null;
 let modKey = null;
 let lastState = null;
+let hasJoined = false;
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -205,7 +206,8 @@ socket.on('room:state', (state) => {
     setDisabled('name', false); setDisabled('joinBtn', false);
   } else {
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    setDisabled('joinBtn', hasJoined); // Keep disabled if already joined
     const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
@@ -239,7 +241,8 @@ el('joinBtn').onclick = () => {
   currentRoom = idToUse;
   socket.emit('room:join', { roomId: idToUse, name, modKey });
   
-  // Disable the Join button after clicking
+  // Mark as joined and disable the Join button
+  hasJoined = true;
   setDisabled('joinBtn', true);
 };
 
