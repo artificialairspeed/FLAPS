@@ -176,7 +176,8 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   // Lock Create + Team Name; enable Name + Join now
   show('createRoomBtn'); show('roomId');
   setDisabled('createRoomBtn', true); setDisabled('roomId', true);
-  setDisabled('name', false); setDisabled('joinBtn', false);
+  setDisabled('name', false); 
+  setDisabled('joinBtn', hasJoined); // Keep disabled if already joined
 });
 
 socket.on('room:state', (state) => {
@@ -203,7 +204,8 @@ socket.on('room:state', (state) => {
     setDisabled('createRoomBtn', true); setDisabled('roomId', true);
     el('createRoomBtn').title = 'Room already created';
     el('roomId').title = 'Team name is locked for this session';
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    setDisabled('joinBtn', hasJoined); // Keep disabled if already joined
   } else {
     hide('createRoomBtn'); hide('roomId');
     setDisabled('name', false); 
@@ -227,6 +229,9 @@ el('createRoomBtn').onclick = () => {
   const name = (el('name').value ?? '').trim() || 'Facilitator';
   saveName(name);
   socket.emit('room:create', { desiredRoomId, name });
+  
+  // Mark as joined since creating a room auto-joins
+  hasJoined = true;
 };
 
 el('joinBtn').onclick = () => {
