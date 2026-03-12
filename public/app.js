@@ -173,11 +173,14 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
 
   setPill(el('modePill'), 'Facilitator', 'good');
 
-  // Lock Create + Team Name; enable Name + Join now
+  // Mark as joined since creating a room adds you to it on the server
+  hasJoined = true;
+
+  // Lock Create + Team Name; Join button will be disabled by hasJoined flag
   show('createRoomBtn'); show('roomId');
   setDisabled('createRoomBtn', true); setDisabled('roomId', true);
   setDisabled('name', false); 
-  setDisabled('joinBtn', hasJoined); // Keep disabled if already joined
+  setDisabled('joinBtn', true); // Disable since already joined via room:create
 });
 
 socket.on('room:state', (state) => {
