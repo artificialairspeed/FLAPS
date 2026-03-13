@@ -8,5 +8,6 @@ This build uses the provided Southwest-Airlines-Emblem.png as the app icon (only
 npm install
 npm start
 ```
+Test
 
 Open http://localhost:3000
