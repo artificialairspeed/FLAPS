@@ -87,6 +87,7 @@ function setDisabled(id, v){ const n=el(id); if(n && 'disabled' in n) n.disabled
 let currentRoom = null;
 let modKey = null;
 let lastState = null;
+let joinButtonClicked = false; // Track if Join button has been clicked
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -152,10 +153,11 @@ const socket = io(SOCKET_URL, {
 
 socket.on('connect', () => {
   console.log('[socket] connected', socket.id);
-  // Only auto-join if we have a modKey (facilitator deep-link)
-  if (currentRoom && modKey) {
+  // Only auto-join if we have a modKey from URL (facilitator deep-link), not from room creation
+  if (currentRoom && modKey && !joinButtonClicked) {
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
     socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+    joinButtonClicked = true;
   }
 });
 socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
@@ -202,10 +204,14 @@ socket.on('room:state', (state) => {
     setDisabled('createRoomBtn', true); setDisabled('roomId', true);
     el('createRoomBtn').title = 'Room already created';
     el('roomId').title = 'Team name is locked for this session';
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    // Keep Join button disabled if already clicked
+    if (!joinButtonClicked) setDisabled('joinBtn', false);
   } else {
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    // Keep Join button disabled if already clicked
+    if (!joinButtonClicked) setDisabled('joinBtn', false);
     const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
@@ -237,10 +243,12 @@ el('joinBtn').onclick = () => {
 
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
-  socket.emit('room:join', { roomId: idToUse, name, modKey });
   
-  // Disable the Join button after clicking
+  // Mark as joined and disable the Join button
+  joinButtonClicked = true;
   setDisabled('joinBtn', true);
+  
+  socket.emit('room:join', { roomId: idToUse, name, modKey });
 };
 
 el('setStoryBtn').onclick = () => {
