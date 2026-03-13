@@ -1,7 +1,7 @@
 /* global io */
 
 /** ---------- Config ---------- */
-const SOCKET_URL = 'http://localhost:3000';
+const SOCKET_URL = 'https://flaps-production.up.railway.app';
 try {
   // Only enable socket.io client debug if not already set
   if (typeof localStorage !== 'undefined' && localStorage.debug == null) {
