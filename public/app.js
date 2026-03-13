@@ -87,6 +87,8 @@ function setDisabled(id, v){ const n=el(id); if(n && 'disabled' in n) n.disabled
 let currentRoom = null;
 let modKey = null;
 let lastState = null;
+let userHasJoined = false; // Track if user has clicked Join button
+let roomWasJustCreated = false; // Prevent auto-join after creating room
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -131,7 +133,8 @@ function applyInitialRoleView(){
   } else {
     // Participant link: hide Create + Team Name, enable name/join
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    if (!userHasJoined) setDisabled('joinBtn', false);
   }
 }
 applyInitialRoleView();
@@ -152,10 +155,11 @@ const socket = io(SOCKET_URL, {
 
 socket.on('connect', () => {
   console.log('[socket] connected', socket.id);
-  // Only auto-join if we have a modKey (facilitator deep-link)
-  if (currentRoom && modKey) {
+  // Only auto-join if we have a modKey from URL (facilitator deep-link), NOT from room creation
+  if (currentRoom && modKey && !roomWasJustCreated) {
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
     socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+    userHasJoined = true;
   }
 });
 socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
@@ -165,6 +169,7 @@ socket.on('disconnect', (reason) => console.warn('[socket] disconnected', reason
 socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   console.log('[socket] room:created', roomId);
   currentRoom = roomId; modKey = createdModKey;
+  roomWasJustCreated = true; // Prevent auto-join on socket connect
 
   setShareLinks(roomId, createdModKey);
   const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(createdModKey)}`;
@@ -172,10 +177,11 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
 
   setPill(el('modePill'), 'Facilitator', 'good');
 
-  // Lock Create + Team Name
+  // Lock Create + Team Name; enable Name + Join
   show('createRoomBtn'); show('roomId');
   setDisabled('createRoomBtn', true); setDisabled('roomId', true);
-  setDisabled('name', false); setDisabled('joinBtn', false);
+  setDisabled('name', false); 
+  if (!userHasJoined) setDisabled('joinBtn', false);
 });
 
 socket.on('room:state', (state) => {
@@ -202,10 +208,12 @@ socket.on('room:state', (state) => {
     setDisabled('createRoomBtn', true); setDisabled('roomId', true);
     el('createRoomBtn').title = 'Room already created';
     el('roomId').title = 'Team name is locked for this session';
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    if (!userHasJoined) setDisabled('joinBtn', false);
   } else {
     hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    setDisabled('name', false); 
+    if (!userHasJoined) setDisabled('joinBtn', false);
     const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
@@ -222,11 +230,8 @@ socket.on('room:state', (state) => {
 el('createRoomBtn').onclick = () => {
   const desiredRoomId = (el('roomId').value ?? '').trim();
   if (!desiredRoomId) return alert('Enter a Team Name.');
-  const name = (el('name').value ?? '').trim() || 'Facilitator';
-  saveName(name);
-  socket.emit('room:create', { desiredRoomId, name });
   
-  // Don't set hasJoined here - facilitator still needs to click Join
+  socket.emit('room:create', { desiredRoomId });
 };
 
 el('joinBtn').onclick = () => {
@@ -240,10 +245,9 @@ el('joinBtn').onclick = () => {
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
   
-  // Disable and remove the click handler to prevent any further clicks
-  const joinBtn = el('joinBtn');
-  joinBtn.disabled = true;
-  joinBtn.onclick = null;
+  // Mark as joined and disable button
+  userHasJoined = true;
+  setDisabled('joinBtn', true);
   
   socket.emit('room:join', { roomId: idToUse, name, modKey });
 };
