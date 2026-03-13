@@ -120,15 +120,13 @@ io.on("connection", (socket) => {
     socket.data.roomId = room.roomId;
     socket.data.modKey = room.moderatorKey;
 
-    socket.join(room.roomId);
-
-    room.users[socket.id] = {
-      name: (name || "Facilitator").trim() || "Facilitator",
-      vote: null
-    };
+    // Don't join or add user yet - facilitator must click Join button
+    // socket.join(room.roomId);
+    // room.users[socket.id] = { name: (name || "Facilitator").trim() || "Facilitator", vote: null };
 
     room.lastActiveAt = Date.now();
-    broadcastRoom(room.roomId);
+    // Don't broadcast yet - no users in room
+    // broadcastRoom(room.roomId);
   });
 
   socket.on("room:join", ({ roomId, name, modKey } = {}) => {
