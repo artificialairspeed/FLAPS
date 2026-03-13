@@ -361,7 +361,7 @@ el('joinBtn').onclick = () => {
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
   
-  // Mark as clicked and disable permanently
+  // Disable the join button
   joinButtonClicked = true;
   setDisabled('joinBtn', true);
   
