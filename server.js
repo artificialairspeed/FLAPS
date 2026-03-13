@@ -21,15 +21,14 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 
 const rooms = new Map();
 
-// Deck updates:
-// - removed 0.5 (never existed server-side, was client normalization before)
-// - removed 89
-// - removed 55
-// - replaced 0 with "?" (non-numeric)
-// - added ☕ (non-numeric)
+// Deck configuration:
+// - Standard Fibonacci sequence with modifications
+// - Coffee cup (☕) replaces 55 and represents value 0 for calculations
+// - Question mark (?) replaces 0 for "unknown/can't estimate"
+// - Removed 89 card
 const COFFEE_CARD = "☕";
-const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34"];
-const ROOM_DECK = [...FIBONACCI_DECK, COFFEE_CARD];
+const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34", COFFEE_CARD];
+const ROOM_DECK = FIBONACCI_DECK;
 
 function randomId(len = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -274,8 +273,8 @@ io.on("connection", (socket) => {
     const points = String(finalPoints || "").trim();
     if (!id || !points) return;
 
-    // numeric-only finalization (prevents ☕ and ?)
-    if (!isFiniteNumberString(points)) return;
+    // Allow numeric values, coffee cup (as 0), and question mark for finalization
+    if (points !== '☕' && points !== '?' && !isFiniteNumberString(points)) return;
     if (!room.deck.includes(points)) return;
 
     const item = room.storyQueue.find((s) => s.id === id);

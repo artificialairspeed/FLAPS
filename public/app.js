@@ -1,7 +1,7 @@
 /* global io */
 
 /** ---------- Config ---------- */
-const SOCKET_URL = 'https://flaps-production.up.railway.app';
+const SOCKET_URL = 'http://localhost:3000';
 try {
   // Only enable socket.io client debug if not already set
   if (typeof localStorage !== 'undefined' && localStorage.debug == null) {
@@ -534,10 +534,17 @@ function renderResults(state) {
   }
 
   const votes = Object.values(state.users ?? {})
-    .map((u)=>u.vote)
-    .filter((v)=>v!=null && !Number.isNaN(Number(v)))
+    .map((u) => {
+      const vote = u.vote;
+      // Treat coffee cup as 0 for calculations
+      if (vote === '☕') return 0;
+      // Treat question mark as non-numeric (exclude from calculations)
+      if (vote === '?') return null;
+      return vote;
+    })
+    .filter((v) => v != null && !Number.isNaN(Number(v)))
     .map(Number)
-    .sort((a,b)=>a-b);
+    .sort((a,b) => a - b);
 
   if (!votes.length) {
     r.textContent = 'No votes recorded.';
