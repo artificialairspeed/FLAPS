@@ -120,13 +120,15 @@ io.on("connection", (socket) => {
     socket.data.roomId = room.roomId;
     socket.data.modKey = room.moderatorKey;
 
-    // Don't join the socket room or add user yet - they need to click Join button
-    // socket.join(room.roomId);
-    // room.users[socket.id] = { name: (name || "Facilitator").trim() || "Facilitator", vote: null };
+    socket.join(room.roomId);
+
+    room.users[socket.id] = {
+      name: (name || "Facilitator").trim() || "Facilitator",
+      vote: null
+    };
 
     room.lastActiveAt = Date.now();
-    // Don't broadcast yet - no users in room
-    // broadcastRoom(room.roomId);
+    broadcastRoom(room.roomId);
   });
 
   socket.on("room:join", ({ roomId, name, modKey } = {}) => {
@@ -135,11 +137,8 @@ io.on("connection", (socket) => {
 
     const room = getOrCreateRoom(roomId);
 
-    // Set socket data - preserve modKey if already set from room:create
     socket.data.roomId = roomId;
-    if (!socket.data.modKey && modKey) {
-      socket.data.modKey = modKey;
-    }
+    socket.data.modKey = modKey || null;
 
     socket.join(roomId);
 
