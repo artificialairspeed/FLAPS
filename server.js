@@ -174,6 +174,12 @@ io.on("connection", (socket) => {
     room.phase = "voting";
     for (const id of Object.keys(room.users)) room.users[id].vote = null;
 
+    if (room.activeStoryId && room.story.finalPoints !== null) {
+      room.story.finalPoints = null;
+      const queueEntry = room.storyQueue.find((s) => s.id === room.activeStoryId);
+      if (queueEntry) queueEntry.finalPoints = null;
+    }
+
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
   });
