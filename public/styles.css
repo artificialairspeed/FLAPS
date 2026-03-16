@@ -243,6 +243,7 @@ a{ color:var(--accent) }
 .grid > .share{ margin:0 }
 /* Optional hover emphasis for deck cards */
 .deckBtn:hover{ border-color:rgba(122,162,255,.65); box-shadow:0 0 0 2px rgba(122,162,255,.25) inset }
+.deckBtn.active{ border-color:rgba(122,162,255,1); background:rgba(122,162,255,.15); box-shadow:0 0 0 3px rgba(122,162,255,.35) inset; color:#fff }
 /* Helpers */
 .hidden{ display:none !important }
 .vh{

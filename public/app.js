@@ -90,6 +90,7 @@ let lastState = null;
 let joinButtonClicked = false; // Track if Join button has been clicked
 let roomCreated = false; // Track if room has been created
 let userJoined = false; // Track if user has joined a room
+let myVote = null; // Track this user's current vote locally
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -174,10 +175,14 @@ const socket = io(SOCKET_URL, {
 
 socket.on('connect', () => {
   console.log('[socket] connected', socket.id);
-  // Only auto-join if we have a modKey (facilitator deep-link)
   if (currentRoom && modKey) {
+    // Facilitator: auto-rejoin
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
     socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+  } else if (socket.recovered === false && joinButtonClicked) {
+    // Participant reconnect after disconnect: re-enable join button
+    joinButtonClicked = false;
+    setDisabled('joinBtn', false);
   }
 });
 socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
@@ -369,7 +374,7 @@ el('joinBtn').onclick = () => {
 };
 
 el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
-el('clearBtn').onclick = () => currentRoom && socket.emit('vote:clear', { roomId: currentRoom });
+el('clearBtn').onclick = () => { myVote = null; currentRoom && socket.emit('vote:clear', { roomId: currentRoom }); };
 
 el('addToQueueBtn').onclick = () => {
   if (!currentRoom) return alert('Join a room first');
@@ -446,8 +451,15 @@ function renderDeck(deck, phase, hasActiveStory) {
       b.onclick = null;
     } else {
       b.disabled = false;
-      b.onclick = () => currentRoom && socket.emit('vote:set', { roomId: currentRoom, vote: v });
+      b.onclick = () => {
+        if (currentRoom) {
+          myVote = v;
+          socket.emit('vote:set', { roomId: currentRoom, vote: v });
+        }
+      };
     }
+
+    if (v === myVote && phase !== 'revealed') b.classList.add('active');
     
     frag.appendChild(b);
   });
