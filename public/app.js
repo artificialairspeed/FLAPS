@@ -373,7 +373,11 @@ el('joinBtn').onclick = () => {
   socket.emit('room:join', { roomId: idToUse, name, modKey });
 };
 
-el('revealBtn').onclick = () => currentRoom && socket.emit('vote:reveal', { roomId: currentRoom });
+el('revealBtn').onclick = () => {
+  if (!currentRoom) return;
+  myVote = null;
+  socket.emit('vote:reveal', { roomId: currentRoom });
+};
 el('clearBtn').onclick = () => { myVote = null; currentRoom && socket.emit('vote:clear', { roomId: currentRoom }); };
 
 el('addToQueueBtn').onclick = () => {
