@@ -95,7 +95,7 @@ let myVote = null; // Track this user's current vote locally
 (function parseFromUrl() {
   const url = new URL(window.location.href);
   const parts = url.pathname.split('/').filter(Boolean);
-  if (parts[0] === 'room' && parts[1]) currentRoom = parts[1].toUpperCase();
+  if (parts[0] === 'room' && parts[1]) currentRoom = decodeURIComponent(parts[1]).toUpperCase();
   modKey = url.searchParams.get('mod') ?? null;
   if (currentRoom) el('roomId').value = currentRoom;
 })();
@@ -124,7 +124,7 @@ function applyInitialRoleView(){
 
   // Disable name/join until a room exists (facilitator must create)
   if (!hasRoomInUrl) {
-    setDisabled('name', true); setDisabled('joinBtn', true);
+    hide('name'); hide('joinBtn');
     show('roomId'); show('createRoomBtn');
     setDisabled('roomId', false); setDisabled('createRoomBtn', false);
     return;
@@ -212,9 +212,10 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
 
   setPill(el('modePill'), 'Facilitator', 'good');
 
-  // Lock Create + Team Name; enable Name + Join now
+  // Lock Create + Team Name; show and enable Name + Join now
   show('createRoomBtn'); show('roomId');
   setDisabled('createRoomBtn', true); setDisabled('roomId', true);
+  show('name'); show('joinBtn');
   setDisabled('name', false); setDisabled('joinBtn', false);
 });
 

@@ -38,7 +38,11 @@ function randomId(len = 6) {
 }
 
 function normalizeRoomId(roomId) {
-  return String(roomId || "").trim().toUpperCase();
+  try {
+    return decodeURIComponent(String(roomId || "")).trim().toUpperCase();
+  } catch {
+    return String(roomId || "").trim().toUpperCase();
+  }
 }
 
 function isFiniteNumberString(v) {
