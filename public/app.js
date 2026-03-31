@@ -103,12 +103,12 @@ let myVote = null; // Track this user's current vote locally
 /** ---------- Remember my name ---------- */
 (function loadSavedName(){
   try {
-    const saved = localStorage.getItem('flaps_name');
+    const saved = sessionStorage.getItem('flaps_name');
     if (saved) el('name').value = saved;
   } catch {}
 })();
 function saveName(name){
-  try { if (name) localStorage.setItem('flaps_name', name); } catch {}
+  try { if (name) sessionStorage.setItem('flaps_name', name); } catch {}
 }
 
 /** ---------- Initial View: layout & gating ---------- */
