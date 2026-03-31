@@ -594,21 +594,31 @@ function renderResults(state) {
   const summary = document.createElement('div');
   summary.className = 'summary';
 
-  if (state.story?.finalPoints) {
-    const final = document.createElement('div');
-    final.innerHTML = `<b>Final</b>: ${escapeHtml(state.story.finalPoints)}`;
-    summary.appendChild(final);
-  }
+  const metrics = [];
+  if (state.story?.finalPoints) metrics.push({ label: 'Final', value: state.story.finalPoints, final: true });
+  metrics.push(
+    { label: 'Min',    value: min },
+    { label: 'Max',    value: max },
+    { label: 'Avg',    value: avg },
+    { label: 'Median', value: median }
+  );
 
-  const mins = document.createElement('div'); mins.innerHTML = `<b>Min</b>: ${min}`;
-  const maxs = document.createElement('div'); maxs.innerHTML = `<b>Max</b>: ${max}`;
-  const avgs = document.createElement('div'); avgs.innerHTML = `<b>Avg</b>: ${avg}`;
-  const meds = document.createElement('div'); meds.innerHTML = `<b>Median</b>: ${median}`;
+  metrics.forEach((m) => {
+    const chip = document.createElement('div');
+    chip.className = 'metricChip' + (m.final ? ' isFinal' : '');
 
-  summary.appendChild(mins);
-  summary.appendChild(maxs);
-  summary.appendChild(avgs);
-  summary.appendChild(meds);
+    const label = document.createElement('span');
+    label.className = 'metricLabel';
+    label.textContent = m.label;
+
+    const value = document.createElement('span');
+    value.className = 'metricValue';
+    value.textContent = m.value;
+
+    chip.appendChild(label);
+    chip.appendChild(value);
+    summary.appendChild(chip);
+  });
 
   r.className = '';
   r.innerHTML = '';

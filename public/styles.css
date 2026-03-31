@@ -100,15 +100,19 @@ button:disabled{ opacity:.55; cursor:not-allowed }
 .tiny{ padding:8px 10px; border-radius:10px; font-size:12px }
 .grid{
   display:grid;
-  grid-template-columns:1.1fr 1.1fr .8fr;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:14px;
   padding:14px;
+  align-items:start;
 }
 .card{
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:14px;
   padding:14px;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
 }
 .cardHeader{ display:flex; align-items:center; justify-content:space-between; gap:8px }
 h2{ margin:0; font-size:16px }
@@ -150,13 +154,12 @@ h2{ margin:0; font-size:16px }
   background:var(--dangerBg);
 }
 #clearBtn:hover{ border-color:var(--danger) }
-/* Vote bottom split into 2/3 (Finalize) and 1/3 (Results) */
+/* Vote bottom: stacked, full width */
 .voteBottom{
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
   margin-top:10px;
-  align-items:start;
 }
 /* Finalize stacked, same width controls */
 .finalizeRow{
@@ -171,22 +174,29 @@ h2{ margin:0; font-size:16px }
   width:100%;
 }
 #finalPointsSelect{ min-width:0 }
-/* Results panel has separation */
+/* Results panel */
 #results{
   border:1px solid rgba(53,80,106,.7);
   border-radius:12px;
-  padding:10px;
-  min-height:88px;
+  padding:10px 12px;
 }
-/* Optional: better small-screen fallback */
+/* Tablet: 2-col layout */
 @media (max-width:980px){
-  .grid{ grid-template-columns:1fr }
-  .voteBottom{ grid-template-columns:1fr }
+  .grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+  /* Share box always full-width */
+  #shareBox{ grid-column:1/-1 }
 }
-@media (max-width:700px){
+/* Mobile: single column */
+@media (max-width:600px){
+  .grid{ grid-template-columns:minmax(0, 1fr) }
   .deck{ grid-template-columns:repeat(3, 1fr) }
+  .roombar{ grid-template-columns:1fr }
+  header{ flex-direction:column; align-items:flex-start }
+  .room-name-display{ margin-left:0; margin-right:0; width:100% }
 }
-.users{ list-style:none; padding:0; margin:0 }
+.users{ list-style:none; padding:0; margin:0; flex:1 }
 .users li{
   display:flex; justify-content:space-between; gap:10px;
   padding:10px; border-bottom:1px solid rgba(53,80,106,.7)
@@ -194,8 +204,8 @@ h2{ margin:0; font-size:16px }
 .users li:last-child{ border-bottom:none }
 .uname{ color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .ustatus{ color:var(--muted) }
-.storyForm{ display:grid; gap:10px; margin-top:10px }
-.storyView{ margin-top:12px; padding:10px; border:1px solid rgba(53,80,106,.7); border-radius:12px }
+.storyForm{ display:flex; flex-direction:column; gap:10px; margin-top:10px; flex:1 }
+.storyView{ margin-top:12px; padding:10px; border:1px solid rgba(53,80,106,.7); border-radius:12px; flex:1 }
 .storyTitle{ font-weight:900 }
 .storyDesc{ color:var(--muted); margin-top:8px; white-space:pre-wrap }
 .storyLink{ margin-top:10px }
@@ -206,12 +216,45 @@ h2{ margin:0; font-size:16px }
 }
 a{ color:var(--accent) }
 .hint{ color:var(--muted); font-size:12px; margin-top:4px }
-.summary{ display:grid; gap:8px; margin-top:8px }
+.summary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:4px;
+}
+.metricChip{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:6px 12px;
+  border:1px solid rgba(53,80,106,.7);
+  border-radius:10px;
+  background:var(--panel2);
+  min-width:52px;
+}
+.metricChip.isFinal{
+  border-color:rgba(122,162,255,.55);
+  background:rgba(43,90,134,.35);
+}
+.metricLabel{
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  line-height:1;
+  margin-bottom:3px;
+}
+.metricValue{
+  font-size:16px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1;
+}
 .queueHeader{
   margin-top:6px; font-size:12px; color:var(--muted);
   text-transform:uppercase; letter-spacing:.06em
 }
-.queueListWrap{ margin-top:4px }
+.queueListWrap{ margin-top:4px; flex:1; overflow-y:auto; min-height:0 }
 .queueList{
   list-style:none; padding:0; margin:0;
   border:1px solid rgba(53,80,106,.7); border-radius:12px; overflow:hidden
