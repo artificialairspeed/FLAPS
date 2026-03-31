@@ -325,6 +325,10 @@ socket.on('room:state', (state) => {
     if (storyTitleLabel) storyTitleLabel.style.display = '';
     if (storyDescLabel) storyDescLabel.style.display = '';
     if (storyLinkLabel) storyLinkLabel.style.display = '';
+    // Show facilitator-only vote controls
+    show('revealBtn'); show('clearBtn');
+    const finalizeRow = document.querySelector('.finalizeRow');
+    if (finalizeRow) finalizeRow.style.display = '';
   } else {
     // Hide form inputs for participants (but keep queue visible)
     console.log('[DEBUG] Hiding form inputs for participant');
@@ -335,6 +339,10 @@ socket.on('room:state', (state) => {
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
     if (storyDescLabel) storyDescLabel.style.display = 'none';
     if (storyLinkLabel) storyLinkLabel.style.display = 'none';
+    // Hide facilitator-only vote controls
+    hide('revealBtn'); hide('clearBtn');
+    const finalizeRow = document.querySelector('.finalizeRow');
+    if (finalizeRow) finalizeRow.style.display = 'none';
   }
 
   // If votes were cleared (phase is voting and our vote is null), deselect locally
