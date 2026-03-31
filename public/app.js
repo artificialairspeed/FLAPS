@@ -358,7 +358,7 @@ socket.on('room:state', (state) => {
   renderDeck(state.deck, state.phase, hasActiveStory);
   renderFinalPointsOptions(state.deck);
   renderUsers(state.users, state.phase);
-  renderStory(state.story);
+  renderStory(state.story, (state.storyQueue ?? []).length);
   renderResults(state);
   renderQueue(state);
 });
@@ -523,13 +523,19 @@ function renderUsers(users, phase) {
   list.appendChild(frag);
 }
 
-function renderStory(story) {
+function renderStory(story, queueLength) {
   const view = el('storyView');
   view.innerHTML = '';
 
   const title = document.createElement('div');
   title.className = 'storyTitle';
-  title.textContent = story?.title ?? '';
+
+  const isPlaceholder = !story?.desc && !story?.link && !story?.finalPoints;
+  if (isPlaceholder && queueLength > 0) {
+    title.textContent = 'Select Active Story from Queue';
+  } else {
+    title.textContent = story?.title ?? '';
+  }
 
   if (story?.finalPoints) {
     const pts = document.createElement('span');

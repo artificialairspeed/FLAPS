@@ -58,7 +58,7 @@ function getOrCreateRoom(roomId) {
       roomId,
       deck: ROOM_DECK,
       phase: "voting",
-      story: { title: "Add a story to estimate", desc: "", link: "", finalPoints: null },
+      story: { title: "Add Story to Queue", desc: "", link: "", finalPoints: null },
       storyQueue: [],
       activeStoryId: null,
       users: {},
@@ -232,7 +232,7 @@ io.on("connection", (socket) => {
     if (room.activeStoryId === id) {
       room.activeStoryId = null;
       room.phase = "voting";
-      room.story = { title: "Add a story to estimate", desc: "", link: "", finalPoints: null };
+      room.story = { title: "Add Story to Queue", desc: "", link: "", finalPoints: null };
       for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
     }
 
