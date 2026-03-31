@@ -231,6 +231,7 @@ a{ color:var(--accent) }
   border-radius:10px;
   background:var(--panel2);
   min-width:52px;
+  flex:1;
 }
 .metricChip.isFinal{
   border-color:rgba(122,162,255,.55);

@@ -225,7 +225,12 @@ io.on("connection", (socket) => {
 
     const id = String(storyId || "");
     room.storyQueue = room.storyQueue.filter((s) => s.id !== id);
-    if (room.activeStoryId === id) room.activeStoryId = null;
+    if (room.activeStoryId === id) {
+      room.activeStoryId = null;
+      room.phase = "voting";
+      room.story = { title: "Add a story to estimate", desc: "", link: "", finalPoints: null };
+      for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
+    }
 
     room.lastActiveAt = Date.now();
     broadcastRoom(roomId);
