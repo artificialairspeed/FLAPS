@@ -258,7 +258,7 @@ socket.on('room:state', (state) => {
   }
   
   const clearBtn = el('clearBtn');
-  if (clearBtn) clearBtn.disabled = !state.youAreModerator || !hasActiveStory;
+  if (clearBtn) clearBtn.disabled = !state.youAreModerator || !hasActiveStory || !!state.story?.finalPoints;
 
   const canFinalize = state.youAreModerator && state.phase === 'revealed' && hasActiveStory;
   const finalPointsSelect = el('finalPointsSelect');
