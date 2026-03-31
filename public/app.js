@@ -337,6 +337,14 @@ socket.on('room:state', (state) => {
     if (storyLinkLabel) storyLinkLabel.style.display = 'none';
   }
 
+  // If votes were cleared (phase is voting and our vote is null), deselect locally
+  if (state.phase === 'voting') {
+    const myEntry = state.mySocketId && state.users && state.users[state.mySocketId];
+    if (!myEntry || myEntry.vote === null) {
+      myVote = null;
+    }
+  }
+
   // Renders
   renderDeck(state.deck, state.phase, hasActiveStory);
   renderFinalPointsOptions(state.deck);

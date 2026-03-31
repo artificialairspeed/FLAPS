@@ -90,7 +90,8 @@ function makeRoomState(room, socket) {
     storyQueue: room.storyQueue,
     activeStoryId: room.activeStoryId,
     users,
-    youAreModerator
+    youAreModerator,
+    mySocketId: socket.id
   };
 }
 
