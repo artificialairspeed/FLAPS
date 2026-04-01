@@ -159,11 +159,17 @@ function applyInitialRoleView(){
 }
 applyInitialRoleView();
 
-/** Allow Enter to trigger Join for convenience */
+/** Allow Enter to trigger the appropriate action for convenience */
 ['roomId','name'].forEach(id=>{
   const n = el(id);
   n?.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter') el('joinBtn').click();
+    if (e.key !== 'Enter') return;
+    // On the roomId field, trigger Create Room if not yet created
+    if (id === 'roomId' && !roomCreated) {
+      el('createRoomBtn').click();
+    } else {
+      el('joinBtn').click();
+    }
   });
 });
 
