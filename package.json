@@ -5,10 +5,16 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "vitest --run"
   },
   "dependencies": {
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "fast-check": "^4.6.0",
+    "jsdom": "^29.0.0",
+    "vitest": "^4.1.0"
   }
 }
