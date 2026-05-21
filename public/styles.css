@@ -60,7 +60,7 @@ h1{ margin:0; font-size:18px; line-height:1.1; font-weight:700 }
   flex:1;
 }
 .roomIcon{
-  font-size:32px;
+  font-size:36px;
   line-height:1;
   flex-shrink:0;
   opacity:0.8;
@@ -131,8 +131,8 @@ button:disabled{ opacity:.55; cursor:not-allowed }
 .grid{
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:12px;
-  padding:12px;
+  gap:14px;
+  padding:14px;
   align-items:stretch;
   max-width:1600px;
   margin:0 auto;
@@ -141,7 +141,7 @@ button:disabled{ opacity:.55; cursor:not-allowed }
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:12px;
-  padding:12px;
+  padding:14px;
   display:flex;
   flex-direction:column;
   min-width:0;
@@ -163,8 +163,8 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   display:grid;
   grid-template-columns:repeat(7, 1fr);
   grid-auto-rows:1fr;
-  gap:8px;
-  margin:10px 0;
+  gap:10px;
+  margin:12px 0;
 }
 /* Make the card buttons fill their grid cell and scale symmetrically */
 .deckBtn{
@@ -178,8 +178,8 @@ h3{ margin:0; font-size:14px; font-weight:700 }
 .controls{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin:10px 0;
+  gap:10px;
+  margin:12px 0;
 }
 .controls > button{ width:100%; padding:10px }
 /* Reveal button in green to match participant pill */
@@ -202,18 +202,18 @@ h3{ margin:0; font-size:14px; font-weight:700 }
 .voteBottom{
   display:flex;
   flex-direction:column;
-  gap:8px;
-  margin-top:8px;
+  gap:10px;
+  margin-top:10px;
 }
 /* Results section with title */
 .resultsSection{
-  margin:10px 0;
+  margin:12px 0;
 }
 .resultsTitle{
   font-size:13px;
   font-weight:700;
   color:var(--text);
-  margin:0 0 8px 0;
+  margin:0 0 10px 0;
   text-transform:uppercase;
   letter-spacing:.06em;
 }
@@ -221,7 +221,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
 .finalizeRow{
   display:grid;
   grid-template-columns:1fr auto;
-  gap:8px;
+  gap:10px;
   align-items:center;
   margin-top:0;
 }
@@ -319,19 +319,27 @@ h3{ margin:0; font-size:14px; font-weight:700 }
 .users li:last-child{ border-bottom:none }
 .unameContainer{ display:flex; align-items:center; gap:6px; overflow:hidden; flex:1 }
 .roleIcon{
-  font-size:15px;
+  font-size:16px;
   line-height:1;
   flex-shrink:0;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
-.uname{ color:var(--text); font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.uname{ 
+  color:var(--text); 
+  font-size:15px; 
+  font-weight:700;
+  text-transform:uppercase;
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  white-space:nowrap;
+}
 .ustatus{ color:var(--muted); font-size:13px; flex-shrink:0 }
-.storyForm{ display:flex; flex-direction:column; gap:8px; margin-top:8px; flex:1 }
-.storyInputRow{ display:grid; grid-template-columns:110px 1fr; gap:8px; align-items:start }
+.storyForm{ display:flex; flex-direction:column; gap:10px; margin-top:10px; flex:1 }
+.storyInputRow{ display:grid; grid-template-columns:110px 1fr; gap:10px; align-items:start }
 .storyNumberField{ display:flex; flex-direction:column }
 .storyTitleField{ display:flex; flex-direction:column }
 .storyView{ 
-  margin-top:10px; padding:10px; border:1px solid rgba(53,80,106,.7); 
+  margin-top:12px; padding:12px; border:1px solid rgba(53,80,106,.7); 
   border-radius:10px; flex:1; overflow:hidden; word-wrap:break-word; 
 }
 .storyTitleRow{
@@ -339,7 +347,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   align-items:center;
   justify-content:space-between;
   gap:10px;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 .storyTitle{ 
   font-weight:900; 
@@ -482,7 +490,7 @@ a{ color:var(--accent) }
   transform:translateY(0);
 }
 .shareIcon{
-  font-size:28px;
+  font-size:32px;
   line-height:1;
   flex-shrink:0;
 }
@@ -543,7 +551,7 @@ a{ color:var(--accent) }
   flex:1;
 }
 .quoteIcon{
-  font-size:32px;
+  font-size:36px;
   line-height:1;
   flex-shrink:0;
   opacity:0.8;
@@ -574,7 +582,7 @@ a{ color:var(--accent) }
   white-space:nowrap;
 }
 .quoteLarge{
-  font-size:clamp(26px, 3.2vw, 32px);
+  font-size:clamp(24px, 2.8vw, 28px);
   color:var(--text);
   font-weight:700;
   letter-spacing:1px;

@@ -39,7 +39,8 @@
 
       <label class="vh" for="name">Your Name</label>
       <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-             inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="50" />
+             inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="50" 
+             pattern="[A-Za-z0-9\s]+" title="Letters, numbers, and spaces only" />
       <button id="joinBtn" class="primary" type="button">Join</button>
     </div>
   </header>
