@@ -34,12 +34,12 @@
     <div class="roombar" role="group" aria-label="Room and user controls">
       <label class="vh" for="roomId">Team Name</label>
       <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization"
-             inputmode="text" aria-label="Team Name" />
+             inputmode="text" aria-label="Team Name" style="text-transform:uppercase" maxlength="50" />
       <button id="createRoomBtn" class="primary" type="button">Create Room</button>
 
       <label class="vh" for="name">Your Name</label>
       <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-             inputmode="text" aria-label="Your Name" />
+             inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="50" />
       <button id="joinBtn" class="primary" type="button">Join</button>
     </div>
   </header>
@@ -65,16 +65,16 @@
         <div class="storyInputRow">
           <div class="storyNumberField">
             <label class="vh" for="storyNumber">Story Number</label>
-            <input id="storyNumber" placeholder="Story #" />
+            <input id="storyNumber" placeholder="Story #" maxlength="20" />
           </div>
           <div class="storyTitleField">
             <label class="vh" for="storyTitle">Story Title</label>
-            <input id="storyTitle" placeholder="Story Title" />
+            <input id="storyTitle" placeholder="Story Title" maxlength="40" />
           </div>
         </div>
 
-        <label class="vh" for="storyDesc">Story Description</label>
-        <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
+        <label class="vh" for="storyNotes">Story Notes</label>
+        <textarea id="storyNotes" placeholder="Notes (optional)" maxlength="110" rows="2"></textarea>
 
         <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
         <div id="modHint" class="hint"></div>

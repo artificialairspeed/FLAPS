@@ -290,6 +290,8 @@ socket.on('room:state', (state) => {
   // Clear loading states on successful join
   if (joinButtonClicked) {
     setLoading('joinBtn', false);
+    // Disable join button after successful join
+    setDisabled('joinBtn', true);
   }
 
   // Show main content when user joins (receives first room state)
@@ -371,21 +373,21 @@ socket.on('room:state', (state) => {
   // Show/hide story form inputs based on moderator status (but keep queue visible)
   const storyNumber = el('storyNumber');
   const storyTitle = el('storyTitle');
-  const storyDesc = el('storyDesc');
+  const storyNotes = el('storyNotes');
   const addToQueueBtn = el('addToQueueBtn');
   const storyNumberLabel = document.querySelector('label[for="storyNumber"]');
   const storyTitleLabel = document.querySelector('label[for="storyTitle"]');
-  const storyDescLabel = document.querySelector('label[for="storyDesc"]');
+  const storyNotesLabel = document.querySelector('label[for="storyNotes"]');
   
   if (state.youAreModerator) {
     // Show form inputs for facilitators
     if (storyNumber) storyNumber.style.display = '';
     if (storyTitle) storyTitle.style.display = '';
-    if (storyDesc) storyDesc.style.display = '';
+    if (storyNotes) storyNotes.style.display = '';
     if (addToQueueBtn) addToQueueBtn.style.display = '';
     if (storyNumberLabel) storyNumberLabel.style.display = '';
     if (storyTitleLabel) storyTitleLabel.style.display = '';
-    if (storyDescLabel) storyDescLabel.style.display = '';
+    if (storyNotesLabel) storyNotesLabel.style.display = '';
     // Show facilitator-only vote controls
     show('revealBtn'); show('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
@@ -394,11 +396,11 @@ socket.on('room:state', (state) => {
     // Hide form inputs for participants (but keep queue visible)
     if (storyNumber) storyNumber.style.display = 'none';
     if (storyTitle) storyTitle.style.display = 'none';
-    if (storyDesc) storyDesc.style.display = 'none';
+    if (storyNotes) storyNotes.style.display = 'none';
     if (addToQueueBtn) addToQueueBtn.style.display = 'none';
     if (storyNumberLabel) storyNumberLabel.style.display = 'none';
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
-    if (storyDescLabel) storyDescLabel.style.display = 'none';
+    if (storyNotesLabel) storyNotesLabel.style.display = 'none';
     // Hide facilitator-only vote controls
     hide('revealBtn'); hide('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
@@ -478,13 +480,13 @@ el('addToQueueBtn').onclick = () => {
     story: {
       number: el('storyNumber').value,
       title,
-      desc: el('storyDesc').value
+      desc: el('storyNotes').value
     }
   });
 
   el('storyNumber').value = '';
   el('storyTitle').value = '';
-  el('storyDesc').value = '';
+  el('storyNotes').value = '';
   el('storyTitle').focus();
 };
 

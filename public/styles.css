@@ -122,8 +122,8 @@ button:focus-visible{
   outline:3px solid var(--focus);
   outline-offset:2px;
 }
-textarea{ min-height:96px; width:100%; resize:vertical }
-button{ cursor:pointer }
+textarea{ min-height:50px; width:100%; resize:vertical }
+button{ cursor:pointer; font-weight:700 }
 button:hover,a.queueBtn:hover{ border-color:var(--accent) }
 button:disabled{ opacity:.55; cursor:not-allowed }
 .primary{ border-color:rgba(122,162,255,.55); background:#2b5a86 }
@@ -154,6 +154,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   border:1px solid var(--border);
   padding:6px 10px; border-radius:999px;
   background:var(--panel2);
+  font-weight:700;
 }
 .pill.good{ color:#bff7dd; border-color:rgba(110,231,183,.45) }
 .pill.warn{ color:#ffe4a3; border-color:rgba(251,191,36,.45) }
@@ -283,7 +284,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   .users li{ padding:6px; gap:6px }
   .unameContainer{ gap:5px }
   .roleIcon{ font-size:14px }
-  .uname{ font-size:12px }
+  .uname{ font-size:13px }
   .ustatus{ font-size:12px }
   .finalizeRow{ grid-template-columns:1fr; gap:6px }
   #finalizeEstimateBtn{ width:100%; padding:9px }
@@ -308,7 +309,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   h2{ font-size:15px }
   .pill{ font-size:11px; padding:5px 8px }
   input,textarea,button,select{ padding:9px; font-size:13px; border-radius:8px }
-  textarea{ min-height:80px }
+  textarea{ min-height:50px }
 }
 .users{ list-style:none; padding:0; margin:0; flex:1 }
 .users li{
@@ -323,7 +324,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   flex-shrink:0;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
-.uname{ color:var(--text); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.uname{ color:var(--text); font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .ustatus{ color:var(--muted); font-size:13px; flex-shrink:0 }
 .storyForm{ display:flex; flex-direction:column; gap:8px; margin-top:8px; flex:1 }
 .storyInputRow{ display:grid; grid-template-columns:110px 1fr; gap:8px; align-items:start }
