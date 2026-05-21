@@ -628,6 +628,9 @@ function renderStory(story, queueLength) {
   const view = el('storyView');
   view.innerHTML = '';
 
+  const titleRow = document.createElement('div');
+  titleRow.className = 'storyTitleRow';
+
   const title = document.createElement('div');
   title.className = 'storyTitle';
 
@@ -642,18 +645,21 @@ function renderStory(story, queueLength) {
     title.textContent = displayText;
   }
 
-  if (story?.finalPoints) {
-    const pts = document.createElement('span');
-    pts.className = 'pointsBadge';
-    pts.textContent = `Final: ${story.finalPoints}`;
-    title.appendChild(pts);
+  titleRow.appendChild(title);
+
+  // Final pill (always visible on the right)
+  if (!isPlaceholder) {
+    const finalPill = document.createElement('span');
+    finalPill.className = 'storyFinalPill';
+    finalPill.textContent = story?.finalPoints ? `Final: ${story.finalPoints}` : 'Final: —';
+    titleRow.appendChild(finalPill);
   }
 
   const desc = document.createElement('div');
   desc.className = 'storyDesc';
   desc.textContent = story?.desc ?? '';
 
-  view.appendChild(title);
+  view.appendChild(titleRow);
   view.appendChild(desc);
 }
 
@@ -827,12 +833,7 @@ function renderQueue(state) {
     const displayText = s.number ? `${s.number} - ${s.title}` : s.title;
     title.textContent = displayText;
 
-    const points = document.createElement('span');
-    points.className = 'queuePoints';
-    points.textContent = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
-
     titleRow.appendChild(title);
-    titleRow.appendChild(points);
     left.appendChild(titleRow);
 
     const meta = document.createElement('div');
@@ -844,6 +845,13 @@ function renderQueue(state) {
     actions.className = 'queueActions';
 
     if (state.youAreModerator) {
+      // Final pill button (always visible)
+      const finalPill = document.createElement('button');
+      finalPill.className = 'queueBtn finalPill';
+      finalPill.type = 'button';
+      finalPill.textContent = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
+      finalPill.disabled = true;
+
       const setBtn = document.createElement('button');
       setBtn.className = 'queueBtn primary';
       setBtn.type = 'button';
@@ -857,6 +865,7 @@ function renderQueue(state) {
       rmBtn.textContent = 'Remove';
       rmBtn.onclick = () => socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: s.id });
 
+      actions.appendChild(finalPill);
       actions.appendChild(setBtn);
       actions.appendChild(rmBtn);
     }
