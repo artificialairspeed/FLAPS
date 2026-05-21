@@ -435,13 +435,29 @@ a{ color:var(--accent) }
 }
 .queueItem{
   display:flex; align-items:center; justify-content:space-between; gap:8px;
-  padding:10px; border-bottom:1px solid rgba(53,80,106,.7)
+  padding:10px; border-bottom:1px solid rgba(53,80,106,.7);
+  min-height:50px;
+  max-height:50px;
+  overflow:hidden;
 }
 .queueItem:last-child{ border-bottom:none }
-.queueLeft{ display:flex; flex-direction:column; gap:2px; min-width:0 }
-.queueTitleRow{ display:flex; gap:6px; align-items:center; min-width:0 }
-.queueTitle{ font-weight:700; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.queueMeta{ font-size:11px; color:var(--muted) }
+.queueLeft{ display:flex; flex-direction:column; gap:2px; min-width:0; overflow:hidden }
+.queueTitleRow{ display:flex; gap:6px; align-items:center; min-width:0; overflow:hidden }
+.queueTitle{ 
+  font-weight:700; 
+  font-size:13px; 
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  white-space:nowrap;
+  max-width:100%;
+}
+.queueMeta{ 
+  font-size:11px; 
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 .queuePoints{
   font-size:11px; padding:2px 6px; border:1px solid var(--border);
   border-radius:999px; background:var(--panel2); color:var(--muted); white-space:nowrap
