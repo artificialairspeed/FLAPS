@@ -171,6 +171,18 @@ h2{ margin:0; font-size:16px }
   gap:10px;
   margin-top:10px;
 }
+/* Results section with title */
+.resultsSection{
+  margin:14px 0;
+}
+.resultsTitle{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  margin:0 0 10px 0;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
 /* Finalize stacked, same width controls */
 .finalizeRow{
   display:flex;
@@ -202,6 +214,11 @@ h2{ margin:0; font-size:16px }
 @media (max-width:600px){
   .grid{ grid-template-columns:minmax(0, 1fr) }
   .deck{ grid-template-columns:repeat(4, 1fr); gap:8px }
+  .storyInputRow{ grid-template-columns:1fr; gap:10px }
+  .shareButton{ padding:16px; gap:12px }
+  .shareIcon{ font-size:28px }
+  .shareTitle{ font-size:15px }
+  .shareSubtitle{ font-size:12px }
   .roombar{ grid-template-columns:1fr }
   header{ flex-direction:column; align-items:flex-start }
   .room-name-display{ margin-left:0; margin-right:0; width:100% }
@@ -212,9 +229,19 @@ h2{ margin:0; font-size:16px }
   padding:10px; border-bottom:1px solid rgba(53,80,106,.7)
 }
 .users li:last-child{ border-bottom:none }
+.unameContainer{ display:flex; align-items:center; gap:8px; overflow:hidden; flex:1 }
+.roleIcon{
+  font-size:16px;
+  line-height:1;
+  flex-shrink:0;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
+}
 .uname{ color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-.ustatus{ color:var(--muted) }
+.ustatus{ color:var(--muted); flex-shrink:0 }
 .storyForm{ display:flex; flex-direction:column; gap:10px; margin-top:10px; flex:1 }
+.storyInputRow{ display:grid; grid-template-columns:120px 1fr; gap:10px; align-items:start }
+.storyNumberField{ display:flex; flex-direction:column }
+.storyTitleField{ display:flex; flex-direction:column }
 .storyView{ margin-top:12px; padding:10px; border:1px solid rgba(53,80,106,.7); border-radius:12px; flex:1 }
 .storyTitle{ font-weight:900 }
 .storyDesc{ color:var(--muted); margin-top:8px; white-space:pre-wrap }
@@ -291,8 +318,68 @@ a{ color:var(--accent) }
 }
 .queueLinkBtn{ width:34px; min-width:34px; display:flex; align-items:center; justify-content:center; padding:6px 0 }
 /* Share section spans full grid width */
-.shareRow{ display:grid; grid-template-columns:140px 1fr auto; gap:10px; align-items:center; padding:8px 0 }
-.shareLabel{ color:var(--muted); font-size:12px }
+.shareButtonContainer{ display:flex; flex-direction:column; gap:12px; align-items:stretch }
+.shareButton{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:20px;
+  border:2px solid var(--accent);
+  border-radius:14px;
+  background:linear-gradient(135deg, rgba(43,90,134,.4) 0%, rgba(26,45,63,.4) 100%);
+  cursor:pointer;
+  transition:all .2s ease;
+  width:100%;
+}
+.shareButton:hover{
+  border-color:var(--focus);
+  background:linear-gradient(135deg, rgba(43,90,134,.6) 0%, rgba(26,45,63,.6) 100%);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(122,162,255,.25);
+}
+.shareButton:active{
+  transform:translateY(0);
+}
+.shareIcon{
+  font-size:32px;
+  line-height:1;
+  flex-shrink:0;
+}
+.shareText{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  text-align:left;
+  flex:1;
+}
+.shareTitle{
+  font-size:16px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1.2;
+}
+.shareSubtitle{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.2;
+}
+.shareFeedback{
+  padding:12px 16px;
+  background:rgba(16,185,129,.15);
+  border:1px solid rgba(16,185,129,.4);
+  border-radius:10px;
+  color:#6ee7b7;
+  font-size:14px;
+  font-weight:600;
+  text-align:center;
+  animation:fadeInOut 2s ease-in-out;
+}
+@keyframes fadeInOut{
+  0%{ opacity:0; transform:translateY(-10px) }
+  15%{ opacity:1; transform:translateY(0) }
+  85%{ opacity:1; transform:translateY(0) }
+  100%{ opacity:0; transform:translateY(-10px) }
+}
 #shareBox{ grid-column:1/-1; margin:0 }
 .grid > .share{ margin:0 }
 /* Optional hover emphasis for deck cards */

@@ -13,9 +13,9 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const MODERATOR_KEY_LENGTH = 18;
 const MAX_ROOM_ID_LENGTH = 50;
 const MAX_NAME_LENGTH = 50;
+const MAX_STORY_NUMBER_LENGTH = 50;
 const MAX_STORY_TITLE_LENGTH = 200;
 const MAX_STORY_DESC_LENGTH = 2000;
-const MAX_STORY_LINK_LENGTH = 500;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,7 +124,7 @@ function getOrCreateRoom(roomId) {
       roomId,
       deck: ROOM_DECK,
       phase: "voting",
-      story: { title: "Add Story to Queue", desc: "", link: "", finalPoints: null },
+      story: { number: "", title: "Add Story to Queue", desc: "", finalPoints: null },
       storyQueue: [],
       activeStoryId: null,
       users: {},
@@ -148,7 +148,8 @@ function makeRoomState(room, socket) {
   const users = Object.fromEntries(
     Object.entries(room.users).map(([id, u]) => {
       const vote = room.phase === "revealed" ? u.vote : (u.vote ? "selected" : null);
-      return [id, { name: u.name, vote }];
+      const isMod = u.isModerator || false;
+      return [id, { name: u.name, vote, isModerator: isMod }];
     })
   );
 
@@ -230,7 +231,8 @@ io.on("connection", (socket) => {
     const sanitizedName = sanitizeString(name || "Facilitator", MAX_NAME_LENGTH) || "Facilitator";
     room.users[socket.id] = {
       name: sanitizedName,
-      vote: null
+      vote: null,
+      isModerator: true
     };
 
     room.lastActiveAt = Date.now();
@@ -256,7 +258,8 @@ io.on("connection", (socket) => {
     const sanitizedName = sanitizeString(name || "Anonymous", MAX_NAME_LENGTH) || "Anonymous";
     room.users[socket.id] = {
       name: sanitizedName,
-      vote: null
+      vote: null,
+      isModerator: isModerator(room, modKey)
     };
 
     room.lastActiveAt = Date.now();
@@ -321,20 +324,14 @@ io.on("connection", (socket) => {
     const title = sanitizeString(story?.title, MAX_STORY_TITLE_LENGTH);
     if (!title) return;
 
+    const number = sanitizeString(story?.number, MAX_STORY_NUMBER_LENGTH);
     const desc = sanitizeString(story?.desc, MAX_STORY_DESC_LENGTH);
-    const link = sanitizeString(story?.link, MAX_STORY_LINK_LENGTH);
-
-    // Validate URL if provided
-    if (link && !isValidUrl(link)) {
-      socket.emit("error", { message: "Invalid URL format" });
-      return;
-    }
 
     room.storyQueue.push({
       id: randomId(8),
+      number,
       title,
       desc,
-      link,
       finalPoints: null
     });
 
@@ -353,7 +350,7 @@ io.on("connection", (socket) => {
     if (room.activeStoryId === id) {
       room.activeStoryId = null;
       room.phase = "voting";
-      room.story = { title: "Add Story to Queue", desc: "", link: "", finalPoints: null };
+      room.story = { number: "", title: "Add Story to Queue", desc: "", finalPoints: null };
       for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
     }
 
@@ -385,9 +382,9 @@ io.on("connection", (socket) => {
 
     room.activeStoryId = id;
     room.story = {
+      number: found.number,
       title: found.title,
       desc: found.desc,
-      link: found.link,
       finalPoints: found.finalPoints || null
     };
 

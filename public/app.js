@@ -43,19 +43,26 @@ async function copyToClipboard(text) {
 function setShareLinks(roomId, mk) {
   const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
   const participant = base;
-  const facilitator = `${base}?mod=${encodeURIComponent(mk)}`;
 
   // Use class toggling rather than inline style
   el('shareBox').classList.remove('hidden');
 
-  const p = el('shareParticipant');
-  p.textContent = participant; p.href = participant; p.rel = 'noopener noreferrer';
-
-  const m = el('shareMod');
-  m.textContent = facilitator; m.href = facilitator; m.rel = 'noopener noreferrer';
-
-  el('copyParticipantBtn').onclick = () => copyToClipboard(participant);
-  el('copyModBtn').onclick = () => copyToClipboard(facilitator);
+  // Store the participant link for the share button
+  const shareBtn = el('shareParticipantBtn');
+  if (shareBtn) {
+    shareBtn.onclick = async () => {
+      await copyToClipboard(participant);
+      
+      // Show feedback
+      const feedback = el('shareFeedback');
+      if (feedback) {
+        feedback.classList.remove('hidden');
+        setTimeout(() => {
+          feedback.classList.add('hidden');
+        }, 2000);
+      }
+    };
+  }
 }
 
 /** ---- Small UI helpers ---- */
@@ -351,36 +358,36 @@ socket.on('room:state', (state) => {
   }
 
   // Show/hide story form inputs based on moderator status (but keep queue visible)
+  const storyNumber = el('storyNumber');
   const storyTitle = el('storyTitle');
   const storyDesc = el('storyDesc');
-  const storyLink = el('storyLink');
   const addToQueueBtn = el('addToQueueBtn');
+  const storyNumberLabel = document.querySelector('label[for="storyNumber"]');
   const storyTitleLabel = document.querySelector('label[for="storyTitle"]');
   const storyDescLabel = document.querySelector('label[for="storyDesc"]');
-  const storyLinkLabel = document.querySelector('label[for="storyLink"]');
   
   if (state.youAreModerator) {
     // Show form inputs for facilitators
+    if (storyNumber) storyNumber.style.display = '';
     if (storyTitle) storyTitle.style.display = '';
     if (storyDesc) storyDesc.style.display = '';
-    if (storyLink) storyLink.style.display = '';
     if (addToQueueBtn) addToQueueBtn.style.display = '';
+    if (storyNumberLabel) storyNumberLabel.style.display = '';
     if (storyTitleLabel) storyTitleLabel.style.display = '';
     if (storyDescLabel) storyDescLabel.style.display = '';
-    if (storyLinkLabel) storyLinkLabel.style.display = '';
     // Show facilitator-only vote controls
     show('revealBtn'); show('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
     if (finalizeRow) finalizeRow.style.display = '';
   } else {
     // Hide form inputs for participants (but keep queue visible)
+    if (storyNumber) storyNumber.style.display = 'none';
     if (storyTitle) storyTitle.style.display = 'none';
     if (storyDesc) storyDesc.style.display = 'none';
-    if (storyLink) storyLink.style.display = 'none';
     if (addToQueueBtn) addToQueueBtn.style.display = 'none';
+    if (storyNumberLabel) storyNumberLabel.style.display = 'none';
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
     if (storyDescLabel) storyDescLabel.style.display = 'none';
-    if (storyLinkLabel) storyLinkLabel.style.display = 'none';
     // Hide facilitator-only vote controls
     hide('revealBtn'); hide('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
@@ -458,15 +465,15 @@ el('addToQueueBtn').onclick = () => {
   socket.emit('storyQueue:add', {
     roomId: currentRoom,
     story: {
+      number: el('storyNumber').value,
       title,
-      desc: el('storyDesc').value,
-      link: el('storyLink').value
+      desc: el('storyDesc').value
     }
   });
 
+  el('storyNumber').value = '';
   el('storyTitle').value = '';
   el('storyDesc').value = '';
-  el('storyLink').value = '';
   el('storyTitle').focus();
 };
 
@@ -567,9 +574,28 @@ function renderUsers(users, phase) {
   entries.forEach((u) => {
     const li = document.createElement('li');
 
+    const nameContainer = document.createElement('div');
+    nameContainer.className = 'unameContainer';
+
+    // Add role icon
+    const roleIcon = document.createElement('span');
+    roleIcon.className = 'roleIcon';
+    if (u.isModerator) {
+      roleIcon.textContent = '👑';
+      roleIcon.title = 'Facilitator';
+      roleIcon.setAttribute('aria-label', 'Facilitator');
+    } else {
+      roleIcon.textContent = '👤';
+      roleIcon.title = 'Participant';
+      roleIcon.setAttribute('aria-label', 'Participant');
+    }
+
     const nameSpan = document.createElement('span');
     nameSpan.className = 'uname';
     nameSpan.textContent = u.name ?? '';
+
+    nameContainer.appendChild(roleIcon);
+    nameContainer.appendChild(nameSpan);
 
     const statusSpan = document.createElement('span');
     statusSpan.className = 'ustatus';
@@ -579,7 +605,7 @@ function renderUsers(users, phase) {
       statusSpan.textContent = (u.vote === 'selected' ? '✔ Selected' : '—');
     }
 
-    li.appendChild(nameSpan);
+    li.appendChild(nameContainer);
     li.appendChild(statusSpan);
     frag.appendChild(li);
   });
@@ -594,11 +620,15 @@ function renderStory(story, queueLength) {
   const title = document.createElement('div');
   title.className = 'storyTitle';
 
-  const isPlaceholder = !story?.desc && !story?.link && !story?.finalPoints;
+  const isPlaceholder = !story?.desc && !story?.number && !story?.finalPoints;
   if (isPlaceholder && queueLength > 0) {
     title.textContent = 'Select a Story from the Queue to Estimate';
   } else {
-    title.textContent = story?.title ?? '';
+    // Display story number and title together
+    const displayText = story?.number 
+      ? `${story.number} - ${story?.title ?? ''}` 
+      : story?.title ?? '';
+    title.textContent = displayText;
   }
 
   if (story?.finalPoints) {
@@ -612,27 +642,45 @@ function renderStory(story, queueLength) {
   desc.className = 'storyDesc';
   desc.textContent = story?.desc ?? '';
 
-  const linkDiv = document.createElement('div');
-  linkDiv.className = 'storyLink';
-  const safe = normalizeUrl(story?.link ?? '');
-  if (safe) {
-    const a = document.createElement('a');
-    a.href = safe; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.textContent = 'Open Link';
-    linkDiv.appendChild(a);
-  }
-
   view.appendChild(title);
   view.appendChild(desc);
-  view.appendChild(linkDiv);
 }
 
 function renderResults(state) {
   const r = el('results');
 
   if (state.phase !== 'revealed') {
-    r.textContent = 'Votes are hidden until the facilitator reveals.';
-    r.className = 'hint';
+    // Show placeholder metrics before reveal
+    const summary = document.createElement('div');
+    summary.className = 'summary';
+
+    const placeholderMetrics = [
+      { label: 'Min', value: '—' },
+      { label: 'Max', value: '—' },
+      { label: 'Avg', value: '—' },
+      { label: 'Median', value: '—' }
+    ];
+
+    placeholderMetrics.forEach((m) => {
+      const chip = document.createElement('div');
+      chip.className = 'metricChip';
+
+      const label = document.createElement('span');
+      label.className = 'metricLabel';
+      label.textContent = m.label;
+
+      const value = document.createElement('span');
+      value.className = 'metricValue';
+      value.textContent = m.value;
+
+      chip.appendChild(label);
+      chip.appendChild(value);
+      summary.appendChild(chip);
+    });
+
+    r.className = '';
+    r.innerHTML = '';
+    r.appendChild(summary);
     return;
   }
 
@@ -650,8 +698,37 @@ function renderResults(state) {
     .sort((a,b) => a - b);
 
   if (!votes.length) {
-    r.textContent = 'No votes recorded.';
-    r.className = 'hint';
+    // Show placeholder metrics when no votes
+    const summary = document.createElement('div');
+    summary.className = 'summary';
+
+    const placeholderMetrics = [
+      { label: 'Min', value: '—' },
+      { label: 'Max', value: '—' },
+      { label: 'Avg', value: '—' },
+      { label: 'Median', value: '—' }
+    ];
+
+    placeholderMetrics.forEach((m) => {
+      const chip = document.createElement('div');
+      chip.className = 'metricChip';
+
+      const label = document.createElement('span');
+      label.className = 'metricLabel';
+      label.textContent = m.label;
+
+      const value = document.createElement('span');
+      value.className = 'metricValue';
+      value.textContent = m.value;
+
+      chip.appendChild(label);
+      chip.appendChild(value);
+      summary.appendChild(chip);
+    });
+
+    r.className = '';
+    r.innerHTML = '';
+    r.appendChild(summary);
     return;
   }
 
@@ -735,7 +812,9 @@ function renderQueue(state) {
 
     const title = document.createElement('span');
     title.className = 'queueTitle';
-    title.textContent = s.title;
+    // Display story number and title together
+    const displayText = s.number ? `${s.number} - ${s.title}` : s.title;
+    title.textContent = displayText;
 
     const points = document.createElement('span');
     points.className = 'queuePoints';
@@ -752,20 +831,6 @@ function renderQueue(state) {
 
     const actions = document.createElement('div');
     actions.className = 'queueActions';
-
-    if (s.link) {
-      const safe = normalizeUrl(s.link);
-      if (safe) {
-        const a = document.createElement('a');
-        a.className = 'queueBtn queueLinkBtn';
-        a.href = safe;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.title = 'Open Link';
-        a.textContent = '🔗';
-        actions.appendChild(a);
-      }
-    }
 
     if (state.youAreModerator) {
       const setBtn = document.createElement('button');

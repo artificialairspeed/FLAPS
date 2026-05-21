@@ -67,14 +67,19 @@
 
         <div class="queueHeader">Add a Story</div>
 
-        <label class="vh" for="storyTitle">Story Title</label>
-        <input id="storyTitle" placeholder="Story Title" />
+        <div class="storyInputRow">
+          <div class="storyNumberField">
+            <label class="vh" for="storyNumber">Story Number</label>
+            <input id="storyNumber" placeholder="Story #" />
+          </div>
+          <div class="storyTitleField">
+            <label class="vh" for="storyTitle">Story Title</label>
+            <input id="storyTitle" placeholder="Story Title" />
+          </div>
+        </div>
 
         <label class="vh" for="storyDesc">Story Description</label>
         <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
-
-        <label class="vh" for="storyLink">Story Link</label>
-        <input id="storyLink" placeholder="Link (optional)" />
 
         <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
         <div id="modHint" class="hint"></div>
@@ -90,6 +95,11 @@
 
       <div id="deck" class="deck" aria-label="Voting deck"></div>
 
+      <div class="resultsSection">
+        <h3 class="resultsTitle">Estimation Results</h3>
+        <div id="results" aria-label="Results"></div>
+      </div>
+
       <div class="controls">
         <button id="revealBtn" class="primary" type="button">Reveal</button>
         <button id="clearBtn" type="button">Clear / Revote</button>
@@ -100,7 +110,6 @@
           <select id="finalPointsSelect" aria-label="Final points select"></select>
           <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
         </div>
-        <div id="results" aria-label="Results"></div>
       </div>
     </section>
 
@@ -114,19 +123,16 @@
     </section>
 
     <!-- Share -->
-    <section id="shareBox" class="card share hidden" aria-label="Share links">
-      <h2>Share</h2>
-
-      <div class="shareRow">
-        <div class="shareLabel">Participant</div>
-        <a id="shareParticipant" href="#" target="_blank" rel="noopener noreferrer">—</a>
-        <button id="copyParticipantBtn" class="tiny" type="button">Copy</button>
-      </div>
-
-      <div class="shareRow">
-        <div class="shareLabel">Facilitator</div>
-        <a id="shareMod" href="#" target="_blank" rel="noopener noreferrer">—</a>
-        <button id="copyModBtn" class="tiny" type="button">Copy</button>
+    <section id="shareBox" class="card share hidden" aria-label="Share link">
+      <div class="shareButtonContainer">
+        <button id="shareParticipantBtn" class="shareButton" type="button">
+          <span class="shareIcon">🔗</span>
+          <div class="shareText">
+            <div class="shareTitle">Share Participant Link</div>
+            <div class="shareSubtitle">Click to copy invitation link</div>
+          </div>
+        </button>
+        <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
       </div>
     </section>
   </main>
