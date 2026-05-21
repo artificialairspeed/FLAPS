@@ -44,8 +44,16 @@ function setShareLinks(roomId, mk) {
   const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
   const participant = base;
 
-  // Use class toggling rather than inline style
+  // Show share box
   el('shareBox').classList.remove('hidden');
+  
+  // Show room name box
+  const roomNameBox = el('roomNameBox');
+  if (roomNameBox) roomNameBox.classList.remove('hidden');
+  
+  // Show quote box
+  const quoteBox = el('quoteBox');
+  if (quoteBox) quoteBox.classList.remove('hidden');
 
   // Store the participant link for the share button
   const shareBtn = el('shareParticipantBtn');
@@ -155,9 +163,10 @@ function applyInitialRoleView(){
   // Show room name for any room URL (both facilitator and participant)
   const roomNameDisplay = el('roomNameDisplay');
   const roomNameText = el('roomNameText');
-  if (roomNameDisplay && roomNameText && currentRoom) {
+  const roomNameBox = el('roomNameBox');
+  if (roomNameDisplay && roomNameText && roomNameBox && currentRoom) {
     roomNameText.textContent = currentRoom;
-    roomNameDisplay.classList.remove('hidden');
+    roomNameBox.classList.remove('hidden');
   }
 
   // On /room/:id
@@ -252,12 +261,13 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   const mainContent = document.querySelector('main');
   if (mainContent) mainContent.style.display = '';
 
-  // Show room name in header
+  // Show room name in grid
   const roomNameDisplay = el('roomNameDisplay');
   const roomNameText = el('roomNameText');
-  if (roomNameDisplay && roomNameText) {
+  const roomNameBox = el('roomNameBox');
+  if (roomNameDisplay && roomNameText && roomNameBox) {
     roomNameText.textContent = roomId;
-    roomNameDisplay.classList.remove('hidden');
+    roomNameBox.classList.remove('hidden');
   }
 
   setShareLinks(roomId, createdModKey);
@@ -288,12 +298,13 @@ socket.on('room:state', (state) => {
     const mainContent = document.querySelector('main');
     if (mainContent) mainContent.style.display = '';
     
-    // Show room name in header for participants
+    // Show room name in grid for participants
     const roomNameDisplay = el('roomNameDisplay');
     const roomNameText = el('roomNameText');
-    if (roomNameDisplay && roomNameText && state.roomId) {
+    const roomNameBox = el('roomNameBox');
+    if (roomNameDisplay && roomNameText && roomNameBox && state.roomId) {
       roomNameText.textContent = state.roomId;
-      roomNameDisplay.classList.remove('hidden');
+      roomNameBox.classList.remove('hidden');
     }
   }
 

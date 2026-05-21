@@ -42,17 +42,13 @@ header{
 .logoImg{ width:100%; height:100%; object-fit:contain; display:block }
 h1{ margin:0; font-size:18px; line-height:1.1 }
 
-/* Room name display */
+/* Room name display - now in grid below main sections */
 .room-name-display {
   display:flex;
   align-items:center;
+  justify-content:center;
   gap:8px;
-  padding:8px 16px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:6px;
-  margin-left:auto;
-  margin-right:16px;
+  padding:16px;
 }
 .room-label {
   font-size:14px;
@@ -60,9 +56,9 @@ h1{ margin:0; font-size:18px; line-height:1.1 }
   font-weight:500;
 }
 .room-name {
-  font-size:16px;
+  font-size:18px;
   color:var(--text);
-  font-weight:600;
+  font-weight:700;
   letter-spacing:0.5px;
 }
 
@@ -150,14 +146,24 @@ h2{ margin:0; font-size:16px }
   font-size:clamp(14px,2vw,20px);
   border-radius:10px; min-width:unset;
 }
-/* Controls as stacked full-width buttons with clear separation */
+/* Controls as side-by-side buttons: Reveal left, Clear/Revote right */
 .controls{
   display:grid;
-  grid-template-columns:1fr;
-  gap:12px; /* separation between Reveal and Clear / Revote */
-  margin:14px 0 6px;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:14px 0;
 }
 .controls > button{ width:100% }
+/* Reveal button in green to match participant pill */
+#revealBtn{
+  border-color:rgba(110,231,183,.45);
+  background:rgba(16,185,129,.2);
+  color:#bff7dd;
+}
+#revealBtn:hover{
+  border-color:rgba(110,231,183,.65);
+  background:rgba(16,185,129,.3);
+}
 /* Clear / Revote in a differentiated red shade */
 #clearBtn{
   border-color:var(--dangerBorder);
@@ -183,19 +189,22 @@ h2{ margin:0; font-size:16px }
   text-transform:uppercase;
   letter-spacing:.06em;
 }
-/* Finalize stacked, same width controls */
+/* Finalize row: dropdown left, button right, side by side */
 .finalizeRow{
-  display:flex;
-  flex-direction:column;
+  display:grid;
+  grid-template-columns:1fr auto;
   gap:10px;
-  align-items:stretch;
+  align-items:center;
   margin-top:0;
 }
-#finalPointsSelect,
-#finalizeEstimateBtn{
+#finalPointsSelect{
   width:100%;
+  min-width:0;
 }
-#finalPointsSelect{ min-width:0 }
+#finalizeEstimateBtn{
+  white-space:nowrap;
+  padding:10px 20px;
+}
 /* Results panel */
 #results{
   border:1px solid rgba(53,80,106,.7);
@@ -207,21 +216,29 @@ h2{ margin:0; font-size:16px }
   .grid{
     grid-template-columns:repeat(2, minmax(0, 1fr));
   }
-  /* Share box always full-width */
+  /* Bottom row spans full width and stacks */
+  #roomNameBox{ grid-column:1/-1 }
   #shareBox{ grid-column:1/-1 }
+  #quoteBox{ grid-column:1/-1 }
 }
 /* Mobile: single column */
 @media (max-width:600px){
   .grid{ grid-template-columns:minmax(0, 1fr) }
   .deck{ grid-template-columns:repeat(4, 1fr); gap:8px }
   .storyInputRow{ grid-template-columns:1fr; gap:10px }
+  .finalizeRow{ grid-template-columns:1fr; gap:10px }
+  #finalizeEstimateBtn{ width:100%; padding:10px }
   .shareButton{ padding:16px; gap:12px }
   .shareIcon{ font-size:28px }
   .shareTitle{ font-size:15px }
   .shareSubtitle{ font-size:12px }
+  .quoteContainer{ padding:16px; gap:12px }
+  .quoteIcon{ font-size:32px }
+  .quoteSmall{ font-size:14px }
+  .quoteLarge{ font-size:20px }
+  .quoteAuthor{ font-size:12px }
   .roombar{ grid-template-columns:1fr }
   header{ flex-direction:column; align-items:flex-start }
-  .room-name-display{ margin-left:0; margin-right:0; width:100% }
 }
 .users{ list-style:none; padding:0; margin:0; flex:1 }
 .users li{
@@ -380,7 +397,60 @@ a{ color:var(--accent) }
   85%{ opacity:1; transform:translateY(0) }
   100%{ opacity:0; transform:translateY(-10px) }
 }
-#shareBox{ grid-column:1/-1; margin:0 }
+/* Quote section */
+.quoteContainer{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:20px;
+}
+.quoteIcon{
+  font-size:36px;
+  line-height:1;
+  flex-shrink:0;
+  opacity:0.8;
+  align-self:flex-start;
+  margin-top:4px;
+}
+.quoteContent{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  flex:1;
+}
+.quoteText{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-family:'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
+  line-height:1.3;
+  margin-bottom:12px;
+}
+.quoteSmall{
+  font-size:16px;
+  color:var(--muted);
+  font-weight:400;
+  letter-spacing:0.5px;
+}
+.quoteLarge{
+  font-size:24px;
+  color:var(--text);
+  font-weight:700;
+  letter-spacing:1px;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.quoteAuthor{
+  font-size:14px;
+  color:var(--muted);
+  font-weight:500;
+  font-style:normal;
+  margin-top:4px;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+/* Grid positioning for bottom row */
+#roomNameBox{ grid-column:1; margin:0 }
+#shareBox{ grid-column:2; margin:0 }
+#quoteBox{ grid-column:3; margin:0 }
 .grid > .share{ margin:0 }
 /* Optional hover emphasis for deck cards */
 .deckBtn:hover{ border-color:rgba(122,162,255,.65); box-shadow:0 0 0 2px rgba(122,162,255,.25) inset }
