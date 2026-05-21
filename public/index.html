@@ -118,7 +118,7 @@
     </section>
 
     <!-- Room Info Row: Room Name, Share, Quote -->
-    <section id="roomNameBox" class="card hidden" aria-label="Room information">
+    <section id="roomNameBox" class="card bottomCard hidden" aria-label="Room information">
       <div id="roomNameDisplay" class="room-name-display">
         <span class="room-label">Room:</span>
         <span id="roomNameText" class="room-name"></span>
@@ -126,21 +126,19 @@
     </section>
 
     <!-- Share -->
-    <section id="shareBox" class="card share hidden" aria-label="Share link">
-      <div class="shareButtonContainer">
-        <button id="shareParticipantBtn" class="shareButton" type="button">
-          <span class="shareIcon">🔗</span>
-          <div class="shareText">
-            <div class="shareTitle">Share Participant Link</div>
-            <div class="shareSubtitle">Click to copy invitation link</div>
-          </div>
-        </button>
-        <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
-      </div>
+    <section id="shareBox" class="card bottomCard share hidden" aria-label="Share link">
+      <button id="shareParticipantBtn" class="shareButton" type="button">
+        <span class="shareIcon">🔗</span>
+        <div class="shareText">
+          <div class="shareTitle">Share Participant Link</div>
+          <div class="shareSubtitle">Click to copy invitation link</div>
+        </div>
+      </button>
+      <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
     </section>
 
     <!-- Quote -->
-    <section id="quoteBox" class="card hidden" aria-label="Inspirational quote">
+    <section id="quoteBox" class="card bottomCard hidden" aria-label="Inspirational quote">
       <div class="quoteContainer">
         <div class="quoteIcon">💬</div>
         <div class="quoteContent">
