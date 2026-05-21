@@ -596,7 +596,7 @@ function renderStory(story, queueLength) {
 
   const isPlaceholder = !story?.desc && !story?.link && !story?.finalPoints;
   if (isPlaceholder && queueLength > 0) {
-    title.textContent = 'Select Active Story from Queue';
+    title.textContent = 'Select a Story from the Queue to Estimate';
   } else {
     title.textContent = story?.title ?? '';
   }
@@ -771,7 +771,7 @@ function renderQueue(state) {
       const setBtn = document.createElement('button');
       setBtn.className = 'queueBtn primary';
       setBtn.type = 'button';
-      setBtn.textContent = 'Set Active';
+      setBtn.textContent = 'Estimate';
       setBtn.disabled = state.activeStoryId === s.id;
       setBtn.onclick = () => socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: s.id });
 

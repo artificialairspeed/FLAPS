@@ -70,12 +70,13 @@ app.get(["/room/:roomId", "/"], (req, res) => {
 const rooms = new Map();
 
 // Deck configuration:
-// - Standard Fibonacci sequence with modifications
-// - Coffee cup (☕) replaces 55 and represents value 0 for calculations
-// - Question mark (?) replaces 0 for "unknown/can't estimate"
-// - Removed 89 card
+// - Extended Fibonacci sequence with modifications
+// - 0.5 for very small tasks
+// - Question mark (?) for "unknown/can't estimate"
+// - Coffee cup (☕) represents value 0 for calculations (break/pause)
+// - Extended to include 55, 89, 144 for larger epics
 const COFFEE_CARD = "☕";
-const FIBONACCI_DECK = ["?", "1", "2", "3", "5", "8", "13", "21", "34", COFFEE_CARD];
+const FIBONACCI_DECK = ["?", "0.5", "1", "2", "3", "5", "8", "13", "21", "34", "55", "89", "144", COFFEE_CARD];
 const ROOM_DECK = FIBONACCI_DECK;
 
 function randomId(len = 6) {
