@@ -2,12 +2,6 @@
 
 /** ---------- Config ---------- */
 const SOCKET_URL = window.location.origin;
-try {
-  // Only enable socket.io client debug if not already set
-  if (typeof localStorage !== 'undefined' && localStorage.debug == null) {
-    localStorage.debug = 'socket.io-client:*';
-  }
-} catch {}
 
 /** ---------- DOM helpers ---------- */
 const el = (id) => document.getElementById(id);
@@ -18,24 +12,10 @@ function normalizeUrl(raw) {
   if (!s) return '';
   try {
     const u = new URL(s.match(/^https?:\/\//i) ? s : `https://${s}`);
+    // Block javascript: and data: URLs for security
     if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
   } catch {}
   return '';
-}
-
-/** Correct HTML escaping for text nodes. */
-function escapeHtml(s) {
-  return String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-/** Escape for attribute values (kept for consistency; textContent preferred). */
-function escapeAttr(s) {
-  return escapeHtml(s).replace(/"/g, '&quot;');
 }
 
 function setPill(pillEl, text, kind = '') {
@@ -82,6 +62,41 @@ function setShareLinks(roomId, mk) {
 function show(id){ const n = el(id); if(n) n.classList.remove('hidden'); }
 function hide(id){ const n = el(id); if(n) n.classList.add('hidden'); }
 function setDisabled(id, v){ const n=el(id); if(n && 'disabled' in n) n.disabled = !!v; }
+
+/** Toast notification system */
+function showToast(message, type = 'error') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  
+  document.body.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('show'), 10);
+  
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+function setLoading(buttonId, loading) {
+  const btn = el(buttonId);
+  if (!btn) return;
+  
+  if (loading) {
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+  } else {
+    btn.textContent = btn.dataset.originalText || btn.textContent;
+    btn.disabled = false;
+    delete btn.dataset.originalText;
+  }
+}
 
 /** ---------- URL params ---------- */
 let currentRoom = null;
@@ -180,7 +195,6 @@ const socket = io(SOCKET_URL, {
 });
 
 socket.on('connect', () => {
-  console.log('[socket] connected', socket.id);
   if (currentRoom && modKey) {
     // Facilitator: auto-rejoin
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
@@ -190,15 +204,42 @@ socket.on('connect', () => {
     joinButtonClicked = false;
     setDisabled('joinBtn', false);
   }
+  
+  // Update connection status
+  const modePill = el('modePill');
+  if (modePill && modePill.textContent === 'Disconnected') {
+    setPill(modePill, 'Reconnected', 'good');
+    setTimeout(() => {
+      if (lastState) {
+        setPill(modePill, lastState.youAreModerator ? 'Facilitator' : 'Participant', lastState.youAreModerator ? 'good' : '');
+      }
+    }, 2000);
+  }
 });
-socket.on('connect_error', (err) => console.error('[socket] connect_error', err));
-socket.on('disconnect', (reason) => console.warn('[socket] disconnected', reason));
+
+socket.on('connect_error', (err) => {
+  console.error('[socket] connect_error', err);
+  showToast('Connection error. Retrying...', 'error');
+});
+
+socket.on('disconnect', (reason) => {
+  console.warn('[socket] disconnected', reason);
+  const modePill = el('modePill');
+  if (modePill) setPill(modePill, 'Disconnected', 'warn');
+  showToast('Disconnected from server', 'warn');
+});
+
+socket.on('error', ({ message }) => {
+  showToast(message || 'An error occurred', 'error');
+});
 
 /** ----- Server → Client events ----- */
 socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
-  console.log('[socket] room:created', roomId);
   currentRoom = roomId; modKey = createdModKey;
   roomCreated = true;
+  
+  // Clear loading state
+  setLoading('createRoomBtn', false);
 
   // Show main content now that room is created
   const mainContent = document.querySelector('main');
@@ -228,6 +269,11 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
 socket.on('room:state', (state) => {
   // Keep lastState for finalize usage
   lastState = state;
+  
+  // Clear loading states on successful join
+  if (joinButtonClicked) {
+    setLoading('joinBtn', false);
+  }
 
   // Show main content when user joins (receives first room state)
   if (!userJoined) {
@@ -305,8 +351,6 @@ socket.on('room:state', (state) => {
   }
 
   // Show/hide story form inputs based on moderator status (but keep queue visible)
-  console.log('[DEBUG] youAreModerator:', state.youAreModerator);
-  
   const storyTitle = el('storyTitle');
   const storyDesc = el('storyDesc');
   const storyLink = el('storyLink');
@@ -315,16 +359,8 @@ socket.on('room:state', (state) => {
   const storyDescLabel = document.querySelector('label[for="storyDesc"]');
   const storyLinkLabel = document.querySelector('label[for="storyLink"]');
   
-  console.log('[DEBUG] Found elements:', {
-    storyTitle: !!storyTitle,
-    storyDesc: !!storyDesc,
-    storyLink: !!storyLink,
-    addToQueueBtn: !!addToQueueBtn
-  });
-  
   if (state.youAreModerator) {
     // Show form inputs for facilitators
-    console.log('[DEBUG] Showing form inputs for facilitator');
     if (storyTitle) storyTitle.style.display = '';
     if (storyDesc) storyDesc.style.display = '';
     if (storyLink) storyLink.style.display = '';
@@ -338,7 +374,6 @@ socket.on('room:state', (state) => {
     if (finalizeRow) finalizeRow.style.display = '';
   } else {
     // Hide form inputs for participants (but keep queue visible)
-    console.log('[DEBUG] Hiding form inputs for participant');
     if (storyTitle) storyTitle.style.display = 'none';
     if (storyDesc) storyDesc.style.display = 'none';
     if (storyLink) storyLink.style.display = 'none';
@@ -372,28 +407,40 @@ socket.on('room:state', (state) => {
 /** ---------- UI → Server ---------- */
 el('createRoomBtn').onclick = () => {
   const desiredRoomId = (el('roomId').value ?? '').trim();
-  if (!desiredRoomId) return alert('Enter a Team Name.');
+  if (!desiredRoomId) return showToast('Enter a Team Name.', 'error');
   const name = (el('name').value ?? '').trim() || 'Facilitator';
   saveName(name);
+  setLoading('createRoomBtn', true);
   socket.emit('room:create', { desiredRoomId, name });
+  
+  // Reset loading state after timeout (in case of no response)
+  setTimeout(() => setLoading('createRoomBtn', false), 5000);
 };
 
 el('joinBtn').onclick = () => {
   const typedRoomId = ((el('roomId').value ?? '').trim() ?? '').toUpperCase();
   const name = (el('name').value ?? '').trim();
-  if (!name) return alert('Enter your name.');
+  if (!name) return showToast('Enter your name.', 'error');
   saveName(name);
 
-  if (!currentRoom && !typedRoomId) return alert('Enter a Team Name or click Create Room.');
+  if (!currentRoom && !typedRoomId) return showToast('Enter a Team Name or click Create Room.', 'error');
 
   const idToUse = currentRoom ?? typedRoomId;
   currentRoom = idToUse;
   
-  // Disable the join button
+  // Disable the join button and show loading
   joinButtonClicked = true;
-  setDisabled('joinBtn', true);
+  setLoading('joinBtn', true);
   
   socket.emit('room:join', { roomId: idToUse, name, modKey });
+  
+  // Reset loading state after timeout (in case of no response)
+  setTimeout(() => {
+    if (joinButtonClicked && !userJoined) {
+      setLoading('joinBtn', false);
+      joinButtonClicked = false;
+    }
+  }, 5000);
 };
 
 el('revealBtn').onclick = () => {
@@ -404,9 +451,9 @@ el('revealBtn').onclick = () => {
 el('clearBtn').onclick = () => { myVote = null; currentRoom && socket.emit('vote:clear', { roomId: currentRoom }); };
 
 el('addToQueueBtn').onclick = () => {
-  if (!currentRoom) return alert('Join a room first');
+  if (!currentRoom) return showToast('Join a room first', 'error');
   const title = (el('storyTitle').value ?? '').trim();
-  if (!title) return alert('Enter a Story Title to add to the queue.');
+  if (!title) return showToast('Enter a Story Title to add to the queue.', 'error');
 
   socket.emit('storyQueue:add', {
     roomId: currentRoom,
@@ -424,10 +471,10 @@ el('addToQueueBtn').onclick = () => {
 };
 
 el('finalizeEstimateBtn').onclick = () => {
-  if (!currentRoom) return alert('Join a room first');
-  if (!lastState?.activeStoryId) return alert('Set an active story first.');
+  if (!currentRoom) return showToast('Join a room first', 'error');
+  if (!lastState?.activeStoryId) return showToast('Set an active story first.', 'error');
   const pts = el('finalPointsSelect').value;
-  if (!pts) return alert('Select final points.');
+  if (!pts) return showToast('Select final points.', 'error');
 
   socket.emit('storyQueue:finalize', {
     roomId: currentRoom,
@@ -476,12 +523,23 @@ function renderDeck(deck, phase, hasActiveStory) {
     if (phase === 'revealed' || !hasActiveStory) {
       b.disabled = true;
       b.onclick = null;
+      b.tabIndex = -1;
     } else {
       b.disabled = false;
-      b.onclick = () => {
+      b.tabIndex = 0;
+      const voteHandler = () => {
         if (currentRoom) {
           myVote = v;
           socket.emit('vote:set', { roomId: currentRoom, vote: v });
+        }
+      };
+      b.onclick = voteHandler;
+      
+      // Keyboard support: Enter or Space to vote
+      b.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          voteHandler();
         }
       };
     }
