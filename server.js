@@ -216,8 +216,18 @@ io.on("connection", (socket) => {
       return;
     }
 
-    let roomId = normalizeRoomId(desiredRoomId) || randomId(5);
-    while (rooms.has(roomId)) roomId = randomId(5);
+    // Use the desired room ID if provided and available, otherwise generate random
+    let roomId = normalizeRoomId(desiredRoomId);
+    
+    // If no room ID provided or it's empty after normalization, generate random
+    if (!roomId) {
+      roomId = randomId(5);
+    }
+    
+    // If the desired room ID is already taken, generate a random one
+    while (rooms.has(roomId)) {
+      roomId = randomId(5);
+    }
 
     const room = getOrCreateRoom(roomId);
 
