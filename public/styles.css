@@ -24,15 +24,19 @@ header{
   padding:16px 18px;
   border-bottom:1px solid var(--border);
   display:flex;
+  flex-direction:row;
   align-items:center;
   justify-content:space-between;
   gap:14px;
-  flex-wrap:wrap;
   background:var(--bg);
+  position:relative;
+}
+.headerTop{
+  flex-shrink:0;
 }
 .brand{ display:flex; gap:12px; align-items:center }
 .logo{
-  width:48px; height:48px;
+  width:100px; height:100px;
   border:1px solid var(--border);
   border-radius:10px;
   background:var(--panel);
@@ -42,58 +46,91 @@ header{
 .logoImg{ width:100%; height:100%; object-fit:contain; display:block }
 h1{ margin:0; font-size:18px; line-height:1.1; font-weight:700 }
 
-/* Bottom row cards - compact styling */
-.bottomCard{
-  padding:0;
-  display:flex;
-  align-items:stretch;
-  min-height:80px;
-}
-/* Room container with icon - matches share and quote format */
-.roomContainer{
+/* Share button in header */
+.shareHeaderBtn{
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:14px;
-  padding:0 20px;
-  width:100%;
-  flex:1;
-}
-.roomIcon{
-  font-size:36px;
-  line-height:1;
+  gap:8px;
+  padding:10px 16px;
+  border:2px solid var(--accent);
+  border-radius:10px;
+  background:rgba(43,90,134,.4);
+  cursor:pointer;
+  transition:all .2s ease;
+  font-weight:700;
+  font-size:14px;
+  width:240px;
   flex-shrink:0;
-  opacity:0.8;
-}
-/* Room name display - compact and centered */
-.room-name-display {
-  display:flex;
-  align-items:center;
   justify-content:center;
-  gap:10px;
-  flex-direction:column;
-  flex:1;
 }
-.room-label {
-  font-size:12px;
-  color:var(--muted);
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
+.shareHeaderBtn:hover{
+  border-color:var(--focus);
+  background:rgba(43,90,134,.6);
+  transform:translateY(-1px);
+  box-shadow:0 2px 8px rgba(122,162,255,.25);
 }
-.room-name {
-  font-size:22px;
+.shareHeaderBtn:active{
+  transform:translateY(0);
+}
+.shareHeaderIcon{
+  font-size:18px;
+  line-height:1;
+}
+.shareHeaderText{
   color:var(--text);
-  font-weight:700;
-  letter-spacing:0.5px;
+  white-space:nowrap;
+}
+.shareFeedback{
+  position:absolute;
+  top:100%;
+  left:50%;
+  transform:translateX(-50%);
+  margin-top:8px;
+  padding:8px 16px;
+  background:rgba(16,185,129,.95);
+  border:1px solid rgba(16,185,129,.4);
+  border-radius:8px;
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  text-align:center;
+  white-space:nowrap;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+  animation:fadeInOut 2s ease-in-out;
+  z-index:10;
 }
 
-/* roombar pairing via 2-col grid (works even when Team/Create are hidden) */
+/* roombar: 2-row layout */
 .roombar{
-  display:grid;
-  grid-template-columns:1fr auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:auto;
+  flex-shrink:0;
+  align-items:flex-end;
+}
+.roombarRow1{
+  display:flex;
   gap:8px;
   align-items:center;
+}
+.roombarRow2{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+#createRoomBtn{
+  width:140px;
+  flex-shrink:0;
+}
+#joinBtn{
+  width:140px;
+  flex-shrink:0;
+}
+#name{
+  width:240px !important;
+  flex-shrink:0;
+  min-width:240px;
 }
 /* Form elements */
 input,textarea,button,select{
@@ -127,6 +164,16 @@ button{ cursor:pointer; font-weight:700 }
 button:hover,a.queueBtn:hover{ border-color:var(--accent) }
 button:disabled{ opacity:.55; cursor:not-allowed }
 .primary{ border-color:rgba(122,162,255,.55); background:#2b5a86 }
+.roomCreated{ 
+  border-color:rgba(110,231,183,.45) !important; 
+  background:rgba(16,185,129,.2) !important; 
+  color:#bff7dd !important;
+  cursor:default !important;
+}
+.roomCreated:hover{ 
+  border-color:rgba(110,231,183,.45) !important; 
+  background:rgba(16,185,129,.2) !important;
+}
 .tiny{ padding:8px 10px; border-radius:10px; font-size:12px }
 .grid{
   display:grid;
@@ -164,7 +211,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   grid-template-columns:repeat(7, 1fr);
   grid-auto-rows:1fr;
   gap:8px;
-  margin:10px 0;
+  margin:8px 0 16px 0;
 }
 /* Make the card buttons fill their grid cell and scale symmetrically */
 .deckBtn{
@@ -179,7 +226,7 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
-  margin:10px 0;
+  margin:0 0 16px 0;
 }
 .controls > button{ width:100%; padding:10px }
 /* Reveal button in green to match participant pill */
@@ -203,19 +250,39 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   display:flex;
   flex-direction:column;
   gap:8px;
-  margin-top:8px;
+  margin-top:16px;
 }
 /* Results section with title */
 .resultsSection{
-  margin:10px 0;
+  margin:16px 0 0 0;
 }
 .resultsTitle{
   font-size:13px;
   font-weight:700;
   color:var(--text);
-  margin:0 0 8px 0;
+  margin:0 0 6px 0;
   text-transform:uppercase;
   letter-spacing:.06em;
+}
+.storyForm > .resultsTitle:first-child{
+  margin-top:10px;
+}
+.storyForm > .resultsTitle:nth-child(6){
+  /* Story Queue header - comes after Add To Queue button */
+  margin-top:16px;
+}
+.storyForm > .resultsTitle:last-of-type{
+  /* Currently Estimating header */
+  margin-top:16px;
+  margin-bottom:8px;
+}
+.voteTitle{
+  /* Cast Your Vote header - align with Add a Story (storyForm margin + header margin) */
+  margin-top:20px;
+}
+.resultsSection > .resultsTitle{
+  /* Estimation Results header */
+  margin-bottom:8px;
 }
 /* Finalize row: dropdown left, button right, side by side */
 .finalizeRow{
@@ -246,10 +313,6 @@ h3{ margin:0; font-size:14px; font-weight:700 }
     gap:10px;
     padding:10px;
   }
-  /* Bottom row spans full width and stacks */
-  #roomNameBox{ grid-column:1/-1 }
-  #shareBox{ grid-column:1/-1 }
-  #quoteBox{ grid-column:1/-1 }
   .deck{ grid-template-columns:repeat(5, 1fr); gap:6px }
   .deckBtn{ font-size:clamp(12px,2vw,16px) }
 }
@@ -289,22 +352,16 @@ h3{ margin:0; font-size:14px; font-weight:700 }
   .finalizeRow{ grid-template-columns:1fr; gap:6px }
   #finalizeEstimateBtn{ width:100%; padding:9px }
   .voteBottom{ gap:6px; margin-top:6px }
-  .bottomCard{ min-height:65px }
-  .roomContainer{ padding:0 14px; gap:10px }
-  .roomIcon{ font-size:26px }
-  .room-name{ font-size:16px }
-  .room-label{ font-size:10px }
-  .shareButton{ padding:0 14px; gap:10px }
-  .shareIcon{ font-size:22px }
-  .shareTitle{ font-size:13px }
-  .shareSubtitle{ font-size:11px }
-  .quoteContainer{ padding:0 14px; gap:10px }
-  .quoteIcon{ font-size:26px }
-  .quoteSmall{ font-size:clamp(15px, 4vw, 18px) }
-  .quoteLarge{ font-size:clamp(20px, 5vw, 26px) }
-  .quoteAuthor{ font-size:11px }
-  .roombar{ grid-template-columns:1fr }
+  .roombar{ flex-direction:column }
+  .roombarRow1{ flex-direction:column; width:100% }
+  .roombarRow1 > *{ width:100% }
+  .roombarRow2{ flex-direction:column; width:100% }
+  .roombarRow2 > *{ width:100% }
+  .shareHeaderBtn{ padding:8px 12px; font-size:13px; gap:6px }
+  .shareHeaderIcon{ font-size:16px }
+  .shareHeaderText{ font-size:13px }
   header{ flex-direction:column; align-items:flex-start; padding:12px 14px }
+  .logo{ width:60px; height:60px }
   h1{ font-size:16px }
   h2{ font-size:15px }
   .pill{ font-size:11px; padding:5px 8px }
@@ -425,7 +482,7 @@ a{ color:var(--accent) }
   line-height:1;
 }
 .queueHeader{
-  margin-top:4px; font-size:11px; color:var(--muted);
+  margin-top:12px; font-size:11px; color:var(--muted);
   text-transform:uppercase; letter-spacing:.06em; font-weight:700
 }
 .queueListWrap{ margin-top:4px; flex:1; overflow-y:auto; min-height:0 }
@@ -480,149 +537,14 @@ a{ color:var(--accent) }
   cursor:default;
 }
 .queueLinkBtn{ width:32px; min-width:32px; display:flex; align-items:center; justify-content:center; padding:6px 0 }
-/* Share section - button fills container */
-.shareButton{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:14px;
-  padding:0 20px;
-  border:2px solid var(--accent);
-  border-radius:14px;
-  background:linear-gradient(135deg, rgba(43,90,134,.4) 0%, rgba(26,45,63,.4) 100%);
-  cursor:pointer;
-  transition:all .2s ease;
-  width:100%;
-  flex:1;
-  margin:0;
-}
-.shareButton:hover{
-  border-color:var(--focus);
-  background:linear-gradient(135deg, rgba(43,90,134,.6) 0%, rgba(26,45,63,.6) 100%);
-  transform:translateY(-2px);
-  box-shadow:0 4px 12px rgba(122,162,255,.25);
-}
-.shareButton:active{
-  transform:translateY(0);
-}
-.shareIcon{
-  font-size:32px;
-  line-height:1;
-  flex-shrink:0;
-}
-.shareText{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-  text-align:center;
-  flex:1;
-}
-.shareTitle{
-  font-size:15px;
-  font-weight:700;
-  color:var(--text);
-  line-height:1.2;
-}
-.shareSubtitle{
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.2;
-}
-.shareFeedback{
-  position:absolute;
-  bottom:100%;
-  left:50%;
-  transform:translateX(-50%);
-  margin-bottom:8px;
-  padding:8px 16px;
-  background:rgba(16,185,129,.95);
-  border:1px solid rgba(16,185,129,.4);
-  border-radius:8px;
-  color:#fff;
-  font-size:13px;
-  font-weight:600;
-  text-align:center;
-  white-space:nowrap;
-  box-shadow:0 4px 12px rgba(0,0,0,.3);
-  animation:fadeInOut 2s ease-in-out;
-  z-index:10;
-}
-#shareBox{
-  position:relative;
-}
+/* Grid positioning - no bottom row needed */
 @keyframes fadeInOut{
-  0%{ opacity:0; transform:translateX(-50%) translateY(-10px) }
+  0%{ opacity:0; transform:translateX(-50%) translateY(10px) }
   15%{ opacity:1; transform:translateX(-50%) translateY(0) }
   85%{ opacity:1; transform:translateX(-50%) translateY(0) }
-  100%{ opacity:0; transform:translateX(-50%) translateY(-10px) }
+  100%{ opacity:0; transform:translateX(-50%) translateY(10px) }
 }
-/* Quote section - fills container efficiently */
-.quoteContainer{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:14px;
-  padding:0 20px;
-  width:100%;
-  flex:1;
-}
-.quoteIcon{
-  font-size:36px;
-  line-height:1;
-  flex-shrink:0;
-  opacity:0.8;
-}
-.quoteContent{
-  display:flex;
-  flex-direction:column;
-  gap:0;
-  flex:1;
-  overflow:hidden;
-}
-.quoteText{
-  display:flex;
-  flex-direction:column;
-  gap:0;
-  font-family:'Segoe Script', 'Bradley Hand', 'Lucida Handwriting', cursive;
-  line-height:1.1;
-  margin-bottom:6px;
-  overflow:hidden;
-}
-.quoteSmall{
-  font-size:clamp(16px, 2vw, 20px);
-  color:var(--muted);
-  font-weight:500;
-  letter-spacing:0.5px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.quoteLarge{
-  font-size:clamp(22px, 2.6vw, 26px);
-  color:var(--text);
-  font-weight:700;
-  letter-spacing:1px;
-  text-shadow:0 1px 2px rgba(0,0,0,.3);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.quoteAuthor{
-  font-size:13px;
-  color:var(--muted);
-  font-weight:500;
-  font-style:normal;
-  margin-top:2px;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-/* Grid positioning for bottom row */
-#roomNameBox{ grid-column:1; margin:0 }
-#shareBox{ grid-column:2; margin:0 }
-#quoteBox{ grid-column:3; margin:0 }
-.grid > .share{ margin:0 }
+
 /* Optional hover emphasis for deck cards */
 .deckBtn:hover{ border-color:rgba(122,162,255,.65); box-shadow:0 0 0 2px rgba(122,162,255,.25) inset }
 .deckBtn.active{ border-color:rgba(122,162,255,1); background:rgba(122,162,255,.15); box-shadow:0 0 0 3px rgba(122,162,255,.35) inset; color:#fff }

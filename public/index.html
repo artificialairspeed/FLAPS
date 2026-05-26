@@ -24,25 +24,37 @@
   </noscript>
 
   <header>
-    <div class="brand">
-      <div class="logo" aria-hidden="true">
-        <img class="logoImg" src="/logo.png" alt="" loading="lazy" width="40" height="40" />
+    <div class="headerTop">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img class="logoImg" src="/logo.png" alt="" loading="lazy" width="100" height="100" />
+        </div>
+        <div><h1>Fibonacci Lean Agile Pointing System</h1></div>
       </div>
-      <div><h1>Fibonacci Lean Agile Pointing System</h1></div>
     </div>
 
     <div class="roombar" role="group" aria-label="Room and user controls">
-      <label class="vh" for="roomId">Team Name</label>
-      <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization"
-             inputmode="text" aria-label="Team Name" style="text-transform:uppercase" maxlength="50" />
-      <button id="createRoomBtn" class="primary" type="button">Create Room</button>
-
-      <label class="vh" for="name">Your Name</label>
-      <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-             inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="50" 
-             pattern="[A-Za-z0-9\s]+" title="Letters, numbers, and spaces only" />
-      <button id="joinBtn" class="primary" type="button">Join</button>
+      <!-- Row 1: Create Room / Room Created + Share Link -->
+      <div class="roombarRow1">
+        <button id="createRoomBtn" class="primary" type="button">Create Room</button>
+        <button id="shareParticipantBtn" class="shareHeaderBtn hidden" type="button" aria-label="Share participant link">
+          <span class="shareHeaderIcon">🔗</span>
+          <span class="shareHeaderText">Share Participant Link</span>
+          <span class="shareHeaderIcon">👤</span>
+        </button>
+      </div>
+      
+      <!-- Row 2: Name + Join -->
+      <div class="roombarRow2">
+        <label class="vh" for="name">Your Name</label>
+        <input id="name" name="name" placeholder="Your Name" autocomplete="name"
+               inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="10" 
+               pattern="[A-Za-z\s]+" title="Letters and spaces only" />
+        <button id="joinBtn" class="primary" type="button">Join</button>
+      </div>
     </div>
+    
+    <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
   </header>
 
   <main class="grid">
@@ -53,20 +65,13 @@
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
 
-      <div id="storyView" class="storyView"></div>
-
       <div class="storyForm">
-        <div class="queueHeader">Story Queue</div>
-        <div class="queueListWrap">
-          <ul id="storyQueueList" class="queueList"></ul>
-        </div>
-
-        <div class="queueHeader">Add a Story</div>
+        <h3 class="resultsTitle">Add a Story</h3>
 
         <div class="storyInputRow">
           <div class="storyNumberField">
             <label class="vh" for="storyNumber">Story Number</label>
-            <input id="storyNumber" placeholder="Story #" maxlength="20" />
+            <input id="storyNumber" placeholder="Story #" maxlength="12" />
           </div>
           <div class="storyTitleField">
             <label class="vh" for="storyTitle">Story Title</label>
@@ -79,6 +84,14 @@
 
         <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
         <div id="modHint" class="hint"></div>
+
+        <h3 class="resultsTitle">Story Queue</h3>
+        <div class="queueListWrap">
+          <ul id="storyQueueList" class="queueList"></ul>
+        </div>
+
+        <h3 class="resultsTitle">Currently Estimating</h3>
+        <div id="storyView" class="storyView"></div>
       </div>
     </section>
 
@@ -89,6 +102,7 @@
         <span id="votePill" class="pill" aria-live="polite">Waiting</span>
       </div>
 
+      <h3 class="resultsTitle voteTitle">Cast Your Vote</h3>
       <div id="deck" class="deck" aria-label="Voting deck"></div>
 
       <div class="controls">
@@ -116,43 +130,6 @@
         <span id="usersPill" class="pill" aria-live="polite">0</span>
       </div>
       <ul id="usersList" class="users" aria-label="Connected users"></ul>
-    </section>
-
-    <!-- Room Info Row: Room Name, Share, Quote -->
-    <section id="roomNameBox" class="card bottomCard hidden" aria-label="Room information">
-      <div class="roomContainer">
-        <div class="roomIcon">🚪</div>
-        <div id="roomNameDisplay" class="room-name-display">
-          <span class="room-label">Room:</span>
-          <span id="roomNameText" class="room-name"></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Share -->
-    <section id="shareBox" class="card bottomCard share hidden" aria-label="Share link">
-      <button id="shareParticipantBtn" class="shareButton" type="button">
-        <span class="shareIcon">🔗</span>
-        <div class="shareText">
-          <div class="shareTitle">Share Participant Link</div>
-          <div class="shareSubtitle">Click to copy invitation link</div>
-        </div>
-      </button>
-      <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
-    </section>
-
-    <!-- Quote -->
-    <section id="quoteBox" class="card bottomCard hidden" aria-label="Inspirational quote">
-      <div class="quoteContainer">
-        <div class="quoteIcon">💬</div>
-        <div class="quoteContent">
-          <div class="quoteText">
-            <span class="quoteSmall">Somewhere, Something is</span>
-            <span class="quoteLarge">WAITING TO BE KNOWN</span>
-          </div>
-          <div class="quoteAuthor">— Carl Sagan</div>
-        </div>
-      </div>
     </section>
   </main>
 

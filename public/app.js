@@ -44,20 +44,10 @@ function setShareLinks(roomId, mk) {
   const base = `${window.location.origin}/room/${encodeURIComponent(roomId)}`;
   const participant = base;
 
-  // Show share box
-  el('shareBox').classList.remove('hidden');
-  
-  // Show room name box
-  const roomNameBox = el('roomNameBox');
-  if (roomNameBox) roomNameBox.classList.remove('hidden');
-  
-  // Show quote box
-  const quoteBox = el('quoteBox');
-  if (quoteBox) quoteBox.classList.remove('hidden');
-
-  // Store the participant link for the share button
+  // Show share button in header
   const shareBtn = el('shareParticipantBtn');
   if (shareBtn) {
+    shareBtn.classList.remove('hidden');
     shareBtn.onclick = async () => {
       await copyToClipboard(participant);
       
@@ -127,7 +117,6 @@ let myVote = null; // Track this user's current vote locally
   const parts = url.pathname.split('/').filter(Boolean);
   if (parts[0] === 'room' && parts[1]) currentRoom = decodeURIComponent(parts[1]).toUpperCase();
   modKey = url.searchParams.get('mod') ?? null;
-  if (currentRoom) el('roomId').value = currentRoom;
 })();
 
 /** ---------- Remember my name ---------- */
@@ -141,12 +130,27 @@ function saveName(name){
   try { if (name) sessionStorage.setItem('flaps_name', name); } catch {}
 }
 
+/** ---------- Remember joined state ---------- */
+function saveJoinedState(){
+  try { 
+    if (currentRoom) {
+      sessionStorage.setItem('flaps_joined_' + currentRoom, 'true'); 
+    }
+  } catch {}
+}
+function isAlreadyJoined(){
+  try { 
+    if (currentRoom) {
+      return sessionStorage.getItem('flaps_joined_' + currentRoom) === 'true';
+    }
+  } catch {}
+  return false;
+}
+
 /** ---------- Initial View: layout & gating ---------- */
 function applyInitialRoleView(){
   const hasRoomInUrl = !!currentRoom;
   const hasModKey = !!modKey;
-
-  show('name'); show('joinBtn');
 
   // Hide main content initially
   const mainContent = document.querySelector('main');
@@ -155,53 +159,63 @@ function applyInitialRoleView(){
   // Disable name/join until a room exists (facilitator must create)
   if (!hasRoomInUrl) {
     hide('name'); hide('joinBtn');
-    show('roomId'); show('createRoomBtn');
-    setDisabled('roomId', false); setDisabled('createRoomBtn', false);
+    show('createRoomBtn');
+    setDisabled('createRoomBtn', false);
     return;
   }
 
-  // Show room name for any room URL (both facilitator and participant)
-  const roomNameDisplay = el('roomNameDisplay');
-  const roomNameText = el('roomNameText');
-  const roomNameBox = el('roomNameBox');
-  if (roomNameDisplay && roomNameText && roomNameBox && currentRoom) {
-    roomNameText.textContent = currentRoom;
-    roomNameBox.classList.remove('hidden');
+  // Check if user already joined this room
+  if (isAlreadyJoined()) {
+    joinButtonClicked = true;
+    userJoined = true;
+    setDisabled('name', true);
+    setDisabled('joinBtn', true);
   }
 
   // On /room/:id
-  el('roomId').value = currentRoom;
   if (hasModKey){
     // Facilitator deep link - show main content and mark as joined
     if (mainContent) mainContent.style.display = '';
     roomCreated = true;
     userJoined = true;
-    show('roomId'); show('createRoomBtn');
-    setDisabled('roomId', true); setDisabled('createRoomBtn', true);
+    
+    // Show green "Room Created" button
+    const createBtn = el('createRoomBtn');
+    if (createBtn) {
+      createBtn.textContent = 'Room Created';
+      createBtn.classList.add('roomCreated');
+      createBtn.disabled = true;
+    }
+    show('createRoomBtn');
+    show('name'); show('joinBtn');
   } else {
-    // Participant link: hide Create + Team Name, enable name/join, but keep main hidden until joined
+    // Participant link: hide Create button, enable name/join, but keep main hidden until joined
     // Clear the name field for participants so they enter their own name
     const nameField = el('name');
-    if (nameField) nameField.value = '';
+    if (nameField && !isAlreadyJoined()) nameField.value = '';
     
-    hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); setDisabled('joinBtn', false);
+    hide('createRoomBtn');
+    show('name'); show('joinBtn');
+    if (!isAlreadyJoined()) {
+      setDisabled('name', false); 
+      setDisabled('joinBtn', false);
+    }
   }
 }
 applyInitialRoleView();
 
 /** Allow Enter to trigger the appropriate action for convenience */
-['roomId','name'].forEach(id=>{
-  const n = el(id);
-  n?.addEventListener('keydown', (e)=>{
-    if (e.key !== 'Enter') return;
-    // On the roomId field, trigger Create Room if not yet created
-    if (id === 'roomId' && !roomCreated) {
-      el('createRoomBtn').click();
-    } else {
-      el('joinBtn').click();
-    }
-  });
+const nameField = el('name');
+nameField?.addEventListener('keydown', (e)=>{
+  if (e.key !== 'Enter') return;
+  el('joinBtn').click();
+});
+
+/** Prevent special characters and numbers in name field */
+nameField?.addEventListener('input', (e) => {
+  const input = e.target;
+  // Only allow letters and spaces
+  input.value = input.value.replace(/[^A-Za-z\s]/g, '');
 });
 
 /** ---------- Socket.IO ---------- */
@@ -253,6 +267,8 @@ socket.on('error', ({ message }) => {
 socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   currentRoom = roomId; modKey = createdModKey;
   roomCreated = true;
+  userJoined = true; // Mark as joined so functionality is enabled
+  saveJoinedState(); // Save that facilitator has joined
   
   // Clear loading state
   setLoading('createRoomBtn', false);
@@ -261,26 +277,27 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   const mainContent = document.querySelector('main');
   if (mainContent) mainContent.style.display = '';
 
-  // Show room name in grid
-  const roomNameDisplay = el('roomNameDisplay');
-  const roomNameText = el('roomNameText');
-  const roomNameBox = el('roomNameBox');
-  if (roomNameDisplay && roomNameText && roomNameBox) {
-    roomNameText.textContent = roomId;
-    roomNameBox.classList.remove('hidden');
-  }
-
   setShareLinks(roomId, createdModKey);
   const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(createdModKey)}`;
   window.history.replaceState({}, '', newUrl);
 
   setPill(el('modePill'), 'Facilitator', 'good');
 
-  // Lock Create + Team Name; show and enable Name + Join now
-  show('createRoomBtn'); show('roomId');
-  setDisabled('createRoomBtn', true); setDisabled('roomId', true);
+  // Change Create Room button to green "Room Created"
+  const createBtn = el('createRoomBtn');
+  if (createBtn) {
+    createBtn.textContent = 'Room Created';
+    createBtn.classList.add('roomCreated');
+    createBtn.disabled = true;
+  }
+
+  // Show Name + Join on row 2 (optional for facilitator)
   show('name'); show('joinBtn');
   setDisabled('name', false); setDisabled('joinBtn', false);
+  
+  // Auto-join the facilitator with their name or default
+  const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
+  socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
 });
 
 socket.on('room:state', (state) => {
@@ -290,24 +307,17 @@ socket.on('room:state', (state) => {
   // Clear loading states on successful join
   if (joinButtonClicked) {
     setLoading('joinBtn', false);
-    // Disable join button after successful join
+    // Keep both join button and name field disabled after successful join
     setDisabled('joinBtn', true);
+    setDisabled('name', true);
   }
 
   // Show main content when user joins (receives first room state)
   if (!userJoined) {
     userJoined = true;
+    saveJoinedState(); // Save that user has joined this room
     const mainContent = document.querySelector('main');
     if (mainContent) mainContent.style.display = '';
-    
-    // Show room name in grid for participants
-    const roomNameDisplay = el('roomNameDisplay');
-    const roomNameText = el('roomNameText');
-    const roomNameBox = el('roomNameBox');
-    if (roomNameDisplay && roomNameText && roomNameBox && state.roomId) {
-      roomNameText.textContent = state.roomId;
-      roomNameBox.classList.remove('hidden');
-    }
   }
 
   const modePill = el('modePill');
@@ -355,18 +365,31 @@ socket.on('room:state', (state) => {
 
   // Roombar behavior
   if (state.youAreModerator){
-    show('createRoomBtn'); show('roomId');
-    setDisabled('createRoomBtn', true); setDisabled('roomId', true);
-    el('createRoomBtn').title = 'Room already created';
-    el('roomId').title = 'Team name is locked for this session';
-    setDisabled('name', false); 
-    // Keep Join button disabled if already clicked
-    if (!joinButtonClicked) setDisabled('joinBtn', false);
+    const createBtn = el('createRoomBtn');
+    if (createBtn && roomCreated) {
+      createBtn.textContent = 'Room Created';
+      createBtn.classList.add('roomCreated');
+      createBtn.disabled = true;
+    }
+    show('createRoomBtn');
+    // Keep name field disabled if already joined
+    if (joinButtonClicked) {
+      setDisabled('name', true);
+      setDisabled('joinBtn', true);
+    } else {
+      setDisabled('name', false);
+      setDisabled('joinBtn', false);
+    }
   } else {
-    hide('createRoomBtn'); hide('roomId');
-    setDisabled('name', false); 
-    // Keep Join button disabled if already clicked
-    if (!joinButtonClicked) setDisabled('joinBtn', false);
+    hide('createRoomBtn');
+    // Keep name field disabled if already joined
+    if (joinButtonClicked) {
+      setDisabled('name', true);
+      setDisabled('joinBtn', true);
+    } else {
+      setDisabled('name', false);
+      setDisabled('joinBtn', false);
+    }
     const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
@@ -378,9 +401,14 @@ socket.on('room:state', (state) => {
   const storyNumberLabel = document.querySelector('label[for="storyNumber"]');
   const storyTitleLabel = document.querySelector('label[for="storyTitle"]');
   const storyNotesLabel = document.querySelector('label[for="storyNotes"]');
+  const addStoryHeader = document.querySelector('.storyForm > .resultsTitle:first-child');
+  const storyInputRow = document.querySelector('.storyInputRow');
+  const storyQueueHeader = document.querySelectorAll('.storyForm > .resultsTitle')[1]; // Second header (Story Queue)
   
   if (state.youAreModerator) {
-    // Show form inputs for facilitators
+    // Show entire Add a Story section for facilitators
+    if (addStoryHeader) addStoryHeader.style.display = '';
+    if (storyInputRow) storyInputRow.style.display = '';
     if (storyNumber) storyNumber.style.display = '';
     if (storyTitle) storyTitle.style.display = '';
     if (storyNotes) storyNotes.style.display = '';
@@ -388,12 +416,16 @@ socket.on('room:state', (state) => {
     if (storyNumberLabel) storyNumberLabel.style.display = '';
     if (storyTitleLabel) storyTitleLabel.style.display = '';
     if (storyNotesLabel) storyNotesLabel.style.display = '';
+    // Reset Story Queue header margin for facilitators
+    if (storyQueueHeader) storyQueueHeader.style.marginTop = '';
     // Show facilitator-only vote controls
     show('revealBtn'); show('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
     if (finalizeRow) finalizeRow.style.display = '';
   } else {
-    // Hide form inputs for participants (but keep queue visible)
+    // Hide entire Add a Story section for participants (but keep queue visible)
+    if (addStoryHeader) addStoryHeader.style.display = 'none';
+    if (storyInputRow) storyInputRow.style.display = 'none';
     if (storyNumber) storyNumber.style.display = 'none';
     if (storyTitle) storyTitle.style.display = 'none';
     if (storyNotes) storyNotes.style.display = 'none';
@@ -401,6 +433,8 @@ socket.on('room:state', (state) => {
     if (storyNumberLabel) storyNumberLabel.style.display = 'none';
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
     if (storyNotesLabel) storyNotesLabel.style.display = 'none';
+    // Add top margin to Story Queue header to match facilitator view alignment
+    if (storyQueueHeader) storyQueueHeader.style.marginTop = '10px';
     // Hide facilitator-only vote controls
     hide('revealBtn'); hide('clearBtn');
     const finalizeRow = document.querySelector('.finalizeRow');
@@ -426,38 +460,34 @@ socket.on('room:state', (state) => {
 
 /** ---------- UI → Server ---------- */
 el('createRoomBtn').onclick = () => {
-  const desiredRoomId = (el('roomId').value ?? '').trim();
-  if (!desiredRoomId) return showToast('Enter a Team Name.', 'error');
   const name = (el('name').value ?? '').trim() || 'Facilitator';
   saveName(name);
   setLoading('createRoomBtn', true);
-  socket.emit('room:create', { desiredRoomId, name });
+  socket.emit('room:create', { name });
   
   // Reset loading state after timeout (in case of no response)
   setTimeout(() => setLoading('createRoomBtn', false), 5000);
 };
 
 el('joinBtn').onclick = () => {
-  const typedRoomId = ((el('roomId').value ?? '').trim() ?? '').toUpperCase();
   const name = (el('name').value ?? '').trim();
   if (!name) return showToast('Enter your name.', 'error');
   saveName(name);
 
-  if (!currentRoom && !typedRoomId) return showToast('Enter a Team Name or click Create Room.', 'error');
-
-  const idToUse = currentRoom ?? typedRoomId;
-  currentRoom = idToUse;
+  if (!currentRoom) return showToast('No room to join. Create a room first.', 'error');
   
-  // Disable the join button and show loading
+  // Disable the join button and name field, show loading
   joinButtonClicked = true;
   setLoading('joinBtn', true);
+  setDisabled('name', true);
   
-  socket.emit('room:join', { roomId: idToUse, name, modKey });
+  socket.emit('room:join', { roomId: currentRoom, name, modKey });
   
   // Reset loading state after timeout (in case of no response)
   setTimeout(() => {
     if (joinButtonClicked && !userJoined) {
       setLoading('joinBtn', false);
+      setDisabled('name', false);
       joinButtonClicked = false;
     }
   }, 5000);
@@ -674,6 +704,7 @@ function renderResults(state) {
     summary.className = 'summary';
 
     const placeholderMetrics = [
+      { label: 'Final', value: '—' },
       { label: 'Min', value: '—' },
       { label: 'Max', value: '—' },
       { label: 'Avg', value: '—' },
@@ -722,6 +753,7 @@ function renderResults(state) {
     summary.className = 'summary';
 
     const placeholderMetrics = [
+      { label: 'Final', value: '—' },
       { label: 'Min', value: '—' },
       { label: 'Max', value: '—' },
       { label: 'Avg', value: '—' },
@@ -762,7 +794,12 @@ function renderResults(state) {
   summary.className = 'summary';
 
   const metrics = [];
-  if (state.story?.finalPoints) metrics.push({ label: 'Final', value: state.story.finalPoints, final: true });
+  // Always add Final metric first (with value or placeholder)
+  const finalValue = state.story?.finalPoints || '—';
+  const isFinal = !!state.story?.finalPoints;
+  metrics.push({ label: 'Final', value: finalValue, final: isFinal });
+  
+  // Add calculation metrics
   metrics.push(
     { label: 'Min',    value: min },
     { label: 'Max',    value: max },
@@ -831,9 +868,9 @@ function renderQueue(state) {
 
     const title = document.createElement('span');
     title.className = 'queueTitle';
-    // Display story number and title together
+    // Display story number and title together, limit to 30 characters
     const displayText = s.number ? `${s.number} - ${s.title}` : s.title;
-    title.textContent = displayText;
+    title.textContent = displayText.length > 30 ? displayText.substring(0, 30) + '...' : displayText;
 
     titleRow.appendChild(title);
     left.appendChild(titleRow);
