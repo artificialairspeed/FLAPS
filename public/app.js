@@ -111,6 +111,7 @@ let joinButtonClicked = false; // Track if Join button has been clicked
 let roomCreated = false; // Track if room has been created
 let userJoined = false; // Track if user has joined a room
 let myVote = null; // Track this user's current vote locally
+let selectedFinalPoint = null; // Track selected final point for finalization
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -152,9 +153,12 @@ function applyInitialRoleView(){
   const hasRoomInUrl = !!currentRoom;
   const hasModKey = !!modKey;
 
-  // Hide main content initially
+  // Hide main content and footer initially
   const mainContent = document.querySelector('main');
   if (mainContent) mainContent.style.display = 'none';
+  
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.display = 'none';
 
   // Disable name/join until a room exists (facilitator must create)
   if (!hasRoomInUrl) {
@@ -174,8 +178,9 @@ function applyInitialRoleView(){
 
   // On /room/:id
   if (hasModKey){
-    // Facilitator deep link - show main content and mark as joined
+    // Facilitator deep link - show main content, footer, and mark as joined
     if (mainContent) mainContent.style.display = '';
+    if (footer) footer.style.display = 'flex';
     roomCreated = true;
     userJoined = true;
     
@@ -189,7 +194,7 @@ function applyInitialRoleView(){
     show('createRoomBtn');
     show('name'); show('joinBtn');
   } else {
-    // Participant link: hide Create button, enable name/join, but keep main hidden until joined
+    // Participant link: hide Create button, enable name/join, but keep main and footer hidden until joined
     // Clear the name field for participants so they enter their own name
     const nameField = el('name');
     if (nameField && !isAlreadyJoined()) nameField.value = '';
@@ -199,6 +204,9 @@ function applyInitialRoleView(){
     if (!isAlreadyJoined()) {
       setDisabled('name', false); 
       setDisabled('joinBtn', false);
+    } else {
+      // Already joined, show footer
+      if (footer) footer.style.display = 'flex';
     }
   }
 }
@@ -273,9 +281,12 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   // Clear loading state
   setLoading('createRoomBtn', false);
 
-  // Show main content now that room is created
+  // Show main content and footer now that room is created
   const mainContent = document.querySelector('main');
   if (mainContent) mainContent.style.display = '';
+  
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.display = 'flex';
 
   setShareLinks(roomId, createdModKey);
   const newUrl = `/room/${encodeURIComponent(roomId)}?mod=${encodeURIComponent(createdModKey)}`;
@@ -318,6 +329,9 @@ socket.on('room:state', (state) => {
     saveJoinedState(); // Save that user has joined this room
     const mainContent = document.querySelector('main');
     if (mainContent) mainContent.style.display = '';
+    
+    const footer = document.querySelector('footer');
+    if (footer) footer.style.display = 'flex';
   }
 
   const modePill = el('modePill');
@@ -334,34 +348,25 @@ socket.on('room:state', (state) => {
   
   const hasActiveStory = !!state.activeStoryId;
   
+  // Check if at least one vote has been cast
+  const hasVotes = Object.values(state.users ?? {}).some(u => u.vote && u.vote !== null);
+  
   const revealBtn = el('revealBtn');
   if (revealBtn) {
-    // Disable Reveal button when already revealed, enable when voting
-    revealBtn.disabled = !state.youAreModerator || !hasActiveStory || state.phase === 'revealed';
+    // Disable Reveal button when already revealed, no active story, or no votes cast
+    revealBtn.disabled = !state.youAreModerator || !hasActiveStory || state.phase === 'revealed' || !hasVotes;
   }
   
   const clearBtn = el('clearBtn');
-  if (clearBtn) clearBtn.disabled = !state.youAreModerator || !hasActiveStory || !!state.story?.finalPoints;
+  if (clearBtn) {
+    // Disable Clear button when no active story, story is finalized, or no votes to clear
+    clearBtn.disabled = !state.youAreModerator || !hasActiveStory || !!state.story?.finalPoints || !hasVotes;
+  }
 
   const canFinalize = state.youAreModerator && state.phase === 'revealed' && hasActiveStory;
-  const finalPointsSelect = el('finalPointsSelect');
-  if (finalPointsSelect) {
-    finalPointsSelect.disabled = !canFinalize;
-    
-    // Add change listener to enable/disable finalize button based on selection
-    finalPointsSelect.onchange = () => {
-      const finalizeBtn = el('finalizeEstimateBtn');
-      if (finalizeBtn) {
-        finalizeBtn.disabled = !canFinalize || !finalPointsSelect.value;
-      }
-    };
-  }
   
-  const finalizeEstimateBtn = el('finalizeEstimateBtn');
-  if (finalizeEstimateBtn) {
-    // Disable if can't finalize OR no value selected in dropdown
-    finalizeEstimateBtn.disabled = !canFinalize || !finalPointsSelect?.value;
-  }
+  // Update finalize button state
+  updateFinalizeButton(canFinalize);
 
   // Roombar behavior
   if (state.youAreModerator){
@@ -420,8 +425,8 @@ socket.on('room:state', (state) => {
     if (storyQueueHeader) storyQueueHeader.style.marginTop = '';
     // Show facilitator-only vote controls
     show('revealBtn'); show('clearBtn');
-    const finalizeRow = document.querySelector('.finalizeRow');
-    if (finalizeRow) finalizeRow.style.display = '';
+    const finalizeSection = document.querySelector('.voteBottom');
+    if (finalizeSection) finalizeSection.style.display = '';
   } else {
     // Hide entire Add a Story section for participants (but keep queue visible)
     if (addStoryHeader) addStoryHeader.style.display = 'none';
@@ -433,12 +438,12 @@ socket.on('room:state', (state) => {
     if (storyNumberLabel) storyNumberLabel.style.display = 'none';
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
     if (storyNotesLabel) storyNotesLabel.style.display = 'none';
-    // Add top margin to Story Queue header to match facilitator view alignment
-    if (storyQueueHeader) storyQueueHeader.style.marginTop = '10px';
+    // Reset Story Queue header margin for participants (now handled by CSS)
+    if (storyQueueHeader) storyQueueHeader.style.marginTop = '';
     // Hide facilitator-only vote controls
     hide('revealBtn'); hide('clearBtn');
-    const finalizeRow = document.querySelector('.finalizeRow');
-    if (finalizeRow) finalizeRow.style.display = 'none';
+    const finalizeSection = document.querySelector('.voteBottom');
+    if (finalizeSection) finalizeSection.style.display = 'none';
   }
 
   // If votes were cleared (phase is voting and our vote is null), deselect locally
@@ -451,11 +456,17 @@ socket.on('room:state', (state) => {
 
   // Renders
   renderDeck(state.deck, state.phase, hasActiveStory);
-  renderFinalPointsOptions(state.deck);
+  renderFinalPointsChips(state.deck, canFinalize);
   renderUsers(state.users, state.phase);
   renderStory(state.story, (state.storyQueue ?? []).length);
   renderResults(state);
   renderQueue(state);
+  
+  // Reset selection when phase changes or story changes
+  if (state.phase !== 'revealed' || !state.activeStoryId) {
+    selectedFinalPoint = null;
+    updateFinalizeButton(false);
+  }
 });
 
 /** ---------- UI → Server ---------- */
@@ -523,37 +534,100 @@ el('addToQueueBtn').onclick = () => {
 el('finalizeEstimateBtn').onclick = () => {
   if (!currentRoom) return showToast('Join a room first', 'error');
   if (!lastState?.activeStoryId) return showToast('Set an active story first.', 'error');
-  const pts = el('finalPointsSelect').value;
-  if (!pts) return showToast('Select final points.', 'error');
+  if (!selectedFinalPoint) return showToast('Select final points.', 'error');
 
   socket.emit('storyQueue:finalize', {
     roomId: currentRoom,
     storyId: lastState.activeStoryId,
-    finalPoints: pts
+    finalPoints: selectedFinalPoint
   });
   
-  // Reset the dropdown and disable the button after finalizing
-  el('finalPointsSelect').value = '';
-  el('finalizeEstimateBtn').disabled = true;
+  // Reset selection
+  selectedFinalPoint = null;
+  const chips = document.querySelectorAll('.finalChip');
+  chips.forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-checked', 'false');
+  });
+  updateFinalizeButton(false);
 };
 
 /** ---------- Renderers ---------- */
-function renderFinalPointsOptions(deck) {
+function updateFinalizeButton(canFinalize) {
+  const btn = el('finalizeEstimateBtn');
+  if (!btn) return;
+  
+  if (!canFinalize) {
+    btn.disabled = true;
+    btn.textContent = 'Select Points to Finalize';
+    return;
+  }
+  
+  if (selectedFinalPoint) {
+    btn.disabled = false;
+    btn.textContent = `Finalize with ${selectedFinalPoint} Points`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'Select Points to Finalize';
+  }
+}
+
+function renderFinalPointsChips(deck, canFinalize) {
   const d = Array.isArray(deck) ? deck : [];
-  const sel = el('finalPointsSelect');
-  sel.innerHTML = '';
-
-  const ph = document.createElement('option');
-  ph.value = '';
-  ph.textContent = 'Final Points';
-  sel.appendChild(ph);
-
-  d.forEach((v) => {
-    const o = document.createElement('option');
-    o.value = v;
-    o.textContent = v;
-    sel.appendChild(o);
+  const container = el('finalPointsChips');
+  if (!container) return;
+  
+  // Filter out non-numeric values (?, ☕) for finalize options
+  const numericDeck = d.filter(v => v !== '?' && v !== '☕');
+  
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  
+  numericDeck.forEach((value) => {
+    const chip = document.createElement('button');
+    chip.className = 'finalChip';
+    chip.type = 'button';
+    chip.textContent = value;
+    chip.setAttribute('role', 'radio');
+    chip.setAttribute('aria-label', `Select ${value} points`);
+    chip.setAttribute('aria-checked', 'false');
+    chip.disabled = !canFinalize;
+    
+    if (selectedFinalPoint === value) {
+      chip.classList.add('selected');
+      chip.setAttribute('aria-checked', 'true');
+    }
+    
+    chip.onclick = () => {
+      if (!canFinalize) return;
+      
+      // Deselect all chips
+      container.querySelectorAll('.finalChip').forEach(c => {
+        c.classList.remove('selected');
+        c.setAttribute('aria-checked', 'false');
+      });
+      
+      // Select this chip
+      chip.classList.add('selected');
+      chip.setAttribute('aria-checked', 'true');
+      selectedFinalPoint = value;
+      
+      // Update button
+      updateFinalizeButton(canFinalize);
+    };
+    
+    // Keyboard support
+    chip.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        chip.click();
+      }
+    };
+    
+    frag.appendChild(chip);
   });
+  
+  container.appendChild(frag);
 }
 
 function renderDeck(deck, phase, hasActiveStory) {
@@ -611,47 +685,87 @@ function renderUsers(users, phase) {
   const usersPill = el('usersPill');
   if (usersPill) usersPill.textContent = String(entries.length);
 
-  entries.sort((a,b)=> (a.name ?? '').localeCompare(b.name ?? ''));
+  // Separate facilitators and voters
+  const facilitators = entries.filter(u => u.isModerator).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  const voters = entries.filter(u => !u.isModerator).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
   const frag = document.createDocumentFragment();
-  entries.forEach((u) => {
-    const li = document.createElement('li');
 
-    const nameContainer = document.createElement('div');
-    nameContainer.className = 'unameContainer';
+  // Render Facilitator section
+  if (facilitators.length > 0) {
+    // Facilitator header
+    const facilitatorHeader = document.createElement('li');
+    facilitatorHeader.className = 'userGroupHeader';
+    facilitatorHeader.innerHTML = '<span class="groupLabel">Facilitator</span><span class="groupIcon">👑</span>';
+    frag.appendChild(facilitatorHeader);
 
-    // Add role icon
-    const roleIcon = document.createElement('span');
-    roleIcon.className = 'roleIcon';
-    if (u.isModerator) {
-      roleIcon.textContent = '👑';
-      roleIcon.title = 'Facilitator';
-      roleIcon.setAttribute('aria-label', 'Facilitator');
-    } else {
-      roleIcon.textContent = '👤';
-      roleIcon.title = 'Participant';
-      roleIcon.setAttribute('aria-label', 'Participant');
-    }
+    // Facilitator users
+    facilitators.forEach((u) => {
+      const li = document.createElement('li');
+      li.className = 'userItem facilitatorItem';
 
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'uname';
-    nameSpan.textContent = u.name ?? '';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'uname';
+      nameSpan.textContent = u.name ?? '';
 
-    nameContainer.appendChild(roleIcon);
-    nameContainer.appendChild(nameSpan);
+      const statusSpan = document.createElement('span');
+      statusSpan.className = 'ustatus';
+      let statusText = '';
+      if (phase === 'revealed') {
+        statusText = (u.vote ?? '—');
+        statusSpan.textContent = statusText;
+      } else {
+        statusText = (u.vote === 'selected' ? 'Selected' : '—');
+        statusSpan.textContent = (u.vote === 'selected' ? '✔ Selected' : '—');
+      }
 
-    const statusSpan = document.createElement('span');
-    statusSpan.className = 'ustatus';
-    if (phase === 'revealed') {
-      statusSpan.textContent = (u.vote ?? '—');
-    } else {
-      statusSpan.textContent = (u.vote === 'selected' ? '✔ Selected' : '—');
-    }
+      // Enhanced accessibility
+      li.setAttribute('role', 'listitem');
+      li.setAttribute('aria-label', `${u.name}, Facilitator, ${statusText}`);
 
-    li.appendChild(nameContainer);
-    li.appendChild(statusSpan);
-    frag.appendChild(li);
-  });
+      li.appendChild(nameSpan);
+      li.appendChild(statusSpan);
+      frag.appendChild(li);
+    });
+  }
+
+  // Render Voters section
+  if (voters.length > 0) {
+    // Voters header
+    const votersHeader = document.createElement('li');
+    votersHeader.className = 'userGroupHeader';
+    votersHeader.innerHTML = '<span class="groupLabel">Voters</span><span class="groupIcon">👤</span>';
+    frag.appendChild(votersHeader);
+
+    // Voter users
+    voters.forEach((u) => {
+      const li = document.createElement('li');
+      li.className = 'userItem voterItem';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'uname';
+      nameSpan.textContent = u.name ?? '';
+
+      const statusSpan = document.createElement('span');
+      statusSpan.className = 'ustatus';
+      let statusText = '';
+      if (phase === 'revealed') {
+        statusText = (u.vote ?? '—');
+        statusSpan.textContent = statusText;
+      } else {
+        statusText = (u.vote === 'selected' ? 'Selected' : '—');
+        statusSpan.textContent = (u.vote === 'selected' ? '✔ Selected' : '—');
+      }
+
+      // Enhanced accessibility
+      li.setAttribute('role', 'listitem');
+      li.setAttribute('aria-label', `${u.name}, Voter, ${statusText}`);
+
+      li.appendChild(nameSpan);
+      li.appendChild(statusSpan);
+      frag.appendChild(li);
+    });
+  }
 
   list.appendChild(frag);
 }
@@ -883,14 +997,16 @@ function renderQueue(state) {
     const actions = document.createElement('div');
     actions.className = 'queueActions';
 
-    if (state.youAreModerator) {
-      // Final pill button (always visible)
-      const finalPill = document.createElement('button');
-      finalPill.className = 'queueBtn finalPill';
-      finalPill.type = 'button';
-      finalPill.textContent = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
-      finalPill.disabled = true;
+    // Always show final pill for both facilitators and participants
+    const finalPill = document.createElement('button');
+    finalPill.className = 'queueBtn finalPill';
+    finalPill.type = 'button';
+    finalPill.textContent = s.finalPoints ? `Final: ${s.finalPoints}` : 'Final: —';
+    finalPill.disabled = true;
+    actions.appendChild(finalPill);
 
+    // Facilitator-only buttons
+    if (state.youAreModerator) {
       const setBtn = document.createElement('button');
       setBtn.className = 'queueBtn primary';
       setBtn.type = 'button';
@@ -904,7 +1020,6 @@ function renderQueue(state) {
       rmBtn.textContent = 'Remove';
       rmBtn.onclick = () => socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: s.id });
 
-      actions.appendChild(finalPill);
       actions.appendChild(setBtn);
       actions.appendChild(rmBtn);
     }
