@@ -3,8 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FLAPS | Fibonacci Lean Agile Pointing System</title>
+  <title>FLAPS | Estimate Story Points</title>
+  <meta name="description" content="FLAPS — a fast, real-time Fibonacci story point estimation tool for agile teams." />
   <meta name="theme-color" content="#213346" />
+
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
 
   <!-- Local assets served from /public at site root via express.static(...) -->
   <link rel="stylesheet" href="/styles.css" />
@@ -23,29 +29,36 @@
   </noscript>
 
   <header>
-    <div class="brand">
-      <div class="logo" aria-hidden="true">
-        <img class="logoImg" src="/logo.png" alt="" loading="lazy" width="40" height="40" />
+    <div class="headerTop">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img class="logoImg" src="/logo.png" alt="FLAPS - Fibonacci Lean Agile Pointing System" loading="lazy" width="125" height="125" />
+        </div>
       </div>
-      <div><h1>Fibonacci Lean Agile Pointing System</h1></div>
-    </div>
-
-    <div id="roomNameDisplay" class="room-name-display hidden">
-      <span class="room-label">Room:</span>
-      <span id="roomNameText" class="room-name"></span>
     </div>
 
     <div class="roombar" role="group" aria-label="Room and user controls">
-      <label class="vh" for="roomId">Team Name</label>
-      <input id="roomId" name="roomId" placeholder="Team Name" autocomplete="organization"
-             inputmode="text" aria-label="Team Name" />
-      <button id="createRoomBtn" class="primary" type="button">Create Room</button>
-
-      <label class="vh" for="name">Your Name</label>
-      <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-             inputmode="text" aria-label="Your Name" />
-      <button id="joinBtn" class="primary" type="button">Join</button>
+      <!-- Row 1: Create Room / Room Created + Share Link -->
+      <div class="roombarRow1">
+        <button id="createRoomBtn" class="primary" type="button">Create Room</button>
+        <button id="shareParticipantBtn" class="shareHeaderBtn hidden" type="button" aria-label="Share participant link">
+          <span class="shareHeaderIcon">🔗</span>
+          <span class="shareHeaderText">Share Participant Link</span>
+          <span class="shareHeaderIcon">👤</span>
+        </button>
+      </div>
+      
+      <!-- Row 2: Name + Join -->
+      <div class="roombarRow2">
+        <label class="vh" for="name">Your Name</label>
+        <input id="name" name="name" placeholder="Your Name" autocomplete="name"
+               inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="10" 
+               pattern="[A-Za-z\s]+" title="Letters and spaces only" />
+        <button id="joinBtn" class="primary" type="button">Join</button>
+      </div>
     </div>
+    
+    <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
   </header>
 
   <main class="grid">
@@ -56,25 +69,33 @@
         <span id="modePill" class="pill" aria-live="polite">Not Connected</span>
       </div>
 
-      <div id="storyView" class="storyView"></div>
-
       <div class="storyForm">
-        <div class="queueHeader">Story Queue</div>
+        <h3 class="resultsTitle">Add a Story</h3>
+
+        <div class="storyInputRow">
+          <div class="storyNumberField">
+            <label class="vh" for="storyNumber">Story Number</label>
+            <input id="storyNumber" placeholder="Story #" maxlength="12" />
+          </div>
+          <div class="storyTitleField">
+            <label class="vh" for="storyTitle">Story Title</label>
+            <input id="storyTitle" placeholder="Story Title" maxlength="40" />
+          </div>
+        </div>
+
+        <label class="vh" for="storyNotes">Story Notes</label>
+        <textarea id="storyNotes" placeholder="Notes (optional)" maxlength="100" rows="2"></textarea>
+
+        <button id="addToQueueBtn" class="primary queueTitleBtn" type="button">Add Story To Queue</button>
+        <div id="modHint" class="hint"></div>
+
+        <h3 class="resultsTitle">Story Queue</h3>
         <div class="queueListWrap">
           <ul id="storyQueueList" class="queueList"></ul>
         </div>
 
-        <label class="vh" for="storyTitle">Story Title</label>
-        <input id="storyTitle" placeholder="Story Title" />
-
-        <label class="vh" for="storyDesc">Story Description</label>
-        <textarea id="storyDesc" placeholder="Description (optional)"></textarea>
-
-        <label class="vh" for="storyLink">Story Link</label>
-        <input id="storyLink" placeholder="Link (optional)" />
-
-        <button id="addToQueueBtn" class="primary" type="button">Add To Queue</button>
-        <div id="modHint" class="hint"></div>
+        <h3 class="resultsTitle">Currently Estimating</h3>
+        <div id="storyView" class="storyView"></div>
       </div>
     </section>
 
@@ -85,6 +106,7 @@
         <span id="votePill" class="pill" aria-live="polite">Waiting</span>
       </div>
 
+      <h3 class="resultsTitle voteTitle">Cast Your Vote</h3>
       <div id="deck" class="deck" aria-label="Voting deck"></div>
 
       <div class="controls">
@@ -92,12 +114,25 @@
         <button id="clearBtn" type="button">Clear / Revote</button>
       </div>
 
-      <div class="voteBottom">
-        <div class="finalizeRow">
-          <select id="finalPointsSelect" aria-label="Final points select"></select>
-          <button id="finalizeEstimateBtn" class="primary" type="button">Finalize Estimate</button>
-        </div>
+      <div class="resultsSection">
+        <h3 class="resultsTitle">Estimation Results</h3>
         <div id="results" aria-label="Results"></div>
+      </div>
+
+      <div class="voteBottom">
+        <h3 class="resultsTitle">Finalize Estimate</h3>
+        
+        <div class="finalizeSection">
+          <div class="finalizeLabel">Select Final Points:</div>
+          
+          <div id="finalPointsChips" class="finalPointsChips" role="radiogroup" aria-label="Final points selection">
+            <!-- Chips generated dynamically from deck -->
+          </div>
+          
+          <button id="finalizeEstimateBtn" class="primary finalizeBtn" type="button" disabled>
+            Select Points to Finalize
+          </button>
+        </div>
       </div>
     </section>
 
@@ -109,27 +144,30 @@
       </div>
       <ul id="usersList" class="users" aria-label="Connected users"></ul>
     </section>
-
-    <!-- Share -->
-    <section id="shareBox" class="card share hidden" aria-label="Share links">
-      <h2>Share</h2>
-
-      <div class="shareRow">
-        <div class="shareLabel">Participant</div>
-        <a id="shareParticipant" href="#" target="_blank" rel="noopener noreferrer">—</a>
-        <button id="copyParticipantBtn" class="tiny" type="button">Copy</button>
-      </div>
-
-      <div class="shareRow">
-        <div class="shareLabel">Facilitator</div>
-        <a id="shareMod" href="#" target="_blank" rel="noopener noreferrer">—</a>
-        <button id="copyModBtn" class="tiny" type="button">Copy</button>
-      </div>
-    </section>
   </main>
+
+  <footer>
+    <div class="footerLeft">
+      <span class="footerTagline">Fibonacci Lean Agile Pointing System</span>
+    </div>
+    <div class="footerRight">
+      <span class="footerItem">© <span id="currentYear"></span></span>
+      <span class="footerItem">Built by Glyn McManus, Engineered by Kiro 🤖</span>
+      <a href="https://github.com/artificialairspeed/FLAPS" target="_blank" rel="noopener noreferrer" class="footerLink">
+        <svg class="footerIcon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+          <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </footer>
 
   <!-- Socket.IO client served by your server.js -->
   <script src="/socket.io/socket.io.js" defer></script>
   <script src="/app.js" defer></script>
+  <script>
+    // Dynamically set current year
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
