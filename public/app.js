@@ -683,10 +683,12 @@ function renderFinalPointsChips(deck, canFinalize) {
       if (!canFinalize || isFinalized) return;
       
       // Deselect all chips
-      container.querySelectorAll('.finalChip').forEach(c => {
-        c.classList.remove('selected');
-        c.setAttribute('aria-checked', 'false');
-      });
+      if (container) {
+        container.querySelectorAll('.finalChip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+      }
       
       // Select this chip
       chip.classList.add('selected');
@@ -696,6 +698,7 @@ function renderFinalPointsChips(deck, canFinalize) {
       // Immediately finalize the story with the selected points
       if (!currentRoom) return showToast('Join a room first', 'error');
       if (!lastState?.activeStoryId) return showToast('Set an active story first.', 'error');
+      if (!socket || !socket.connected) return showToast('Not connected to server', 'error');
 
       socket.emit('storyQueue:finalize', {
         roomId: currentRoom,
@@ -706,10 +709,12 @@ function renderFinalPointsChips(deck, canFinalize) {
       // Reset selection after finalization
       selectedFinalPoint = null;
       setTimeout(() => {
-        container.querySelectorAll('.finalChip').forEach(c => {
-          c.classList.remove('selected');
-          c.setAttribute('aria-checked', 'false');
-        });
+        if (container) {
+          container.querySelectorAll('.finalChip').forEach(c => {
+            c.classList.remove('selected');
+            c.setAttribute('aria-checked', 'false');
+          });
+        }
       }, 100);
     };
     
