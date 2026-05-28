@@ -156,6 +156,11 @@ function saveJoinedState(){
       if (userName) {
         sessionStorage.setItem('flaps_user_name', userName);
       }
+      
+      // Store moderator key for facilitator reconnection
+      if (modKey) {
+        sessionStorage.setItem('flaps_mod_key', modKey);
+      }
     }
   } catch (err) {
     // Handle sessionStorage errors gracefully (quota exceeded, unavailable)
@@ -199,11 +204,27 @@ function getStoredUserName(){
   return null;
 }
 
+/** Retrieve stored moderator key from sessionStorage for facilitator reconnection */
+function getStoredModKey(){
+  try {
+    const storedModKey = sessionStorage.getItem('flaps_mod_key');
+    // Validate that the stored value is a non-empty string
+    if (storedModKey && typeof storedModKey === 'string' && storedModKey.trim()) {
+      return storedModKey.trim();
+    }
+  } catch (err) {
+    // Handle sessionStorage errors gracefully (unavailable, corrupted data)
+    console.warn('Failed to retrieve stored moderator key:', err);
+  }
+  return null;
+}
+
 /** Clear session data for a clean join */
 function clearSessionData(){
   try {
     sessionStorage.removeItem('flaps_room_id');
     sessionStorage.removeItem('flaps_user_name');
+    sessionStorage.removeItem('flaps_mod_key');
     if (currentRoom) {
       sessionStorage.removeItem('flaps_joined_' + currentRoom);
     }
@@ -882,7 +903,7 @@ function renderStory(story, queueLength) {
   const title = document.createElement('div');
   title.className = 'storyTitle';
 
-  const isPlaceholder = !story?.desc && !story?.number && !story?.finalPoints;
+  const isPlaceholder = !story?.title;
   if (isPlaceholder) {
     // Participant: always show "Waiting for Facilitator"
     // Facilitator: show "Select a Story from the Queue to Estimate" if queue has items
