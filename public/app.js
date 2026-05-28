@@ -112,6 +112,9 @@ let roomCreated = false; // Track if room has been created
 let userJoined = false; // Track if user has joined a room
 let myVote = null; // Track this user's current vote locally
 let selectedFinalPoint = null; // Track selected final point for finalization
+let queueScrollOffset = 0; // Track current position in story queue
+const QUEUE_VISIBLE_COUNT = 3; // Number of stories to display at once
+const RECONNECTION_TIMEOUT_MS = 5000; // Timeout for automatic reconnection attempts
 
 (function parseFromUrl() {
   const url = new URL(window.location.href);
@@ -135,9 +138,29 @@ function saveName(name){
 function saveJoinedState(){
   try { 
     if (currentRoom) {
-      sessionStorage.setItem('flaps_joined_' + currentRoom, 'true'); 
+      // Trim and validate room ID before storing
+      const roomIdToStore = currentRoom.trim();
+      if (!roomIdToStore) {
+        console.warn('Cannot save session state: invalid room ID');
+        return;
+      }
+      
+      // Store joined flag for backward compatibility
+      sessionStorage.setItem('flaps_joined_' + roomIdToStore, 'true');
+      
+      // Store room ID for automatic reconnection
+      sessionStorage.setItem('flaps_room_id', roomIdToStore);
+      
+      // Store user name for automatic reconnection
+      const userName = (el('name')?.value ?? '').trim();
+      if (userName) {
+        sessionStorage.setItem('flaps_user_name', userName);
+      }
     }
-  } catch {}
+  } catch (err) {
+    // Handle sessionStorage errors gracefully (quota exceeded, unavailable)
+    console.warn('Failed to save session state:', err);
+  }
 }
 function isAlreadyJoined(){
   try { 
@@ -146,6 +169,56 @@ function isAlreadyJoined(){
     }
   } catch {}
   return false;
+}
+
+/** Retrieve stored room ID from sessionStorage for automatic reconnection */
+function getStoredRoomId(){
+  try {
+    const roomId = sessionStorage.getItem('flaps_room_id');
+    // sessionStorage always returns string or null, so just check for non-empty
+    return roomId || null;
+  } catch (err) {
+    // Handle sessionStorage errors gracefully (unavailable, corrupted data)
+    console.warn('Failed to retrieve stored room ID:', err);
+  }
+  return null;
+}
+
+/** Retrieve stored user name from sessionStorage for automatic reconnection */
+function getStoredUserName(){
+  try {
+    const userName = sessionStorage.getItem('flaps_user_name');
+    // Validate that the stored value is a non-empty string
+    if (userName && typeof userName === 'string' && userName.trim()) {
+      return userName.trim();
+    }
+  } catch (err) {
+    // Handle sessionStorage errors gracefully (unavailable, corrupted data)
+    console.warn('Failed to retrieve stored user name:', err);
+  }
+  return null;
+}
+
+/** Clear session data for a clean join */
+function clearSessionData(){
+  try {
+    sessionStorage.removeItem('flaps_room_id');
+    sessionStorage.removeItem('flaps_user_name');
+    if (currentRoom) {
+      sessionStorage.removeItem('flaps_joined_' + currentRoom);
+    }
+  } catch (err) {
+    console.warn('Failed to clear session data:', err);
+  }
+}
+
+/** Handle failed automatic reconnection attempts */
+function handleReconnectionFailure(){
+  clearSessionData();
+  joinButtonClicked = false;
+  setDisabled('joinBtn', false);
+  setDisabled('name', false);
+  showToast('Unable to rejoin. Please join manually.', 'warn');
 }
 
 /** ---------- Initial View: layout & gating ---------- */
@@ -169,9 +242,10 @@ function applyInitialRoleView(){
   }
 
   // Check if user already joined this room
+  // Note: Don't set userJoined=true here - that should only be set when server confirms via room:state
+  // The automatic reconnection logic in socket.on('connect') will handle rejoining
   if (isAlreadyJoined()) {
     joinButtonClicked = true;
-    userJoined = true;
     setDisabled('name', true);
     setDisabled('joinBtn', true);
   }
@@ -237,10 +311,39 @@ socket.on('connect', () => {
     // Facilitator: auto-rejoin
     const nameVal = (el('name').value ?? '').trim() || 'Facilitator';
     socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
-  } else if (socket.recovered === false && joinButtonClicked) {
-    // Participant reconnect after disconnect: re-enable join button
-    joinButtonClicked = false;
-    setDisabled('joinBtn', false);
+  } else if (currentRoom) {
+    // Participant automatic reconnection logic
+    const storedRoomId = getStoredRoomId();
+    const storedUserName = getStoredUserName();
+    
+    // Check if we have stored session data and it matches the current room
+    const wasJoined = storedRoomId === currentRoom && isAlreadyJoined();
+    
+    if (storedUserName && wasJoined) {
+      // Attempt automatic reconnection for participant
+      joinButtonClicked = true;
+      setDisabled('joinBtn', true);
+      setDisabled('name', true);
+      
+      // Emit room:join event to rejoin with stored identity
+      socket.emit('room:join', { 
+        roomId: currentRoom, 
+        name: storedUserName, 
+        modKey: null 
+      });
+      
+      // Set timeout to detect reconnection failure
+      setTimeout(() => {
+        if (!userJoined) {
+          handleReconnectionFailure();
+        }
+      }, RECONNECTION_TIMEOUT_MS);
+    } else {
+      // No stored session data or doesn't match current room - re-enable controls
+      joinButtonClicked = false;
+      setDisabled('joinBtn', false);
+      setDisabled('name', false);
+    }
   }
   
   // Update connection status
@@ -364,9 +467,6 @@ socket.on('room:state', (state) => {
   }
 
   const canFinalize = state.youAreModerator && state.phase === 'revealed' && hasActiveStory;
-  
-  // Update finalize button state
-  updateFinalizeButton(canFinalize);
 
   // Roombar behavior
   if (state.youAreModerator){
@@ -395,7 +495,6 @@ socket.on('room:state', (state) => {
       setDisabled('name', false);
       setDisabled('joinBtn', false);
     }
-    const hint = el('modHint'); if (hint) hint.textContent = 'Facilitators manage rooms and stories.';
   }
 
   // Show/hide story form inputs based on moderator status (but keep queue visible)
@@ -427,6 +526,14 @@ socket.on('room:state', (state) => {
     show('revealBtn'); show('clearBtn');
     const finalizeSection = document.querySelector('.voteBottom');
     if (finalizeSection) finalizeSection.style.display = '';
+    // Reset deck margin for facilitators
+    const deck = el('deck');
+    if (deck) deck.style.marginBottom = '';
+    // Reset results title margin for facilitators
+    const resultsTitle = document.querySelector('.resultsSection > .resultsTitle');
+    if (resultsTitle) resultsTitle.style.marginBottom = '';
+    // Increase spacing between Add to Queue button and Story Queue header for facilitators
+    if (addToQueueBtn) addToQueueBtn.style.marginBottom = '10px';
   } else {
     // Hide entire Add a Story section for participants (but keep queue visible)
     if (addStoryHeader) addStoryHeader.style.display = 'none';
@@ -438,12 +545,18 @@ socket.on('room:state', (state) => {
     if (storyNumberLabel) storyNumberLabel.style.display = 'none';
     if (storyTitleLabel) storyTitleLabel.style.display = 'none';
     if (storyNotesLabel) storyNotesLabel.style.display = 'none';
-    // Reset Story Queue header margin for participants (now handled by CSS)
-    if (storyQueueHeader) storyQueueHeader.style.marginTop = '';
+    // Add extra spacing above Story Queue header for participants
+    if (storyQueueHeader) storyQueueHeader.style.marginTop = '21px';
     // Hide facilitator-only vote controls
     hide('revealBtn'); hide('clearBtn');
     const finalizeSection = document.querySelector('.voteBottom');
     if (finalizeSection) finalizeSection.style.display = 'none';
+    // Reduce spacing between deck and results for participants
+    const deck = el('deck');
+    if (deck) deck.style.marginBottom = '0px';
+    // Reduce spacing below ESTIMATION RESULTS header for participants
+    const resultsTitle = document.querySelector('.resultsSection > .resultsTitle');
+    if (resultsTitle) resultsTitle.style.marginBottom = '16px';
   }
 
   // If votes were cleared (phase is voting and our vote is null), deselect locally
@@ -465,7 +578,6 @@ socket.on('room:state', (state) => {
   // Reset selection when phase changes or story changes
   if (state.phase !== 'revealed' || !state.activeStoryId) {
     selectedFinalPoint = null;
-    updateFinalizeButton(false);
   }
 });
 
@@ -487,6 +599,9 @@ el('joinBtn').onclick = () => {
 
   if (!currentRoom) return showToast('No room to join. Create a room first.', 'error');
   
+  // Clear old session data before joining new room
+  clearSessionData();
+  
   // Disable the join button and name field, show loading
   joinButtonClicked = true;
   setLoading('joinBtn', true);
@@ -501,7 +616,7 @@ el('joinBtn').onclick = () => {
       setDisabled('name', false);
       joinButtonClicked = false;
     }
-  }, 5000);
+  }, RECONNECTION_TIMEOUT_MS);
 };
 
 el('revealBtn').onclick = () => {
@@ -531,47 +646,9 @@ el('addToQueueBtn').onclick = () => {
   el('storyTitle').focus();
 };
 
-el('finalizeEstimateBtn').onclick = () => {
-  if (!currentRoom) return showToast('Join a room first', 'error');
-  if (!lastState?.activeStoryId) return showToast('Set an active story first.', 'error');
-  if (!selectedFinalPoint) return showToast('Select final points.', 'error');
-
-  socket.emit('storyQueue:finalize', {
-    roomId: currentRoom,
-    storyId: lastState.activeStoryId,
-    finalPoints: selectedFinalPoint
-  });
-  
-  // Reset selection
-  selectedFinalPoint = null;
-  const chips = document.querySelectorAll('.finalChip');
-  chips.forEach(c => {
-    c.classList.remove('selected');
-    c.setAttribute('aria-checked', 'false');
-  });
-  updateFinalizeButton(false);
-};
+// Finalize button removed - finalization happens on chip selection
 
 /** ---------- Renderers ---------- */
-function updateFinalizeButton(canFinalize) {
-  const btn = el('finalizeEstimateBtn');
-  if (!btn) return;
-  
-  if (!canFinalize) {
-    btn.disabled = true;
-    btn.textContent = 'Select Points to Finalize';
-    return;
-  }
-  
-  if (selectedFinalPoint) {
-    btn.disabled = false;
-    btn.textContent = `Finalize with ${selectedFinalPoint} Points`;
-  } else {
-    btn.disabled = true;
-    btn.textContent = 'Select Points to Finalize';
-  }
-}
-
 function renderFinalPointsChips(deck, canFinalize) {
   const d = Array.isArray(deck) ? deck : [];
   const container = el('finalPointsChips');
@@ -579,6 +656,9 @@ function renderFinalPointsChips(deck, canFinalize) {
   
   // Filter out non-numeric values (?, ☕) for finalize options
   const numericDeck = d.filter(v => v !== '?' && v !== '☕');
+  
+  // Check if current story is already finalized
+  const isFinalized = lastState?.story?.finalPoints !== null && lastState?.story?.finalPoints !== undefined;
   
   container.innerHTML = '';
   const frag = document.createDocumentFragment();
@@ -591,7 +671,8 @@ function renderFinalPointsChips(deck, canFinalize) {
     chip.setAttribute('role', 'radio');
     chip.setAttribute('aria-label', `Select ${value} points`);
     chip.setAttribute('aria-checked', 'false');
-    chip.disabled = !canFinalize;
+    // Disable if not in finalize mode OR if story is already finalized
+    chip.disabled = !canFinalize || isFinalized;
     
     if (selectedFinalPoint === value) {
       chip.classList.add('selected');
@@ -599,7 +680,7 @@ function renderFinalPointsChips(deck, canFinalize) {
     }
     
     chip.onclick = () => {
-      if (!canFinalize) return;
+      if (!canFinalize || isFinalized) return;
       
       // Deselect all chips
       container.querySelectorAll('.finalChip').forEach(c => {
@@ -612,8 +693,24 @@ function renderFinalPointsChips(deck, canFinalize) {
       chip.setAttribute('aria-checked', 'true');
       selectedFinalPoint = value;
       
-      // Update button
-      updateFinalizeButton(canFinalize);
+      // Immediately finalize the story with the selected points
+      if (!currentRoom) return showToast('Join a room first', 'error');
+      if (!lastState?.activeStoryId) return showToast('Set an active story first.', 'error');
+
+      socket.emit('storyQueue:finalize', {
+        roomId: currentRoom,
+        storyId: lastState.activeStoryId,
+        finalPoints: selectedFinalPoint
+      });
+      
+      // Reset selection after finalization
+      selectedFinalPoint = null;
+      setTimeout(() => {
+        container.querySelectorAll('.finalChip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+      }, 100);
     };
     
     // Keyboard support
@@ -781,8 +878,14 @@ function renderStory(story, queueLength) {
   title.className = 'storyTitle';
 
   const isPlaceholder = !story?.desc && !story?.number && !story?.finalPoints;
-  if (isPlaceholder && queueLength > 0) {
-    title.textContent = 'Select a Story from the Queue to Estimate';
+  if (isPlaceholder) {
+    // Participant: always show "Waiting for Facilitator"
+    // Facilitator: show "Select a Story from the Queue to Estimate" if queue has items
+    if (lastState?.youAreModerator) {
+      title.textContent = queueLength > 0 ? 'Select a Story from the Queue to Estimate' : '';
+    } else {
+      title.textContent = 'Waiting for Facilitator';
+    }
   } else {
     // Display story number and title together
     const displayText = story?.number 
@@ -945,32 +1048,83 @@ function renderResults(state) {
 function renderQueue(state) {
   const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];
   const list = el('storyQueueList'); 
+  const navControls = el('queueNavControls');
+  const queueCounter = el('queueCounter');
+  
   list.innerHTML = '';
 
   if (!queue.length) {
-    const li = document.createElement('li');
-    li.className = 'queueItem';
+    // Hide navigation controls when queue is empty
+    if (navControls) navControls.style.display = 'none';
+    
+    // Only show "No Stories In Queue" placeholder for facilitators
+    if (state.youAreModerator) {
+      const li = document.createElement('li');
+      li.className = 'queueItem';
 
-    const left = document.createElement('div');
-    left.className = 'queueLeft';
+      const left = document.createElement('div');
+      left.className = 'queueLeft';
 
-    const row = document.createElement('div');
-    row.className = 'queueTitleRow';
+      const row = document.createElement('div');
+      row.className = 'queueTitleRow';
 
-    const title = document.createElement('span');
-    title.className = 'queueTitle';
-    title.textContent = 'No Stories In Queue';
+      const title = document.createElement('span');
+      title.className = 'queueTitle';
+      title.textContent = 'No Stories In Queue';
 
-    row.appendChild(title);
-    left.appendChild(row);
-    li.appendChild(left);
-    list.appendChild(li);
+      row.appendChild(title);
+      left.appendChild(row);
+      li.appendChild(left);
+      list.appendChild(li);
+    }
+    // Participants see nothing when queue is empty
     return;
   }
 
+  // Auto-scroll to active story if it exists and is not in current view
+  if (state.activeStoryId) {
+    const activeIndex = queue.findIndex(s => s.id === state.activeStoryId);
+    if (activeIndex !== -1) {
+      // Check if active story is outside current window
+      if (activeIndex < queueScrollOffset || activeIndex >= queueScrollOffset + QUEUE_VISIBLE_COUNT) {
+        // Scroll to show the active story (centered if possible)
+        queueScrollOffset = Math.max(0, Math.min(activeIndex - 1, queue.length - QUEUE_VISIBLE_COUNT));
+      }
+    }
+  }
+
+  // Reset scroll offset if it's out of bounds
+  if (queueScrollOffset >= queue.length) {
+    queueScrollOffset = Math.max(0, queue.length - QUEUE_VISIBLE_COUNT);
+  }
+
+  // Calculate visible window
+  const totalStories = queue.length;
+  const canScrollUp = queueScrollOffset > 0;
+  const canScrollDown = queueScrollOffset + QUEUE_VISIBLE_COUNT < totalStories;
+  const visibleStories = queue.slice(queueScrollOffset, queueScrollOffset + QUEUE_VISIBLE_COUNT);
+
+  // Show/hide navigation controls based on queue size
+  if (navControls) {
+    navControls.style.display = totalStories > QUEUE_VISIBLE_COUNT ? 'flex' : 'none';
+  }
+
+  // Update counter
+  if (queueCounter) {
+    const start = queueScrollOffset + 1;
+    const end = Math.min(queueScrollOffset + QUEUE_VISIBLE_COUNT, totalStories);
+    queueCounter.textContent = `Showing ${start}-${end} of ${totalStories}`;
+  }
+
+  // Update navigation button states
+  const scrollUpBtn = el('queueScrollUp');
+  const scrollDownBtn = el('queueScrollDown');
+  if (scrollUpBtn) scrollUpBtn.disabled = !canScrollUp;
+  if (scrollDownBtn) scrollDownBtn.disabled = !canScrollDown;
+
   const frag = document.createDocumentFragment();
 
-  queue.forEach((s) => {
+  visibleStories.forEach((s) => {
     const li = document.createElement('li');
     li.className = 'queueItem' + (state.activeStoryId === s.id ? ' queueActive' : '');
 
@@ -1011,7 +1165,8 @@ function renderQueue(state) {
       setBtn.className = 'queueBtn primary';
       setBtn.type = 'button';
       setBtn.textContent = 'Estimate';
-      setBtn.disabled = state.activeStoryId === s.id;
+      // Disable if story is active OR if story has been finalized
+      setBtn.disabled = state.activeStoryId === s.id || !!s.finalPoints;
       setBtn.onclick = () => socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: s.id });
 
       const rmBtn = document.createElement('button');
@@ -1030,4 +1185,101 @@ function renderQueue(state) {
   });
 
   list.appendChild(frag);
+}
+
+// Queue navigation handlers
+function scrollQueueUp() {
+  if (queueScrollOffset > 0) {
+    queueScrollOffset--;
+    if (lastState) renderQueue(lastState);
+  }
+}
+
+function scrollQueueDown() {
+  if (lastState && lastState.storyQueue) {
+    const maxOffset = Math.max(0, lastState.storyQueue.length - QUEUE_VISIBLE_COUNT);
+    if (queueScrollOffset < maxOffset) {
+      queueScrollOffset++;
+      renderQueue(lastState);
+    }
+  }
+}
+
+// Queue navigation handlers - attach after DOM is ready
+function initQueueNavigation() {
+  const queueScrollUpBtn = el('queueScrollUp');
+  const queueScrollDownBtn = el('queueScrollDown');
+
+  if (queueScrollUpBtn) {
+    queueScrollUpBtn.onclick = scrollQueueUp;
+    // Keyboard support
+    queueScrollUpBtn.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        scrollQueueUp();
+      }
+    };
+    console.log('[Queue Nav] Up button initialized');
+  } else {
+    console.warn('[Queue Nav] Up button not found');
+  }
+
+  if (queueScrollDownBtn) {
+    queueScrollDownBtn.onclick = scrollQueueDown;
+    // Keyboard support
+    queueScrollDownBtn.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        scrollQueueDown();
+      }
+    };
+    console.log('[Queue Nav] Down button initialized');
+  } else {
+    console.warn('[Queue Nav] Down button not found');
+  }
+
+  // Add mouse wheel scrolling support
+  const queueListWrap = document.querySelector('.queueListWrap');
+  if (queueListWrap) {
+    queueListWrap.setAttribute('tabindex', '0');
+    queueListWrap.setAttribute('aria-label', 'Story queue - use arrow keys or mouse wheel to navigate');
+    
+    // Keyboard arrow key support
+    queueListWrap.onkeydown = (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        scrollQueueUp();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        scrollQueueDown();
+      }
+    };
+    
+    // Mouse wheel support
+    queueListWrap.addEventListener('wheel', (e) => {
+      // Only handle wheel events if we have more than QUEUE_VISIBLE_COUNT stories
+      if (lastState && lastState.storyQueue && lastState.storyQueue.length > QUEUE_VISIBLE_COUNT) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          // Scrolling up
+          scrollQueueUp();
+        } else if (e.deltaY > 0) {
+          // Scrolling down
+          scrollQueueDown();
+        }
+      }
+    }, { passive: false });
+    
+    console.log('[Queue Nav] Wheel and keyboard navigation initialized');
+  } else {
+    console.warn('[Queue Nav] Queue list wrap not found');
+  }
+}
+
+// Initialize navigation when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initQueueNavigation);
+} else {
+  // DOM already loaded
+  initQueueNavigation();
 }
