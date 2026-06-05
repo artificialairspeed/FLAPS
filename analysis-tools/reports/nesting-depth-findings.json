@@ -1,0 +1,1256 @@
+{
+  "timestamp": "2026-06-04T19:49:53.268Z",
+  "analyzer": "nesting-depth-analyzer",
+  "files": [
+    "server.js",
+    "app.js"
+  ],
+  "statistics": {
+    "total": 201,
+    "maxDepth": 3,
+    "avgDepth": "1.4",
+    "exceeding3": 0,
+    "exceeding5": 0,
+    "byType": {
+      "IfStatement": {
+        "count": 174,
+        "totalDepth": 237,
+        "avgDepth": "1.4"
+      },
+      "ForStatement": {
+        "count": 1,
+        "totalDepth": 1,
+        "avgDepth": "1.0"
+      },
+      "TryStatement": {
+        "count": 10,
+        "totalDepth": 10,
+        "avgDepth": "1.0"
+      },
+      "CatchClause": {
+        "count": 10,
+        "totalDepth": 20,
+        "avgDepth": "2.0"
+      },
+      "ForOfStatement": {
+        "count": 5,
+        "totalDepth": 7,
+        "avgDepth": "1.4"
+      },
+      "WhileStatement": {
+        "count": 1,
+        "totalDepth": 1,
+        "avgDepth": "1.0"
+      }
+    }
+  },
+  "findings": [],
+  "nestedBlocks": [
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 40,
+      "depth": 1
+    },
+    {
+      "type": "ForStatement",
+      "file": "server.js",
+      "line": 85,
+      "depth": 1
+    },
+    {
+      "type": "TryStatement",
+      "file": "server.js",
+      "line": 90,
+      "depth": 1
+    },
+    {
+      "type": "CatchClause",
+      "file": "server.js",
+      "line": 94,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 111,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 160,
+      "depth": 1
+    },
+    {
+      "type": "TryStatement",
+      "file": "server.js",
+      "line": 162,
+      "depth": 1
+    },
+    {
+      "type": "ForOfStatement",
+      "file": "server.js",
+      "line": 165,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "server.js",
+      "line": 168,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 186,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 199,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 208,
+      "depth": 1
+    },
+    {
+      "type": "WhileStatement",
+      "file": "server.js",
+      "line": 213,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 238,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 244,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 265,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 269,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 270,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 273,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 274,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 284,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 285,
+      "depth": 1
+    },
+    {
+      "type": "ForOfStatement",
+      "file": "server.js",
+      "line": 288,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 290,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 293,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 303,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 304,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 312,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 316,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 317,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 320,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 340,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 341,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 345,
+      "depth": 1
+    },
+    {
+      "type": "ForOfStatement",
+      "file": "server.js",
+      "line": 349,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 360,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 361,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 364,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 365,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 372,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 373,
+      "depth": 2
+    },
+    {
+      "type": "ForOfStatement",
+      "file": "server.js",
+      "line": 386,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 391,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 397,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 398,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 402,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 405,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 406,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 409,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 412,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 420,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 423,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 453,
+      "depth": 1
+    },
+    {
+      "type": "ForOfStatement",
+      "file": "server.js",
+      "line": 457,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 460,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "server.js",
+      "line": 469,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 28,
+      "depth": 1
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 41,
+      "depth": 1
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 44,
+      "depth": 2
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 56,
+      "depth": 1
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 58,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 70,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 77,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 88,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 89,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 90,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 114,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 116,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 141,
+      "depth": 1
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 147,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 150,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 151,
+      "depth": 2
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 154,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 154,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 154,
+      "depth": 2
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 159,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 160,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 163,
+      "depth": 3
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 177,
+      "depth": 3
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 181,
+      "depth": 2
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 187,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 188,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 191,
+      "depth": 2
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 197,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 200,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 203,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 219,
+      "depth": 1
+    },
+    {
+      "type": "TryStatement",
+      "file": "app.js",
+      "line": 228,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 231,
+      "depth": 2
+    },
+    {
+      "type": "CatchClause",
+      "file": "app.js",
+      "line": 234,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 251,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 268,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 269,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 272,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 282,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 289,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 291,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 292,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 298,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 307,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 311,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 316,
+      "depth": 3
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 326,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 348,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 370,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 379,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 385,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 400,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 404,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 421,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 441,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 444,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 455,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 476,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 484,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 488,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 491,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 495,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 498,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 500,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 504,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 512,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 518,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 526,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 528,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 535,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 545,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 566,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 568,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 569,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 570,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 571,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 572,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 573,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 574,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 575,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 576,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 578,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 582,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 585,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 588,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 590,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 593,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 594,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 595,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 596,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 597,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 598,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 599,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 600,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 601,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 603,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 607,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 610,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 613,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 617,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 619,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 632,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 650,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 653,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 667,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 676,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 683,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 685,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 708,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 730,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 736,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 739,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 752,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 753,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 754,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 765,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 776,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 802,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 810,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 819,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 826,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 836,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 841,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 850,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 869,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 888,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 907,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 931,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 971,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 973,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 980,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1065,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1066,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1072,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1073,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1092,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1102,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1110,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1126,
+      "depth": 2
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1143,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1151,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1167,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1212,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1233,
+      "depth": 1
+    },
+    {
+      "type": "IfStatement",
+      "file": "app.js",
+      "line": 1235,
+      "depth": 2
+    }
+  ]
+}

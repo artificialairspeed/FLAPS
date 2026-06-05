@@ -57,8 +57,6 @@
         <button id="joinBtn" class="primary" type="button">Join</button>
       </div>
     </div>
-    
-    <div id="shareFeedback" class="shareFeedback hidden">✓ Link copied to clipboard!</div>
   </header>
 
   <main class="grid">
@@ -72,41 +70,28 @@
       <div class="storyForm">
         <h3 class="resultsTitle">Add a Story</h3>
 
-        <div class="storyInputRow">
-          <div class="storyNumberField">
-            <label class="vh" for="storyNumber">Story Number</label>
-            <input id="storyNumber" placeholder="Story #" maxlength="12" />
+        <div class="storyInputCol">
+          <div class="jiraNumberField">
+            <label class="vh" for="jiraNumber">Jira Number</label>
+            <input id="jiraNumber" placeholder="Jira #" maxlength="12" pattern="[A-Za-z0-9\-]+" />
           </div>
           <div class="storyTitleField">
             <label class="vh" for="storyTitle">Story Title</label>
-            <input id="storyTitle" placeholder="Story Title" maxlength="40" />
+            <input id="storyTitle" placeholder="Story Title" maxlength="30" pattern="[A-Za-z0-9\s]+" />
+          </div>
+          <div class="storyDescField">
+            <label class="vh" for="storyDesc">Story Description</label>
+            <textarea id="storyDesc" placeholder="Short Description (optional)" maxlength="100" rows="2" pattern="[A-Za-z0-9\s.]+"></textarea>
           </div>
         </div>
-
-        <label class="vh" for="storyNotes">Story Notes</label>
-        <textarea id="storyNotes" placeholder="Notes (optional)" maxlength="100" rows="2"></textarea>
 
         <button id="addToQueueBtn" class="primary queueTitleBtn" type="button">Add Story To Queue</button>
 
         <h3 class="resultsTitle">Story Queue</h3>
         
-        <!-- Queue Navigation Controls -->
-        <div id="queueNavControls" class="queueNavControls" style="display: none;">
-          <button id="queueScrollUp" class="queueNavBtn" type="button" aria-label="Scroll up in queue">
-            <span class="queueNavIcon">▲</span>
-          </button>
-          <span id="queueCounter" class="queueCounter">Showing 1-3 of 7</span>
-          <button id="queueScrollDown" class="queueNavBtn" type="button" aria-label="Scroll down in queue">
-            <span class="queueNavIcon">▼</span>
-          </button>
-        </div>
-        
         <div class="queueListWrap">
           <ul id="storyQueueList" class="queueList"></ul>
         </div>
-
-        <h3 class="resultsTitle">Currently Estimating</h3>
-        <div id="storyView" class="storyView"></div>
       </div>
     </section>
 

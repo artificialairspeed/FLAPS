@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-06-04T18:45:13.086Z",
+  "analyzer": "code-duplication-detector",
+  "findings": [
+    {
+      "id": "finding-1780598713085-rt7elee",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 80,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+      "line": 477,
+      "description": "Duplicated code block found in 2 locations: server.js:477-484, server.js:486-493. Block spans 8 lines and contains 29 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'extractedHelper'. This will reduce code duplication by approximately 8 lines."
+    },
+    {
+      "id": "finding-1780598713085-aeltbl1",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 100,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 191,
+      "description": "Duplicated code block found in 2 locations: app.js:191-203, app.js:206-218. Block spans 13 lines and contains 44 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'validateHelper'. This will reduce code duplication by approximately 13 lines."
+    },
+    {
+      "id": "finding-1780598713085-5747u77",
+      "severity": "moderate",
+      "effort": "quick-win",
+      "impact": 50,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 282,
+      "description": "Duplicated code block found in 3 locations: app.js:282-286, app.js:421-425, app.js:493-497. Block spans 5 lines and contains 21 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'createHelper'. This will reduce code duplication by approximately 10 lines."
+    },
+    {
+      "id": "finding-1780598713085-ksbekul",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 60,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 704,
+      "description": "Duplicated code block found in 2 locations: app.js:704-709, app.js:730-735. Block spans 6 lines and contains 28 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'checkHelper'. This will reduce code duplication by approximately 6 lines."
+    },
+    {
+      "id": "finding-1780598713085-p7nktfd",
+      "severity": "critical",
+      "effort": "complex",
+      "impact": 100,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 815,
+      "description": "Duplicated code block found in 2 locations: app.js:815-850, app.js:853-888. Block spans 36 lines and contains 179 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'createHelper'. This will reduce code duplication by approximately 36 lines."
+    },
+    {
+      "id": "finding-1780598713085-z93ymm2",
+      "severity": "moderate",
+      "effort": "complex",
+      "impact": 100,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 823,
+      "description": "Duplicated code block found in 2 locations: app.js:823-849, app.js:861-887. Block spans 27 lines and contains 142 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'createHelper'. This will reduce code duplication by approximately 27 lines."
+    },
+    {
+      "id": "finding-1780598713085-9z5m08q",
+      "severity": "critical",
+      "effort": "complex",
+      "impact": 100,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 896,
+      "description": "Duplicated code block found in 2 locations: app.js:896-930, app.js:945-979. Block spans 35 lines and contains 158 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'createHelper'. This will reduce code duplication by approximately 35 lines."
+    },
+    {
+      "id": "finding-1780598713085-lszlz7e",
+      "severity": "moderate",
+      "effort": "medium",
+      "impact": 100,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 909,
+      "description": "Duplicated code block found in 2 locations: app.js:909-924, app.js:958-973. Block spans 16 lines and contains 77 AST nodes.",
+      "recommendation": "Extract this duplicated logic into a reusable helper function 'createHelper'. This will reduce code duplication by approximately 16 lines."
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "bySeverity": {
+      "minor": 3,
+      "moderate": 3,
+      "critical": 2
+    },
+    "byEffort": {
+      "quick-win": 4,
+      "complex": 3,
+      "medium": 1
+    }
+  }
+}

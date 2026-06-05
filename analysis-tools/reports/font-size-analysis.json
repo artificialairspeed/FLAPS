@@ -1,0 +1,568 @@
+{
+  "findings": [
+    {
+      "id": "finding-1780598716949-b2uyhzg",
+      "category": "visual",
+      "subcategory": "absolute-font-sizes",
+      "severity": "moderate",
+      "effort": "medium",
+      "impact": 70,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+      "line": 59,
+      "description": "Found 37 font-size declarations using absolute pixels. Absolute pixel values don't scale with user preferences or viewport size.",
+      "recommendation": "Convert absolute font-size values to responsive units using clamp() for fluid typography (e.g., 'font-size: clamp(14px, 2vw, 18px)') or use rem units for better accessibility.",
+      "codeSnippet": "Examples: h1: 18px; .shareHeaderBtn: 14px; .shareHeaderIcon: 18px",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598716949-cp0kpel",
+      "category": "visual",
+      "subcategory": "similar-font-sizes",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 40,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+      "line": 53,
+      "description": "Found 23 similar font sizes that differ by less than 2px: 13px (13.0px), 14px (14.0px), 14px (14.0px), 14px (14.0px), 12px (12.0px), 14px (14.0px), 14px (14.0px), 14px (14.0px), 14px (14.0px), 15px (15.0px), 15px (15.0px), 12px (12.0px), 12px (12.0px), 11px (11.0px), 11px (11.0px), 11px (11.0px), 12px (12.0px), 11px (11.0px), 11px (11.0px), 14px (14.0px), 12px (12.0px), 11px (11.0px), 11px (11.0px). These should likely be the same size for consistency.",
+      "recommendation": "Consolidate these similar font sizes to a single value, preferably 13px (from recommended type scale).",
+      "codeSnippet": "Affected selectors: .subtitle, .shareHeaderBtn, input,textarea,button,select, h3, .pill, .finalizeBtn, .resultsTitle, .ustatus, .groupLabel, .uname, .ustatus, .pointsBadge, .hint, .queueHeader, .queueNumber, .queueMeta, .queueDesc, .queuePoints, .queueBtn, .toast, .footerTagline, .footerItem, .footerLink",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598716949-1az7gtn",
+      "category": "visual",
+      "subcategory": "similar-font-sizes",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 40,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+      "line": 59,
+      "description": "Found 6 similar font sizes that differ by less than 2px: 18px (18.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px). These should likely be the same size for consistency.",
+      "recommendation": "Consolidate these similar font sizes to a single value, preferably 16px (from recommended type scale).",
+      "codeSnippet": "Affected selectors: h1, h2, .metricValue, .footerTagline, .footerItem, .footerLink",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598716949-usjrxsh",
+      "category": "visual",
+      "subcategory": "limited-responsive-typography",
+      "severity": "moderate",
+      "effort": "medium",
+      "impact": 65,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+      "line": 1,
+      "description": "Only 9 out of 46 font-size declarations (19.6%) use responsive typography patterns. This limits adaptability across different viewport sizes.",
+      "recommendation": "Increase use of responsive typography using clamp() for fluid scaling. Example: 'font-size: clamp(14px, 2vw, 18px)' creates font sizes that scale smoothly between min and max values based on viewport width.",
+      "codeSnippet": "Responsive: 9/46 (19.6%)",
+      "relatedFindings": []
+    }
+  ],
+  "report": {
+    "summary": {
+      "totalDeclarations": 46,
+      "uniqueSizes": 8,
+      "responsiveDeclarations": 9,
+      "responsivePercentage": "19.6%"
+    },
+    "units": {
+      "unitCounts": {
+        "px": 37
+      },
+      "totalNonResponsive": 37,
+      "units": [
+        "px"
+      ],
+      "hasInconsistency": false,
+      "dominantUnit": "px",
+      "unitBreakdown": [
+        {
+          "unit": "px",
+          "count": 37,
+          "percentage": "100.0%"
+        }
+      ]
+    },
+    "typeScale": {
+      "recommended": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        18,
+        20,
+        24,
+        28,
+        32,
+        36,
+        48,
+        64
+      ],
+      "current": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        18
+      ],
+      "onScale": 8,
+      "offScale": 0,
+      "conformance": "100.0%"
+    },
+    "consolidation": {
+      "similarGroups": 2,
+      "potentialReduction": 27,
+      "groups": [
+        {
+          "sizes": [
+            "13px",
+            "14px",
+            "14px",
+            "14px",
+            "12px",
+            "14px",
+            "14px",
+            "14px",
+            "14px",
+            "15px",
+            "15px",
+            "12px",
+            "12px",
+            "11px",
+            "11px",
+            "11px",
+            "12px",
+            "11px",
+            "11px",
+            "14px",
+            "12px",
+            "11px",
+            "11px"
+          ],
+          "pxValues": [
+            "13.0px",
+            "14.0px",
+            "14.0px",
+            "14.0px",
+            "12.0px",
+            "14.0px",
+            "14.0px",
+            "14.0px",
+            "14.0px",
+            "15.0px",
+            "15.0px",
+            "12.0px",
+            "12.0px",
+            "11.0px",
+            "11.0px",
+            "11.0px",
+            "12.0px",
+            "11.0px",
+            "11.0px",
+            "14.0px",
+            "12.0px",
+            "11.0px",
+            "11.0px"
+          ],
+          "suggested": "13px"
+        },
+        {
+          "sizes": [
+            "18px",
+            "16px",
+            "16px",
+            "16px",
+            "16px",
+            "16px"
+          ],
+          "pxValues": [
+            "18.0px",
+            "16.0px",
+            "16.0px",
+            "16.0px",
+            "16.0px",
+            "16.0px"
+          ],
+          "suggested": "18px"
+        }
+      ]
+    },
+    "allDeclarations": [
+      {
+        "selector": ".subtitle",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 53,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": "h1",
+        "value": "18px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 59,
+        "pxEquivalent": "18.0px"
+      },
+      {
+        "selector": ".shareHeaderBtn",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 73,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".shareHeaderIcon",
+        "value": "18px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 88,
+        "pxEquivalent": "18.0px"
+      },
+      {
+        "selector": ".shareFeedback",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 106,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": "input,textarea,button,select",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 155,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": "h2",
+        "value": "16px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 212,
+        "pxEquivalent": "16.0px"
+      },
+      {
+        "selector": "h3",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 213,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".pill",
+        "value": "12px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 215,
+        "pxEquivalent": "12.0px"
+      },
+      {
+        "selector": ".deckBtn",
+        "value": "clamp(13px,1.8vw,18px)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 236,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".finalizeLabel",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 285,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": ".finalChip",
+        "value": "clamp(14px, 2vw, 20px)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 312,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".finalizeBtn",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 337,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".resultsTitle",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 353,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".deckBtn",
+        "value": "clamp(12px,2vw,16px) }\n  .finalPointsChips{ grid-template-columns:repeat(6, 1fr)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 392,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".finalChip",
+        "value": "clamp(13px,2.2vw,17px) }\n}\n/* Intermediate tablet breakpoint for optimal deck layout */\n@media (max-width:768px) and (min-width:601px){\n  .deck{ \n    grid-template-columns:repeat(5, 1fr)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 394,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".deckBtn",
+        "value": "clamp(12px,2.2vw,15px) }\n  .finalPointsChips{\n    grid-template-columns:repeat(6, 1fr)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 402,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".finalChip",
+        "value": "clamp(12px,2.5vw,16px) }\n}\n/* Mobile: single column */\n@media (max-width:600px){\n  .grid{ grid-template-columns:minmax(0, 1fr)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 407,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".deckBtn",
+        "value": "clamp(11px,3vw,14px)",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 414,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".ustatus",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 444,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".finalChip",
+        "value": "clamp(11px, 3.2vw, 15px) }\n  .finalizeBtn{ padding: 9px",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 447,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".shareHeaderBtn",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 455,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": "input,textarea,button,select",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 463,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": ".deckBtn",
+        "value": "clamp(12px,3.5vw,14px) }\n}\n.users{ list-style:none",
+        "unit": "px",
+        "isResponsive": true,
+        "line": 472,
+        "pxEquivalent": "varies"
+      },
+      {
+        "selector": ".groupIcon",
+        "value": "18px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 495,
+        "pxEquivalent": "18.0px"
+      },
+      {
+        "selector": ".groupLabel",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 500,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".uname",
+        "value": "15px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 518,
+        "pxEquivalent": "15.0px"
+      },
+      {
+        "selector": ".ustatus",
+        "value": "15px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 526,
+        "pxEquivalent": "15.0px"
+      },
+      {
+        "selector": ".pointsBadge",
+        "value": "12px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 537,
+        "pxEquivalent": "12.0px"
+      },
+      {
+        "selector": ".hint",
+        "value": "12px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 541,
+        "pxEquivalent": "12.0px"
+      },
+      {
+        "selector": ".metricLabel",
+        "value": "10px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 564,
+        "pxEquivalent": "10.0px"
+      },
+      {
+        "selector": ".metricValue",
+        "value": "16px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 572,
+        "pxEquivalent": "16.0px"
+      },
+      {
+        "selector": ".queueHeader",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 578,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".queueNumber",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 602,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".queueTitle",
+        "value": "13px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 614,
+        "pxEquivalent": "13.0px"
+      },
+      {
+        "selector": ".queueMeta",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 633,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".queueDesc",
+        "value": "12px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 640,
+        "pxEquivalent": "12.0px"
+      },
+      {
+        "selector": ".queuePoints",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 652,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".queueBtn",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 663,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".toast",
+        "value": "14px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 735,
+        "pxEquivalent": "14.0px"
+      },
+      {
+        "selector": ".footerTagline",
+        "value": "16px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 794,
+        "pxEquivalent": "16.0px"
+      },
+      {
+        "selector": ".footerItem",
+        "value": "16px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 807,
+        "pxEquivalent": "16.0px"
+      },
+      {
+        "selector": ".footerLink",
+        "value": "16px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 816,
+        "pxEquivalent": "16.0px"
+      },
+      {
+        "selector": ".footerTagline",
+        "value": "12px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 850,
+        "pxEquivalent": "12.0px"
+      },
+      {
+        "selector": ".footerItem",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 853,
+        "pxEquivalent": "11.0px"
+      },
+      {
+        "selector": ".footerLink",
+        "value": "11px",
+        "unit": "px",
+        "isResponsive": false,
+        "line": 856,
+        "pxEquivalent": "11.0px"
+      }
+    ]
+  },
+  "timestamp": "2026-06-04T18:45:16.950Z"
+}
