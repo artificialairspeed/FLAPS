@@ -632,22 +632,17 @@ socket.on('room:state', (state) => {
 
 /** ---------- UI → Server ---------- */
 const createRoomBtnElement = el('createRoomBtn');
-console.log('[DEBUG] createRoomBtn element:', createRoomBtnElement);
-console.log('[DEBUG] socket connected:', socket?.connected);
 
 if (!createRoomBtnElement) {
-  console.error('[ERROR] createRoomBtn element not found!');
+  console.error('createRoomBtn element not found!');
 }
 
 el('createRoomBtn').onclick = () => {
-  console.log('[DEBUG] Create Room button clicked');
   const nameField = cachedElements.name || el('name');
   const name = (nameField?.value ?? '').trim() || 'Facilitator';
-  console.log('[DEBUG] Creating room with name:', name);
   saveName(name);
   setLoading('createRoomBtn', true);
   socket.emit('room:create', { name });
-  console.log('[DEBUG] room:create event emitted');
   
   // Reset loading state after timeout (in case of no response)
   // Only re-enable if room wasn't created
