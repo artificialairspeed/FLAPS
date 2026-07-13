@@ -890,7 +890,11 @@ function renderDeck(deck, phase, hasActiveStory) {
     const b = document.createElement('button');
     b.className = 'deckBtn';
     b.type = 'button';
-    b.textContent = v;
+    // Render special cards as enlarged emoji while keeping their underlying
+    // vote value intact ('?' stays '?' for server/calculation logic).
+    const isEmojiCard = v === '☕' || v === '?';
+    b.textContent = v === '?' ? '❓' : v;
+    if (isEmojiCard) b.classList.add('deckEmoji');
     b.setAttribute('aria-label', `Vote ${v}`);
     
     // Disable voting cards when in revealed state OR when no active story
