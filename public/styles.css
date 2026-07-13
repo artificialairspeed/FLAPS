@@ -50,6 +50,10 @@
 
   /* Focus */
   --focus:#82a0ff;
+
+  /* Layout */
+  --header-h:128px;
+  --header-pad-y:12px;
 }
 
 *{ box-sizing:border-box }
@@ -74,7 +78,8 @@ body{
    Header
 --------------------------------------------------------------- */
 header{
-  padding:12px 32px;
+  height:var(--header-h);
+  padding:var(--header-pad-y) 32px;
   display:flex;
   flex-direction:row;
   align-items:center;
@@ -85,10 +90,10 @@ header{
   position:relative;
   flex-shrink:0;
 }
-.headerTop{ flex-shrink:0 }
-.brand{ display:flex; flex-direction:column; gap:8px; align-items:center }
+.headerTop{ flex-shrink:0; align-self:stretch; display:flex; align-items:center }
+.brand{ display:flex; flex-direction:column; gap:8px; align-items:center; height:100% }
 .logo{
-  width:72px; height:72px;
+  height:100%; width:auto; aspect-ratio:1/1;
   display:flex; align-items:center; justify-content:center;
   overflow:hidden;
 }
@@ -128,15 +133,19 @@ h1{ margin:0; font-size:18px; line-height:1.15; font-weight:700; letter-spacing:
   gap:10px;
   width:auto;
   flex-shrink:0;
-  align-items:flex-end;
+  align-items:flex-start;
 }
 .roombarRow1{ display:flex; gap:10px; align-items:center }
 .roombarRow2{ display:flex; gap:10px; align-items:center }
+/* Collapse a roombar row entirely when all its controls are hidden,
+   so the lone Create Room button centers vertically in the header. */
+.roombarRow1:not(:has(> :not(.hidden))),
+.roombarRow2:not(:has(> :not(.hidden))){ display:none }
 #createRoomBtn{ width:140px; flex-shrink:0 }
-#joinBtn{ width:140px; flex-shrink:0 }
+#joinBtn{ width:90px; flex-shrink:0 }
 #name{ width:240px !important; flex-shrink:0; min-width:240px }
 .emojiSelect{
-  width:64px;
+  width:140px;
   flex-shrink:0;
   font-size:20px;
   text-align:center;
@@ -524,6 +533,7 @@ a:hover{ text-decoration:underline }
   hyphens:auto;
   line-height:1.35;
   margin-top:2px;
+  padding-left:9px;
 }
 .queueTitleBtn{
   font-weight:700 !important;
@@ -549,6 +559,7 @@ a:hover{ text-decoration:underline }
   word-wrap:break-word;
   overflow-wrap:break-word;
   hyphens:auto;
+  padding-left:9px;
 }
 .queueActive{
   background:var(--accent-soft);
@@ -756,7 +767,7 @@ footer{
   .shareHeaderBtn{ padding:10px 12px; font-size:13px; gap:6px; width:100% }
   .shareHeaderIcon{ font-size:16px }
   .shareHeaderText{ font-size:13px }
-  header{ flex-direction:column; align-items:center; padding:16px 16px 12px 16px; gap:16px }
+  header{ height:auto; flex-direction:column; align-items:center; padding:16px 16px 12px 16px; gap:16px }
   .logo{ width:64px; height:64px }
   h1{ font-size:16px }
   h2{ font-size:16px }
