@@ -161,6 +161,13 @@ h1{ margin:0; font-size:18px; line-height:1.1; font-weight:700 }
   flex-shrink:0;
   min-width:240px;
 }
+.emojiSelect{
+  width:64px;
+  flex-shrink:0;
+  font-size:20px;
+  text-align:center;
+  cursor:pointer;
+}
 /* Form elements */
 input,textarea,button,select{
   border:1px solid var(--border);
@@ -515,6 +522,17 @@ h3{ margin:0; font-size:14px; font-weight:700 }
 .facilitatorItem{
   background:transparent;
 }
+.unameWrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.uemoji{
+  flex-shrink:0;
+  font-size:16px;
+  line-height:1;
+}
 .uname{ 
   color:#ffffff; 
   font-size:13px; 
@@ -686,6 +704,40 @@ a{ color:var(--accent) }
   opacity:1;
   cursor:default;
 }
+
+/* Inline story edit form (shown when editing a queue item) */
+.queueItem.queueEditing{ align-items:stretch }
+.queueEditForm{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:100%;
+}
+.queueEditInput{
+  width:100%;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--panel2);
+  color:var(--text);
+  font-size:13px;
+  box-sizing:border-box;
+}
+.queueEditInput:focus{
+  outline:none;
+  border-color:#7aa2ff;
+  box-shadow:0 0 0 2px rgba(122,162,255,.3);
+}
+.queueEditDesc{
+  min-height:50px;
+  max-height:80px;
+  resize:vertical;
+}
+.queueEditActions{
+  display:flex;
+  gap:8px;
+}
+.queueEditActions .queueBtn{ width:auto; flex:1 }
 
 /* Grid positioning - no bottom row needed */
 /* Optional hover emphasis for deck cards */

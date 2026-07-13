@@ -13,6 +13,7 @@ let cachedElements = {};
 function initializeCachedElements() {
   cachedElements = {
     name: el('name'),
+    emoji: el('emoji'),
     main: document.querySelector('main'),
     footer: document.querySelector('footer'),
     createRoomBtn: el('createRoomBtn'),
@@ -160,6 +161,27 @@ function saveName(name){
   try { if (name) sessionStorage.setItem('flaps_name', name); } catch {}
 }
 
+/** ---------- Remember my emoji ---------- */
+(function loadSavedEmoji(){
+  try {
+    const saved = sessionStorage.getItem('flaps_emoji');
+    const emojiField = cachedElements.emoji || el('emoji');
+    if (saved && emojiField) emojiField.value = saved;
+  } catch {}
+})();
+function saveEmoji(emoji){
+  try { sessionStorage.setItem('flaps_emoji', emoji ?? ''); } catch {}
+}
+/** Read the currently selected emoji from the selector */
+function getSelectedEmoji(){
+  const emojiField = cachedElements.emoji || el('emoji');
+  return (emojiField?.value ?? '').trim();
+}
+/** Retrieve stored emoji from sessionStorage for automatic reconnection */
+function getStoredEmoji(){
+  return getStoredValue('flaps_emoji', (val) => (typeof val === 'string' ? val : null)) || '';
+}
+
 /** ---------- Remember joined state ---------- */
 function saveJoinedState(){
   try { 
@@ -248,6 +270,8 @@ function handleReconnectionFailure(){
   joinButtonClicked = false;
   setDisabled('joinBtn', false);
   setDisabled('name', false);
+  // Re-show name field and Join button so the user can join manually
+  show('name'); show('joinBtn'); show('emoji');
   showToast('Unable to rejoin. Please join manually.', 'warn');
 }
 
@@ -276,7 +300,7 @@ function applyInitialRoleView(){
 
   // Disable name/join until a room exists (facilitator must create)
   if (!hasRoomInUrl) {
-    hide('name'); hide('joinBtn');
+    hide('name'); hide('joinBtn'); hide('emoji');
     show('createRoomBtn');
     setDisabled('createRoomBtn', false);
     return;
@@ -289,6 +313,8 @@ function applyInitialRoleView(){
     joinButtonClicked = true;
     setDisabled('name', true);
     setDisabled('joinBtn', true);
+    // Hide name field and Join button once joined
+    hide('name'); hide('joinBtn'); hide('emoji');
   }
 
   // On /room/:id
@@ -305,7 +331,7 @@ function applyInitialRoleView(){
       setRoomCreatedButton();
     }
     show('createRoomBtn');
-    show('name'); show('joinBtn');
+    show('name'); show('joinBtn'); show('emoji');
   } else {
     // Participant link: hide Create button, enable name/join, but keep main and footer hidden until joined
     // Clear the name field for participants so they enter their own name
@@ -313,8 +339,8 @@ function applyInitialRoleView(){
     if (nameField && !isAlreadyJoined()) nameField.value = '';
     
     hide('createRoomBtn');
-    show('name'); show('joinBtn');
     if (!isAlreadyJoined()) {
+      show('name'); show('joinBtn'); show('emoji');
       setDisabled('name', false); 
       setDisabled('joinBtn', false);
       // Auto-focus the name field for participants to start typing immediately
@@ -322,7 +348,8 @@ function applyInitialRoleView(){
         setTimeout(() => nameField.focus(), 100);
       }
     } else {
-      // Already joined, show footer
+      // Already joined, hide name/Join and show footer
+      hide('name'); hide('joinBtn'); hide('emoji');
       if (footer) footer.style.display = 'flex';
     }
   }
@@ -341,6 +368,7 @@ function handleParticipantReconnection() {
     joinButtonClicked = false;
     setDisabled('joinBtn', false);
     setDisabled('name', false);
+    show('name'); show('joinBtn'); show('emoji');
     return;
   }
   
@@ -353,6 +381,7 @@ function handleParticipantReconnection() {
   socket.emit('room:join', { 
     roomId: currentRoom, 
     name: storedUserName, 
+    emoji: getStoredEmoji(),
     modKey: null 
   });
   
@@ -391,7 +420,7 @@ socket.on('connect', () => {
   if (currentRoom && modKey) {
     // Facilitator: auto-rejoin
     const nameVal = (nameField?.value ?? '').trim() || 'Facilitator';
-    socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+    socket.emit('room:join', { roomId: currentRoom, name: nameVal, emoji: getSelectedEmoji() || getStoredEmoji(), modKey });
   } else if (currentRoom) {
     // Participant automatic reconnection logic
     handleParticipantReconnection();
@@ -445,13 +474,13 @@ socket.on('room:created', ({ roomId, modKey: createdModKey }) => {
   setRoomCreatedButton();
 
   // Show Name + Join on row 2 (optional for facilitator)
-  show('name'); show('joinBtn');
+  show('name'); show('joinBtn'); show('emoji');
   setDisabled('name', false); setDisabled('joinBtn', false);
   
   // Auto-join the facilitator with their name or default
   const nameField = cachedElements.name || el('name');
   const nameVal = (nameField?.value ?? '').trim() || 'Facilitator';
-  socket.emit('room:join', { roomId: currentRoom, name: nameVal, modKey });
+  socket.emit('room:join', { roomId: currentRoom, name: nameVal, emoji: getSelectedEmoji(), modKey });
   
   // Focus the name field so user can type immediately
   if (nameField) {
@@ -497,23 +526,27 @@ function updateRoombar(state) {
       setRoomCreatedButton();
     }
     show('createRoomBtn');
-    // Keep name field disabled if already joined
+    // Keep name field disabled and hidden if already joined
     if (joinButtonClicked) {
       setDisabled('name', true);
       setDisabled('joinBtn', true);
+      hide('name'); hide('joinBtn'); hide('emoji');
     } else {
       setDisabled('name', false);
       setDisabled('joinBtn', false);
+      show('name'); show('joinBtn'); show('emoji');
     }
   } else {
     hide('createRoomBtn');
-    // Keep name field disabled if already joined
+    // Keep name field disabled and hidden if already joined
     if (joinButtonClicked) {
       setDisabled('name', true);
       setDisabled('joinBtn', true);
+      hide('name'); hide('joinBtn'); hide('emoji');
     } else {
       setDisabled('name', false);
       setDisabled('joinBtn', false);
+      show('name'); show('joinBtn'); show('emoji');
     }
   }
 }
@@ -593,6 +626,8 @@ socket.on('room:state', (state) => {
     // Keep both join button and name field disabled after successful join
     setDisabled('joinBtn', true);
     setDisabled('name', true);
+    // Hide name field and Join button once joined
+    hide('name'); hide('joinBtn'); hide('emoji');
   }
 
   // Show main content when user joins (receives first room state)
@@ -641,8 +676,10 @@ el('createRoomBtn').onclick = () => {
   const nameField = cachedElements.name || el('name');
   const name = (nameField?.value ?? '').trim() || 'Facilitator';
   saveName(name);
+  const emoji = getSelectedEmoji();
+  saveEmoji(emoji);
   setLoading('createRoomBtn', true);
-  socket.emit('room:create', { name });
+  socket.emit('room:create', { name, emoji });
   
   // Reset loading state after timeout (in case of no response)
   // Only re-enable if room wasn't created
@@ -658,6 +695,8 @@ el('joinBtn').onclick = () => {
   const name = (nameField?.value ?? '').trim();
   if (!name) return showToast('Enter your name.', 'error');
   saveName(name);
+  const emoji = getSelectedEmoji();
+  saveEmoji(emoji);
 
   if (!currentRoom) return showToast('No room to join. Create a room first.', 'error');
   
@@ -669,13 +708,14 @@ el('joinBtn').onclick = () => {
   setLoading('joinBtn', true);
   setDisabled('name', true);
   
-  socket.emit('room:join', { roomId: currentRoom, name, modKey });
+  socket.emit('room:join', { roomId: currentRoom, name, emoji, modKey });
   
   // Reset loading state after timeout (in case of no response)
   setTimeout(() => {
     if (joinButtonClicked && !userJoined) {
       setLoading('joinBtn', false);
       setDisabled('name', false);
+      show('name'); show('joinBtn'); show('emoji');
       joinButtonClicked = false;
     }
   }, RECONNECTION_TIMEOUT_MS);
@@ -692,12 +732,8 @@ el('name').onkeydown = (e) => {
   }
 };
 
-// Restrict name field to letters and spaces only (no numbers or special characters)
-el('name').oninput = (e) => {
-  const field = e.target;
-  // Remove any characters that aren't letters or spaces
-  field.value = field.value.replace(/[^A-Za-z\s]/g, '');
-};
+// Name field allows any characters (including special characters).
+// Values are rendered via textContent, so this is XSS-safe.
 
 el('revealBtn').onclick = () => {
   if (!currentRoom) return;
@@ -706,38 +742,23 @@ el('revealBtn').onclick = () => {
 };
 el('clearBtn').onclick = () => { myVote = null; currentRoom && socket.emit('vote:clear', { roomId: currentRoom }); };
 
-// Auto-capitalize Jira # and Story Title fields with input validation
+// Auto-capitalize Jira # field with input validation.
+// Story Title and Story Description allow any characters (no filtering).
 const jiraInput = cachedElements.jiraNumber || el('jiraNumber');
-const titleInput = cachedElements.storyTitle || el('storyTitle');
-const descInput = cachedElements.storyDesc || el('storyDesc');
 
 if (jiraInput) {
   jiraInput.addEventListener('input', (e) => {
-    const start = e.target.selectionStart;
-    const end = e.target.selectionEnd;
+    const field = e.target;
+    const caret = field.selectionStart;
+    const original = field.value;
+    // Count disallowed characters before the caret so we can adjust it
+    // correctly when characters are stripped mid-string (not just appended).
+    const beforeCaret = original.slice(0, caret);
+    const removedBeforeCaret = beforeCaret.length - beforeCaret.replace(/[^A-Za-z0-9\-]/g, '').length;
     // Allow only alphanumeric and dashes for Jira #
-    e.target.value = e.target.value.replace(/[^A-Za-z0-9\-]/g, '').toUpperCase();
-    e.target.setSelectionRange(start, end);
-  });
-}
-
-if (titleInput) {
-  titleInput.addEventListener('input', (e) => {
-    const start = e.target.selectionStart;
-    const end = e.target.selectionEnd;
-    // Allow letters, numbers, and spaces for Story Title
-    e.target.value = e.target.value.replace(/[^A-Za-z0-9\s]/g, '').toUpperCase();
-    e.target.setSelectionRange(start, end);
-  });
-}
-
-if (descInput) {
-  descInput.addEventListener('input', (e) => {
-    const start = e.target.selectionStart;
-    const end = e.target.selectionEnd;
-    // Allow letters, numbers, spaces, and periods for Story Description
-    e.target.value = e.target.value.replace(/[^A-Za-z0-9\s.]/g, '');
-    e.target.setSelectionRange(start, end);
+    field.value = original.replace(/[^A-Za-z0-9\-]/g, '').toUpperCase();
+    const newCaret = caret - removedBeforeCaret;
+    field.setSelectionRange(newCaret, newCaret);
   });
 }
 
@@ -907,9 +928,21 @@ function createUserItem(user, phase, role) {
   const li = document.createElement('li');
   li.className = role === 'facilitator' ? 'userItem facilitatorItem' : 'userItem voterItem';
 
+  const nameWrap = document.createElement('span');
+  nameWrap.className = 'unameWrap';
+
+  if (user.emoji) {
+    const emojiSpan = document.createElement('span');
+    emojiSpan.className = 'uemoji';
+    emojiSpan.setAttribute('aria-hidden', 'true');
+    emojiSpan.textContent = user.emoji;
+    nameWrap.appendChild(emojiSpan);
+  }
+
   const nameSpan = document.createElement('span');
   nameSpan.className = 'uname';
   nameSpan.textContent = user.name ?? '';
+  nameWrap.appendChild(nameSpan);
 
   const statusSpan = document.createElement('span');
   statusSpan.className = 'ustatus';
@@ -927,7 +960,7 @@ function createUserItem(user, phase, role) {
   const roleLabel = role === 'facilitator' ? 'Facilitator' : 'Voter';
   li.setAttribute('aria-label', `${user.name}, ${roleLabel}, ${statusText}`);
 
-  li.appendChild(nameSpan);
+  li.appendChild(nameWrap);
   li.appendChild(statusSpan);
   
   return li;
@@ -1203,8 +1236,106 @@ function createQueueTitleRow(story, isActive) {
   return titleRow;
 }
 
+// Helper function to switch a queue item into an inline edit form
+function enterStoryEditMode(li, story) {
+  li.innerHTML = '';
+  li.classList.add('queueEditing');
+
+  const form = document.createElement('div');
+  form.className = 'queueEditForm';
+
+  // Jira # input (letters, numbers, dashes; auto-uppercased like the add form)
+  const numberInput = document.createElement('input');
+  numberInput.className = 'queueEditInput';
+  numberInput.type = 'text';
+  numberInput.maxLength = 12;
+  numberInput.placeholder = 'Jira #';
+  numberInput.value = story.number || '';
+  numberInput.setAttribute('aria-label', 'Jira Number');
+  numberInput.addEventListener('input', (e) => {
+    const field = e.target;
+    const caret = field.selectionStart;
+    const original = field.value;
+    const beforeCaret = original.slice(0, caret);
+    const removedBeforeCaret = beforeCaret.length - beforeCaret.replace(/[^A-Za-z0-9\-]/g, '').length;
+    field.value = original.replace(/[^A-Za-z0-9\-]/g, '').toUpperCase();
+    const newCaret = caret - removedBeforeCaret;
+    field.setSelectionRange(newCaret, newCaret);
+  });
+
+  // Title input (required)
+  const titleInput = document.createElement('input');
+  titleInput.className = 'queueEditInput';
+  titleInput.type = 'text';
+  titleInput.maxLength = 100;
+  titleInput.placeholder = 'Story Title';
+  titleInput.value = story.title || '';
+  titleInput.setAttribute('aria-label', 'Story Title');
+
+  // Description textarea (optional)
+  const descInput = document.createElement('textarea');
+  descInput.className = 'queueEditInput queueEditDesc';
+  descInput.maxLength = 100;
+  descInput.rows = 2;
+  descInput.placeholder = 'Short Description (optional)';
+  descInput.value = story.desc || '';
+  descInput.setAttribute('aria-label', 'Story Description');
+
+  const editActions = document.createElement('div');
+  editActions.className = 'queueEditActions';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'queueBtn primary';
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = () => {
+    const title = titleInput.value.trim();
+    if (!title) return showToast('Enter a Story Title.', 'error');
+    socket.emit('storyQueue:edit', {
+      roomId: currentRoom,
+      storyId: story.id,
+      story: {
+        number: numberInput.value || '',
+        title,
+        desc: descInput.value || ''
+      }
+    });
+    // Server broadcast will re-render the queue with the updated values.
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'queueBtn';
+  cancelBtn.type = 'button';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.onclick = () => {
+    // Restore the display view from the last known state
+    if (lastState) renderQueue(lastState);
+  };
+
+  // Save on Enter within the single-line inputs
+  [numberInput, titleInput].forEach((input) => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveBtn.click();
+      }
+    });
+  });
+
+  editActions.appendChild(saveBtn);
+  editActions.appendChild(cancelBtn);
+
+  form.appendChild(numberInput);
+  form.appendChild(titleInput);
+  form.appendChild(descInput);
+  form.appendChild(editActions);
+
+  li.appendChild(form);
+  titleInput.focus();
+}
+
 // Helper function to create queue item actions
-function createQueueActions(story, state) {
+function createQueueActions(story, state, li) {
   const actions = document.createElement('div');
   actions.className = 'queueActions';
 
@@ -1218,9 +1349,19 @@ function createQueueActions(story, state) {
     setBtn.disabled = state.activeStoryId === story.id || !!story.finalPoints;
     setBtn.onclick = () => socket.emit('storyQueue:setActive', { roomId: currentRoom, storyId: story.id });
 
+    const editBtn = document.createElement('button');
+    editBtn.className = 'queueBtn';
+    editBtn.type = 'button';
+    editBtn.textContent = '✏️ Edit';
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      enterStoryEditMode(li, story);
+    };
+
     const rmBtn = createDeleteButton(story.id, currentRoom, socket);
 
     actions.appendChild(setBtn);
+    actions.appendChild(editBtn);
     actions.appendChild(rmBtn);
   }
 
@@ -1261,7 +1402,7 @@ function createQueueItemElement(story, state) {
     left.appendChild(desc);
   }
 
-  const actions = createQueueActions(story, state);
+  const actions = createQueueActions(story, state, li);
 
   li.appendChild(left);
   li.appendChild(actions);

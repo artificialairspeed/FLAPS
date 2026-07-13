@@ -48,12 +48,38 @@
         </button>
       </div>
       
-      <!-- Row 2: Name + Join -->
+      <!-- Row 2: Emoji + Name + Join -->
       <div class="roombarRow2">
+        <label class="vh" for="emoji">Choose your emoji</label>
+        <select id="emoji" name="emoji" class="emojiSelect" aria-label="Choose your emoji" title="Choose your emoji">
+          <option value="">🙂</option>
+          <option value="😀">😀</option>
+          <option value="😎">😎</option>
+          <option value="🤓">🤓</option>
+          <option value="🤩">🤩</option>
+          <option value="🥳">🥳</option>
+          <option value="🚀">🚀</option>
+          <option value="🔥">🔥</option>
+          <option value="⭐">⭐</option>
+          <option value="🌈">🌈</option>
+          <option value="🦄">🦄</option>
+          <option value="🐱">🐱</option>
+          <option value="🐶">🐶</option>
+          <option value="🦊">🦊</option>
+          <option value="🐼">🐼</option>
+          <option value="🐸">🐸</option>
+          <option value="🦁">🦁</option>
+          <option value="🐧">🐧</option>
+          <option value="🦉">🦉</option>
+          <option value="🐢">🐢</option>
+          <option value="🍕">🍕</option>
+          <option value="🎸">🎸</option>
+          <option value="🎉">🎉</option>
+          <option value="🏆">🏆</option>
+        </select>
         <label class="vh" for="name">Your Name</label>
         <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-               inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="20" 
-               pattern="[A-Za-z\s]+" title="Letters and spaces only" />
+               inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="20" />
         <button id="joinBtn" class="primary" type="button">Join</button>
       </div>
     </div>
@@ -73,15 +99,15 @@
         <div class="storyInputCol">
           <div class="jiraNumberField">
             <label class="vh" for="jiraNumber">Jira Number</label>
-            <input id="jiraNumber" placeholder="Jira #" maxlength="12" pattern="[A-Za-z0-9\-]+" />
+            <input id="jiraNumber" placeholder="Jira #" maxlength="12" />
           </div>
           <div class="storyTitleField">
             <label class="vh" for="storyTitle">Story Title</label>
-            <input id="storyTitle" placeholder="Story Title" maxlength="30" pattern="[A-Za-z0-9\s]+" />
+            <input id="storyTitle" placeholder="Story Title" maxlength="100" />
           </div>
           <div class="storyDescField">
             <label class="vh" for="storyDesc">Story Description</label>
-            <textarea id="storyDesc" placeholder="Short Description (optional)" maxlength="100" rows="2" pattern="[A-Za-z0-9\s.]+"></textarea>
+            <textarea id="storyDesc" placeholder="Short Description (optional)" maxlength="100" rows="2"></textarea>
           </div>
         </div>
 

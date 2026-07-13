@@ -12,9 +12,23 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 const MODERATOR_KEY_LENGTH = 18;
 const MAX_ROOM_ID_LENGTH = 50;
 const MAX_NAME_LENGTH = 20;
-const MAX_STORY_NUMBER_LENGTH = 50;
-const MAX_STORY_TITLE_LENGTH = 30;
+const MAX_STORY_NUMBER_LENGTH = 12;
+const MAX_STORY_TITLE_LENGTH = 100;
 const MAX_STORY_DESC_LENGTH = 100;
+
+// Whitelist of emojis a user may pick when joining. Must match the options
+// offered in public/index.html. Anything else is rejected (empty string = none).
+const ALLOWED_EMOJIS = new Set([
+  "😀", "😎", "🤓", "🤩", "🥳", "🚀", "🔥", "⭐", "🌈", "🦄",
+  "🐱", "🐶", "🦊", "🐼", "🐸", "🦁", "🐧", "🦉", "🐢", "🍕",
+  "🎸", "🎉", "🏆"
+]);
+
+// Return the emoji only if it is in the allowed set, otherwise empty string.
+function sanitizeEmoji(emoji) {
+  const value = String(emoji || "").trim();
+  return ALLOWED_EMOJIS.has(value) ? value : "";
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -116,6 +130,13 @@ function sanitizeString(str, maxLength, allowDashes = false, allowNumbers = fals
   return cleaned.replace(pattern, '').slice(0, maxLength);
 }
 
+// Free-text sanitizer: allows any characters (including special characters).
+// Only trims surrounding whitespace and enforces a max length. Values are
+// always rendered client-side via textContent, so this is XSS-safe.
+function sanitizeFreeText(str, maxLength) {
+  return String(str || "").trim().slice(0, maxLength);
+}
+
 function getOrCreateRoom(roomId) {
   roomId = normalizeRoomId(roomId);
 
@@ -149,7 +170,7 @@ function makeRoomState(room, socket) {
     Object.entries(room.users).map(([id, u]) => {
       const vote = room.phase === "revealed" ? u.vote : (u.vote ? "selected" : null);
       const isMod = u.isModerator || false;
-      return [id, { name: u.name, vote, isModerator: isMod }];
+      return [id, { name: u.name, emoji: u.emoji || "", vote, isModerator: isMod }];
     })
   );
 
@@ -206,7 +227,7 @@ function checkRateLimit(socketId) {
 }
 
 // Socket event handler functions
-function handleRoomCreate(socket, { desiredRoomId, name } = {}) {
+function handleRoomCreate(socket, { desiredRoomId, name, emoji } = {}) {
   if (!checkRateLimit(socket.id)) {
     socket.emit("error", { message: "Rate limit exceeded. Please slow down." });
     return;
@@ -234,9 +255,10 @@ function handleRoomCreate(socket, { desiredRoomId, name } = {}) {
 
   socket.join(room.roomId);
 
-  const sanitizedName = sanitizeString(name || "Facilitator", MAX_NAME_LENGTH) || "Facilitator";
+  const sanitizedName = sanitizeFreeText(name || "Facilitator", MAX_NAME_LENGTH) || "Facilitator";
   room.users[socket.id] = {
     name: sanitizedName,
+    emoji: sanitizeEmoji(emoji),
     vote: null,
     isModerator: true
   };
@@ -245,7 +267,7 @@ function handleRoomCreate(socket, { desiredRoomId, name } = {}) {
   broadcastRoom(room.roomId);
 }
 
-function handleRoomJoin(socket, { roomId, name, modKey } = {}) {
+function handleRoomJoin(socket, { roomId, name, emoji, modKey } = {}) {
   if (!checkRateLimit(socket.id)) {
     socket.emit("error", { message: "Rate limit exceeded. Please slow down." });
     return;
@@ -261,9 +283,10 @@ function handleRoomJoin(socket, { roomId, name, modKey } = {}) {
 
   socket.join(roomId);
 
-  const sanitizedName = sanitizeString(name || "Anonymous", MAX_NAME_LENGTH) || "Anonymous";
+  const sanitizedName = sanitizeFreeText(name || "Anonymous", MAX_NAME_LENGTH) || "Anonymous";
   room.users[socket.id] = {
     name: sanitizedName,
+    emoji: sanitizeEmoji(emoji),
     vote: null,
     isModerator: isModerator(room, modKey)
   };
@@ -327,11 +350,11 @@ function handleStoryQueueAdd(socket, { roomId, story } = {}) {
   if (!room) return;
   if (!requireModerator(room, socket)) return;
 
-  const title = sanitizeString(story?.title, MAX_STORY_TITLE_LENGTH, false, true); // Letters, numbers, spaces
+  const title = sanitizeFreeText(story?.title, MAX_STORY_TITLE_LENGTH); // Allow all characters
   if (!title) return;
 
   const number = sanitizeString(story?.number, MAX_STORY_NUMBER_LENGTH, true, true); // Allow dashes and numbers for Jira #
-  const desc = sanitizeString(story?.desc, MAX_STORY_DESC_LENGTH, false, true, true); // Letters, numbers, spaces, periods
+  const desc = sanitizeFreeText(story?.desc, MAX_STORY_DESC_LENGTH); // Allow all characters
 
   room.storyQueue.push({
     id: randomId(8),
@@ -340,6 +363,39 @@ function handleStoryQueueAdd(socket, { roomId, story } = {}) {
     desc,
     finalPoints: null
   });
+
+  room.lastActiveAt = Date.now();
+  broadcastRoom(roomId);
+}
+
+function handleStoryQueueEdit(socket, { roomId, storyId, story } = {}) {
+  if (!checkRateLimit(socket.id)) return;
+
+  roomId = normalizeRoomId(roomId) || socket.data.roomId;
+  const room = rooms.get(roomId);
+  if (!room) return;
+  if (!requireModerator(room, socket)) return;
+
+  const id = String(storyId || "");
+  const item = room.storyQueue.find((s) => s.id === id);
+  if (!item) return;
+
+  const title = sanitizeFreeText(story?.title, MAX_STORY_TITLE_LENGTH); // Allow all characters
+  if (!title) return;
+
+  const number = sanitizeString(story?.number, MAX_STORY_NUMBER_LENGTH, true, true); // Allow dashes and numbers for Jira #
+  const desc = sanitizeFreeText(story?.desc, MAX_STORY_DESC_LENGTH); // Allow all characters
+
+  item.number = number;
+  item.title = title;
+  item.desc = desc;
+
+  // Keep the mirrored active story in sync if this is the active story
+  if (room.activeStoryId === id) {
+    room.story.number = number;
+    room.story.title = title;
+    room.story.desc = desc;
+  }
 
   room.lastActiveAt = Date.now();
   broadcastRoom(roomId);
@@ -451,6 +507,7 @@ io.on("connection", (socket) => {
   socket.on("vote:clear", (data) => handleVoteClear(socket, data));
   socket.on("vote:reveal", (data) => handleVoteReveal(socket, data));
   socket.on("storyQueue:add", (data) => handleStoryQueueAdd(socket, data));
+  socket.on("storyQueue:edit", (data) => handleStoryQueueEdit(socket, data));
   socket.on("storyQueue:remove", (data) => handleStoryQueueRemove(socket, data));
   socket.on("storyQueue:setActive", (data, ack) => handleStoryQueueSetActive(socket, data, ack));
   socket.on("storyQueue:finalize", (data) => handleStoryQueueFinalize(socket, data));
