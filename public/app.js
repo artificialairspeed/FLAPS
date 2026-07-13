@@ -299,10 +299,10 @@ function applyInitialRoleView(){
   if (footer) footer.style.display = 'none';
 
   // Disable name/join until a room exists (facilitator must create).
-  // Keep the emoji selector visible so the facilitator can pick their emoji
-  // before creating the room (it is captured on create + auto-join).
+  // Hide the emoji selector for the facilitator until the room is created;
+  // it is revealed alongside the name field in the room:created handler.
   if (!hasRoomInUrl) {
-    hide('name'); hide('joinBtn'); show('emoji');
+    hide('name'); hide('joinBtn'); hide('emoji');
     setDisabled('emoji', false);
     show('createRoomBtn');
     setDisabled('createRoomBtn', false);

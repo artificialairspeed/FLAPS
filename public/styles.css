@@ -61,7 +61,8 @@ body{
   font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   background:var(--bg);
   color:var(--text);
-  min-height:100%;
+  height:100vh;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
   -webkit-font-smoothing:antialiased;
@@ -73,7 +74,7 @@ body{
    Header
 --------------------------------------------------------------- */
 header{
-  padding:20px 32px;
+  padding:12px 32px;
   display:flex;
   flex-direction:row;
   align-items:center;
@@ -87,7 +88,7 @@ header{
 .headerTop{ flex-shrink:0 }
 .brand{ display:flex; flex-direction:column; gap:8px; align-items:center }
 .logo{
-  width:96px; height:96px;
+  width:72px; height:72px;
   display:flex; align-items:center; justify-content:center;
   overflow:hidden;
 }
@@ -195,11 +196,12 @@ button:disabled{ opacity:.45; cursor:not-allowed }
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:24px;
-  padding:24px 32px 32px 32px;
+  padding:24px 32px 12px 32px;
   align-items:stretch;
   max-width:1810px;
   margin:0 auto;
-  flex:1 0 auto;
+  flex:1 1 auto;
+  min-height:0;
   width:100%;
 }
 .card{
@@ -210,6 +212,8 @@ button:disabled{ opacity:.45; cursor:not-allowed }
   display:flex;
   flex-direction:column;
   min-width:0;
+  min-height:0;
+  overflow-y:auto;
 }
 .cardHeader{
   display:flex;
@@ -652,7 +656,7 @@ footer{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:18px 32px;
+  padding:10px 32px;
   background:var(--surface);
   border-top:1px solid var(--border);
   gap:20px;
@@ -692,7 +696,9 @@ footer{
    Responsive
 --------------------------------------------------------------- */
 @media (max-width:980px){
-  .grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); gap:20px; padding:20px }
+  body{ height:auto; min-height:100vh; overflow:visible }
+  .grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); gap:20px; padding:20px; flex:1 0 auto }
+  .card{ overflow-y:visible }
   .deck{ grid-template-columns:repeat(5, 1fr); gap:6px }
   .deckBtn{ font-size:clamp(12px,2vw,16px) }
   .finalPointsChips{ grid-template-columns:repeat(6, 1fr); gap:8px }
