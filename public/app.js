@@ -298,9 +298,12 @@ function applyInitialRoleView(){
   if (mainContent) mainContent.style.display = 'none';
   if (footer) footer.style.display = 'none';
 
-  // Disable name/join until a room exists (facilitator must create)
+  // Disable name/join until a room exists (facilitator must create).
+  // Keep the emoji selector visible so the facilitator can pick their emoji
+  // before creating the room (it is captured on create + auto-join).
   if (!hasRoomInUrl) {
-    hide('name'); hide('joinBtn'); hide('emoji');
+    hide('name'); hide('joinBtn'); show('emoji');
+    setDisabled('emoji', false);
     show('createRoomBtn');
     setDisabled('createRoomBtn', false);
     return;
