@@ -41,11 +41,11 @@
   --warn-text:#fde68a;
   --warn-border:rgba(251,191,36,.45);
 
-  /* Radius scale */
-  --r-xs:6px;
-  --r-sm:8px;
-  --r-md:10px;
-  --r-lg:14px;
+  /* Radius scale — tight angular; circles/pills stay round */
+  --r-xs:2px;
+  --r-sm:2px;
+  --r-md:3px;
+  --r-lg:4px;
   --r-pill:999px;
 
   /* Focus */
