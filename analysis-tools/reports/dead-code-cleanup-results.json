@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-06-04T19:22:16.201Z",
+  "findings": [
+    {
+      "id": "finding-1780598807700-bg9tygg",
+      "category": "dead-code",
+      "subcategory": "unused-function",
+      "severity": "moderate",
+      "effort": "quick-win",
+      "impact": 60,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+      "line": 108,
+      "column": 0,
+      "description": "Function 'isValidUrl' is defined but never called",
+      "recommendation": "Remove the unused function 'isValidUrl' or verify if it should be exported/used",
+      "codeSnippet": "function isValidUrl(str) {\n  if (!str) return true; // Empty is valid (optional field)\n  try {",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598807700-mtvpqjn",
+      "category": "dead-code",
+      "subcategory": "unused-function",
+      "severity": "moderate",
+      "effort": "quick-win",
+      "impact": 60,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 10,
+      "column": 0,
+      "description": "Function 'normalizeUrl' is defined but never called",
+      "recommendation": "Remove the unused function 'normalizeUrl' or verify if it should be exported/used",
+      "codeSnippet": "function normalizeUrl(raw) {\n  const s = String(raw ?? '').trim();\n  if (!s) return '';",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598807701-ab2s0pw",
+      "category": "dead-code",
+      "subcategory": "unused-function",
+      "severity": "moderate",
+      "effort": "quick-win",
+      "impact": 60,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 206,
+      "column": 0,
+      "description": "Function 'getStoredModKey' is defined but never called",
+      "recommendation": "Remove the unused function 'getStoredModKey' or verify if it should be exported/used",
+      "codeSnippet": "function getStoredModKey(){\n  try {\n    const storedModKey = sessionStorage.getItem('flaps_mod_key');",
+      "relatedFindings": []
+    }
+  ],
+  "results": {
+    "implemented": [
+      {
+        "finding": {
+          "id": "finding-1780598807701-ab2s0pw",
+          "category": "dead-code",
+          "subcategory": "unused-function",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 206,
+          "column": 0,
+          "description": "Function 'getStoredModKey' is defined but never called",
+          "recommendation": "Remove the unused function 'getStoredModKey' or verify if it should be exported/used",
+          "codeSnippet": "function getStoredModKey(){\n  try {\n    const storedModKey = sessionStorage.getItem('flaps_mod_key');",
+          "relatedFindings": []
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 14:22:13\n\u001b[2m   Duration \u001b[22m 662ms\u001b[2m (transform 20ms, setup 0ms, import 383ms, tests 462ms, environment 0ms)\u001b[22m\n\n"
+      },
+      {
+        "finding": {
+          "id": "finding-1780598807700-mtvpqjn",
+          "category": "dead-code",
+          "subcategory": "unused-function",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 10,
+          "column": 0,
+          "description": "Function 'normalizeUrl' is defined but never called",
+          "recommendation": "Remove the unused function 'normalizeUrl' or verify if it should be exported/used",
+          "codeSnippet": "function normalizeUrl(raw) {\n  const s = String(raw ?? '').trim();\n  if (!s) return '';",
+          "relatedFindings": []
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 14:22:14\n\u001b[2m   Duration \u001b[22m 649ms\u001b[2m (transform 19ms, setup 0ms, import 367ms, tests 456ms, environment 0ms)\u001b[22m\n\n"
+      },
+      {
+        "finding": {
+          "id": "finding-1780598807700-bg9tygg",
+          "category": "dead-code",
+          "subcategory": "unused-function",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 108,
+          "column": 0,
+          "description": "Function 'isValidUrl' is defined but never called",
+          "recommendation": "Remove the unused function 'isValidUrl' or verify if it should be exported/used",
+          "codeSnippet": "function isValidUrl(str) {\n  if (!str) return true; // Empty is valid (optional field)\n  try {",
+          "relatedFindings": []
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 14:22:15\n\u001b[2m   Duration \u001b[22m 652ms\u001b[2m (transform 20ms, setup 0ms, import 372ms, tests 456ms, environment 0ms)\u001b[22m\n\n"
+      }
+    ],
+    "failed": [],
+    "summary": {
+      "total": 3,
+      "successful": 3,
+      "failed": 0
+    }
+  },
+  "summary": {
+    "totalFindings": 4,
+    "falsePositives": 1,
+    "processed": 3,
+    "successful": 3,
+    "failed": 0,
+    "successRate": "100.0%"
+  }
+}

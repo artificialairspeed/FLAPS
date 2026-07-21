@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+**/.DS_Store
+*.log
+.env
+.env.local
+coverage/
+.vite-temp/
+
+# Generated analysis output
+analysis-tools/reports/
+
+# Persisted room state (contains moderator keys; local runtime state only)
+.rooms-state.json

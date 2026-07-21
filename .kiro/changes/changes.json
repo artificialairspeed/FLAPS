@@ -1,0 +1,35 @@
+{
+  "changes": [
+    {
+      "id": "change-1780624442527-j7cpck9",
+      "findingIds": [],
+      "file": "test.js",
+      "type": "removal",
+      "beforeSnippet": "",
+      "afterSnippet": "",
+      "rationale": "Test",
+      "testsPassedBefore": true,
+      "testsPassedAfter": true,
+      "timestamp": "2026-06-05T01:54:02.527Z",
+      "reverted": false
+    },
+    {
+      "id": "manual-change",
+      "file": "test2.js",
+      "type": "refactor",
+      "rationale": "Manual",
+      "findingIds": [],
+      "beforeSnippet": "",
+      "afterSnippet": "",
+      "testsPassedBefore": true,
+      "testsPassedAfter": true,
+      "timestamp": "2026-06-05T01:54:02.527Z",
+      "reverted": false
+    }
+  ],
+  "metadata": {
+    "created": "2026-06-05T01:54:02.527Z",
+    "lastModified": "2026-06-05T01:54:02.527Z",
+    "version": "1.0.0"
+  }
+}

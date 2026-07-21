@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-06-04T18:45:25.177Z",
+  "filesAnalyzed": [
+    "/Users/glynmcmanus/Applications/FLAPS/public/app.js"
+  ],
+  "findings": [
+    {
+      "id": "finding-1780598725177-m530nmb",
+      "category": "event",
+      "subcategory": "anonymous-event-handler",
+      "severity": "moderate",
+      "effort": "medium",
+      "impact": 50,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 310,
+      "column": 0,
+      "description": "Event listener uses anonymous function for 'keydown' event on nameField, preventing proper cleanup",
+      "recommendation": "Convert to named function to enable removeEventListener() cleanup",
+      "codeSnippet": "nameField?.addEventListener('keydown', (e)=>{",
+      "relatedFindings": []
+    },
+    {
+      "id": "finding-1780598725177-aotx6dl",
+      "category": "event",
+      "subcategory": "anonymous-event-handler",
+      "severity": "moderate",
+      "effort": "medium",
+      "impact": 50,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 316,
+      "column": 0,
+      "description": "Event listener uses anonymous function for 'input' event on nameField, preventing proper cleanup",
+      "recommendation": "Convert to named function to enable removeEventListener() cleanup",
+      "codeSnippet": "nameField?.addEventListener('input', (e) => {",
+      "relatedFindings": []
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "byCategory": {
+      "event": 2
+    },
+    "bySeverity": {
+      "moderate": 2
+    },
+    "byEffort": {
+      "medium": 2
+    },
+    "quickWins": 0
+  }
+}

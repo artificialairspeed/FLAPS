@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-06-04T19:31:52.481Z",
+  "storageReport": {
+    "totalOperations": 8,
+    "totalKeys": 3,
+    "writeOperations": 3,
+    "readOperations": 3,
+    "removeOperations": 2,
+    "keysSummary": {
+      "flaps_name": {
+        "writeCount": 1,
+        "readCount": 1,
+        "removeCount": 0,
+        "writeLocations": [
+          {
+            "line": 120,
+            "hasErrorHandling": true
+          }
+        ],
+        "readLocations": [
+          {
+            "line": 115,
+            "hasErrorHandling": true
+          }
+        ],
+        "removeLocations": [],
+        "isWriteOnly": false,
+        "isReadOnly": false,
+        "missingErrorHandling": false
+      },
+      "flaps_room_id": {
+        "writeCount": 1,
+        "readCount": 1,
+        "removeCount": 1,
+        "writeLocations": [
+          {
+            "line": 138,
+            "hasErrorHandling": true
+          }
+        ],
+        "readLocations": [
+          {
+            "line": 163,
+            "hasErrorHandling": true
+          }
+        ],
+        "removeLocations": [
+          {
+            "line": 191,
+            "hasErrorHandling": true
+          }
+        ],
+        "isWriteOnly": false,
+        "isReadOnly": false,
+        "missingErrorHandling": false
+      },
+      "flaps_user_name": {
+        "writeCount": 1,
+        "readCount": 1,
+        "removeCount": 1,
+        "writeLocations": [
+          {
+            "line": 143,
+            "hasErrorHandling": false
+          }
+        ],
+        "readLocations": [
+          {
+            "line": 176,
+            "hasErrorHandling": true
+          }
+        ],
+        "removeLocations": [
+          {
+            "line": 192,
+            "hasErrorHandling": true
+          }
+        ],
+        "isWriteOnly": false,
+        "isReadOnly": false,
+        "missingErrorHandling": true
+      }
+    },
+    "writeOnlyKeys": [],
+    "readOnlyKeys": [],
+    "keysWithoutErrorHandling": [
+      "flaps_user_name"
+    ]
+  },
+  "findings": [
+    {
+      "id": "finding-1780601512481-kd8y3va",
+      "category": "storage",
+      "subcategory": "missing-storage-error-handling",
+      "severity": "minor",
+      "effort": "quick-win",
+      "impact": 40,
+      "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+      "line": 143,
+      "description": "SessionStorage operation 'setItem' for key 'flaps_user_name' lacks try-catch error handling",
+      "recommendation": "Wrap this sessionStorage.setItem() call in a try-catch block to handle potential QuotaExceededError or other storage exceptions",
+      "codeSnippet": "sessionStorage.setItem('flaps_user_name', userName);",
+      "relatedFindings": []
+    }
+  ],
+  "summary": {
+    "totalIssues": 1,
+    "writeOnlyKeys": 0,
+    "readOnlyKeys": 0,
+    "missingErrorHandling": 1,
+    "totalImpact": 40,
+    "averageImpact": 40,
+    "bySeverity": {
+      "critical": 0,
+      "moderate": 0,
+      "minor": 1
+    }
+  }
+}

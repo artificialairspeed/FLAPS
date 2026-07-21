@@ -1,243 +1,228 @@
 /**
- * Unit Tests: vote:clear handler and client rendering
+ * Supporting Unit Tests (Task 4) — SERVER
+ * Spec: session-persistence-on-tab-inactive
  *
- * Feature: clear-revote-finalized-story
- * Validates: Requirements 1.1, 1.2, 1.3, 1.4, 2.1, 2.2
+ * Targeted, example-based unit tests for the server half of the fix. These
+ * complement the exploration (Property 1) and preservation (Property 2) tests
+ * with focused assertions on the concrete mechanics described in design.md:
+ *
+ *   - handleDisconnect marks the user disconnected and arms a grace timer
+ *     instead of deleting immediately; grace expiry deletes and broadcasts.
+ *   - handleRoomJoin with an existing clientId resumes the session (role, vote,
+ *     membership) and cancels the pending grace timer; with a new clientId it
+ *     creates a fresh user (unchanged first-time behavior).
+ *   - makeRoomState exposes the stable identity (clientId as myId) and role
+ *     correctly for both facilitator and participant.
+ *
+ * Validates: Requirements 2.1, 2.3, 2.4, 3.2, 3.3
  */
 
-import { describe, it, expect } from 'vitest';
-import { JSDOM } from 'jsdom';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  rooms,
+  makeRoomState,
+  handleRoomCreate,
+  handleRoomJoin,
+  handleVoteSet,
+  handleDisconnect,
+  DISCONNECT_GRACE_MS,
+} from './server.js';
 
-// ---------------------------------------------------------------------------
-// Extracted pure handler logic (mirrors server.js vote:clear mutation)
-// ---------------------------------------------------------------------------
-
-function handleVoteClear(room) {
-  room.phase = 'voting';
-  for (const id of Object.keys(room.users)) room.users[id].vote = null;
-
-  if (room.activeStoryId && room.story.finalPoints !== null) {
-    room.story.finalPoints = null;
-    const queueEntry = room.storyQueue.find((s) => s.id === room.activeStoryId);
-    if (queueEntry) queueEntry.finalPoints = null;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Room factory helpers
-// ---------------------------------------------------------------------------
-
-function makeRoom({ activeStoryId = null, finalPoints = null, users = {}, queueFinalPoints = null } = {}) {
-  const storyQueue = activeStoryId
-    ? [{ id: activeStoryId, title: 'Story A', desc: '', link: '', finalPoints: queueFinalPoints }]
-    : [];
-
+/**
+ * Minimal fake Socket.IO socket that drives the server handlers. Mirrors the
+ * harness used by server.exploration.test.js: an object with id, data, join(),
+ * leave(), and emit() that records emitted events.
+ */
+function makeSocket(id, data = {}) {
+  const emitted = [];
   return {
-    phase: 'revealed',
-    story: { title: 'Story A', desc: '', link: '', finalPoints },
-    storyQueue,
-    activeStoryId,
-    users,
+    id,
+    data: { ...data },
+    joinedRooms: new Set(),
+    join(roomId) {
+      this.joinedRooms.add(roomId);
+    },
+    leave(roomId) {
+      this.joinedRooms.delete(roomId);
+    },
+    emit(event, payload) {
+      emitted.push({ event, payload });
+    },
+    emitted,
   };
 }
 
-// ---------------------------------------------------------------------------
-// DOM rendering helpers (replicated from public/app.js for isolation)
-// ---------------------------------------------------------------------------
+const ROOM = 'UNIT1';
 
-function makeDocument() {
-  const dom = new JSDOM(`<!DOCTYPE html>
-    <div id="storyView"></div>
-    <ul id="storyQueueList"></ul>
-  `);
-  return dom.window.document;
-}
+beforeEach(() => {
+  rooms.clear();
+});
 
-function normalizeUrl(raw) {
-  const s = String(raw ?? '').trim();
-  if (!s) return '';
-  try {
-    const u = new URL(s.match(/^https?:\/\//i) ? s : `https://${s}`);
-    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
-  } catch {}
-  return '';
-}
+describe('handleDisconnect — grace period instead of immediate deletion (Req 2.1, 3.2)', () => {
+  it('marks the user disconnected and arms a grace timer rather than deleting', () => {
+    const clientId = 'client-disc';
+    const socket = makeSocket('sock-a', { clientId });
+    handleRoomJoin(socket, { roomId: ROOM, name: 'Ada', clientId });
 
-function renderStory(story, document) {
-  const view = document.getElementById('storyView');
-  view.innerHTML = '';
+    const room = rooms.get(ROOM);
+    expect(Object.keys(room.users)).toHaveLength(1);
 
-  const title = document.createElement('div');
-  title.className = 'storyTitle';
-  title.textContent = story?.title ?? '';
+    handleDisconnect(socket);
 
-  if (story?.finalPoints) {
-    const pts = document.createElement('span');
-    pts.className = 'pointsBadge';
-    pts.textContent = `Final: ${story.finalPoints}`;
-    title.appendChild(pts);
-  }
+    // The user record is retained (not deleted) and flagged disconnected.
+    const user = room.users[clientId];
+    expect(user).toBeDefined();
+    expect(user.connected).toBe(false);
+    expect(typeof user.disconnectedAt).toBe('number');
+    // A grace timer is armed for later removal.
+    expect(user.graceTimer).toBeTruthy();
 
-  const desc = document.createElement('div');
-  desc.className = 'storyDesc';
-  desc.textContent = story?.desc ?? '';
-
-  const linkDiv = document.createElement('div');
-  linkDiv.className = 'storyLink';
-  const safe = normalizeUrl(story?.link ?? '');
-  if (safe) {
-    const a = document.createElement('a');
-    a.href = safe; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.textContent = 'Open Link';
-    linkDiv.appendChild(a);
-  }
-
-  view.appendChild(title);
-  view.appendChild(desc);
-  view.appendChild(linkDiv);
-}
-
-function renderQueueEntry(entry, document) {
-  const list = document.getElementById('storyQueueList');
-  list.innerHTML = '';
-
-  const li = document.createElement('li');
-  li.className = 'queueItem';
-
-  const left = document.createElement('div');
-  left.className = 'queueLeft';
-
-  const titleRow = document.createElement('div');
-  titleRow.className = 'queueTitleRow';
-
-  const title = document.createElement('span');
-  title.className = 'queueTitle';
-  title.textContent = entry.title ?? '';
-
-  const points = document.createElement('span');
-  points.className = 'queuePoints';
-  points.textContent = entry.finalPoints ? `Final: ${entry.finalPoints}` : 'Final: —';
-
-  titleRow.appendChild(title);
-  titleRow.appendChild(points);
-  left.appendChild(titleRow);
-  li.appendChild(left);
-  list.appendChild(li);
-}
-
-// ---------------------------------------------------------------------------
-// Tests: vote:clear server logic
-// ---------------------------------------------------------------------------
-
-describe('vote:clear handler', () => {
-  it('clears room.story.finalPoints when active story is finalized', () => {
-    // Requirement 1.1
-    const room = makeRoom({ activeStoryId: 'story-1', finalPoints: '5', queueFinalPoints: '5' });
-    handleVoteClear(room);
-    expect(room.story.finalPoints).toBe(null);
+    // Clean up the pending timer so it does not fire after the test.
+    clearTimeout(user.graceTimer);
   });
 
-  it('clears matching queue entry finalPoints when active story is finalized', () => {
-    // Requirement 1.2
-    const room = makeRoom({ activeStoryId: 'story-1', finalPoints: '8', queueFinalPoints: '8' });
-    handleVoteClear(room);
-    const entry = room.storyQueue.find((s) => s.id === 'story-1');
-    expect(entry.finalPoints).toBe(null);
-  });
+  it('deletes the user when the grace period elapses without a reconnect', () => {
+    vi.useFakeTimers();
+    try {
+      const clientId = 'client-expire';
+      const socket = makeSocket('sock-b', { clientId });
+      handleRoomJoin(socket, { roomId: ROOM, name: 'Grace', clientId });
 
-  it('leaves room.story.finalPoints as null when story was not finalized (no regression)', () => {
-    // Requirement 1.1 — no regression: already-null stays null
-    const room = makeRoom({ activeStoryId: 'story-2', finalPoints: null, queueFinalPoints: null });
-    handleVoteClear(room);
-    expect(room.story.finalPoints).toBe(null);
-  });
+      const room = rooms.get(ROOM);
+      handleDisconnect(socket);
 
-  it('resets phase to "voting" and clears all votes when no active story', () => {
-    // Requirement 1.3, 1.4 — no active story edge case
-    const room = makeRoom({
-      activeStoryId: null,
-      finalPoints: null,
-      users: { 'u1': { name: 'Alice', vote: '5' }, 'u2': { name: 'Bob', vote: '3' } },
-    });
-    // Should not throw
-    expect(() => handleVoteClear(room)).not.toThrow();
-    expect(room.phase).toBe('voting');
-    expect(room.users['u1'].vote).toBe(null);
-    expect(room.users['u2'].vote).toBe(null);
-  });
+      // Still present immediately after disconnect (held through grace window).
+      expect(room.users[clientId]).toBeDefined();
 
-  it('resets phase to "voting" after clearing a finalized story', () => {
-    // Requirement 1.3
-    const room = makeRoom({ activeStoryId: 'story-3', finalPoints: '13', queueFinalPoints: '13' });
-    handleVoteClear(room);
-    expect(room.phase).toBe('voting');
-  });
+      // Advance just short of the grace window: still present.
+      vi.advanceTimersByTime(DISCONNECT_GRACE_MS - 1);
+      expect(room.users[clientId]).toBeDefined();
 
-  it('clears all user votes after clearing a finalized story', () => {
-    // Requirement 1.4
-    const room = makeRoom({
-      activeStoryId: 'story-4',
-      finalPoints: '3',
-      queueFinalPoints: '3',
-      users: { 'u1': { name: 'Alice', vote: '3' }, 'u2': { name: 'Bob', vote: '5' } },
-    });
-    handleVoteClear(room);
-    expect(room.users['u1'].vote).toBe(null);
-    expect(room.users['u2'].vote).toBe(null);
-  });
-
-  it('is a no-op on queue when activeStoryId is not found in storyQueue', () => {
-    // Defensive: queue entry missing — should not throw
-    const room = {
-      phase: 'revealed',
-      story: { title: 'Ghost', desc: '', link: '', finalPoints: '5' },
-      storyQueue: [], // empty — no matching entry
-      activeStoryId: 'ghost-id',
-      users: {},
-    };
-    expect(() => handleVoteClear(room)).not.toThrow();
-    expect(room.story.finalPoints).toBe(null);
+      // Cross the grace boundary: the disconnected user is removed.
+      vi.advanceTimersByTime(1);
+      expect(room.users[clientId]).toBeUndefined();
+      expect(Object.keys(room.users)).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
-// ---------------------------------------------------------------------------
-// Tests: client rendering
-// ---------------------------------------------------------------------------
+describe('handleRoomJoin — resume vs. fresh join (Req 2.3, 2.4, 3.3)', () => {
+  it('resumes an existing session (role, vote, membership) and cancels the grace timer', () => {
+    vi.useFakeTimers();
+    try {
+      const clientId = 'client-resume';
 
-describe('renderStory', () => {
-  it('does not render a .pointsBadge element when finalPoints is null', () => {
-    // Requirement 2.1
-    const document = makeDocument();
-    renderStory({ title: 'My Story', desc: '', link: '', finalPoints: null }, document);
-    expect(document.querySelector('.pointsBadge')).toBe(null);
+      // Active session with a cast vote.
+      const first = makeSocket('sock-c1', { clientId });
+      handleRoomJoin(first, { roomId: ROOM, name: 'Lin', clientId });
+      handleVoteSet(first, { roomId: ROOM, vote: '8' });
+
+      const room = rooms.get(ROOM);
+      expect(room.users[clientId].vote).toBe('8');
+
+      // Background lapse -> disconnect arms a grace timer.
+      handleDisconnect(first);
+      const armedTimer = room.users[clientId].graceTimer;
+      expect(armedTimer).toBeTruthy();
+
+      // Returns within grace under a NEW socket.id, same clientId.
+      const second = makeSocket('sock-c2', { clientId });
+      handleRoomJoin(second, { roomId: ROOM, name: 'Lin', clientId });
+
+      const resumed = room.users[clientId];
+      // Membership preserved: exactly one user, same record.
+      expect(Object.keys(room.users)).toHaveLength(1);
+      // Vote preserved across the lapse.
+      expect(resumed.vote).toBe('8');
+      // Reconnected and re-attached to the live socket.
+      expect(resumed.connected).toBe(true);
+      expect(resumed.disconnectedAt).toBeNull();
+      expect(resumed.socketId).toBe('sock-c2');
+      // Grace timer was cancelled so it will not remove the resumed user.
+      expect(resumed.graceTimer).toBeNull();
+
+      // Confirm the previously-armed timer no longer removes the user.
+      vi.advanceTimersByTime(DISCONNECT_GRACE_MS + 10);
+      expect(room.users[clientId]).toBeDefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  it('renders a .pointsBadge element when finalPoints is set', () => {
-    // Sanity check: badge appears when finalPoints is truthy
-    const document = makeDocument();
-    renderStory({ title: 'My Story', desc: '', link: '', finalPoints: '8' }, document);
-    const badge = document.querySelector('.pointsBadge');
-    expect(badge).not.toBe(null);
-    expect(badge.textContent).toBe('Final: 8');
+  it('restores facilitator role on resume when the modKey is re-sent', () => {
+    const clientId = 'client-fac';
+    const creator = makeSocket('sock-f1', { clientId });
+    handleRoomCreate(creator, { desiredRoomId: ROOM, name: 'Mod', clientId });
+
+    const room = rooms.get(ROOM);
+    const modKey = room.moderatorKey;
+    expect(room.users[clientId].isModerator).toBe(true);
+
+    handleDisconnect(creator);
+
+    const back = makeSocket('sock-f2', { clientId, modKey });
+    handleRoomJoin(back, { roomId: ROOM, name: 'Mod', modKey, clientId });
+
+    const resumed = room.users[clientId];
+    expect(resumed.isModerator).toBe(true);
+    expect(Object.keys(room.users)).toHaveLength(1);
+  });
+
+  it('creates a fresh user for a new clientId (unchanged first-time behavior)', () => {
+    const firstClient = 'client-existing';
+    const first = makeSocket('sock-e1', { clientId: firstClient });
+    handleRoomJoin(first, { roomId: ROOM, name: 'Ada', clientId: firstClient });
+
+    const secondClient = 'client-new';
+    const second = makeSocket('sock-e2', { clientId: secondClient });
+    handleRoomJoin(second, { roomId: ROOM, name: 'Bo', clientId: secondClient });
+
+    const room = rooms.get(ROOM);
+    // Two distinct users keyed by their stable clientId.
+    expect(Object.keys(room.users)).toHaveLength(2);
+    expect(room.users[firstClient]).toBeDefined();
+    expect(room.users[secondClient]).toBeDefined();
+
+    // A brand-new participant is a non-moderator with no vote yet.
+    const fresh = room.users[secondClient];
+    expect(fresh.name).toBe('Bo');
+    expect(fresh.isModerator).toBe(false);
+    expect(fresh.vote).toBeNull();
+    expect(fresh.connected).toBe(true);
+    expect(fresh.socketId).toBe('sock-e2');
   });
 });
 
-describe('renderQueue entry', () => {
-  it('displays "Final: —" when finalPoints is null', () => {
-    // Requirement 2.2
-    const document = makeDocument();
-    renderQueueEntry({ id: 'q1', title: 'Queue Story', desc: '', link: '', finalPoints: null }, document);
-    const points = document.querySelector('.queuePoints');
-    expect(points).not.toBe(null);
-    expect(points.textContent).toBe('Final: —');
+describe('makeRoomState — stable identity + role marker (Req 2.4, 3.3)', () => {
+  it('reports the facilitator identity (clientId as myId) and youAreModerator = true', () => {
+    const clientId = 'client-state-fac';
+    const creator = makeSocket('sock-s1', { clientId });
+    handleRoomCreate(creator, { desiredRoomId: ROOM, name: 'Mod', clientId });
+
+    const room = rooms.get(ROOM);
+    const state = makeRoomState(room, creator);
+
+    // Stable identity marker is the durable clientId, not the transient socket.id.
+    expect(state.myId).toBe(clientId);
+    expect(state.youAreModerator).toBe(true);
+    // The user is present in the broadcast keyed by clientId and marked moderator.
+    expect(state.users[clientId]).toBeDefined();
+    expect(state.users[clientId].isModerator).toBe(true);
   });
 
-  it('displays the final points value when finalPoints is set', () => {
-    // Sanity check: value appears when finalPoints is truthy
-    const document = makeDocument();
-    renderQueueEntry({ id: 'q1', title: 'Queue Story', desc: '', link: '', finalPoints: '13' }, document);
-    const points = document.querySelector('.queuePoints');
-    expect(points).not.toBe(null);
-    expect(points.textContent).toBe('Final: 13');
+  it('reports the participant identity and youAreModerator = false', () => {
+    const clientId = 'client-state-part';
+    const socket = makeSocket('sock-s2', { clientId });
+    handleRoomJoin(socket, { roomId: ROOM, name: 'Pat', clientId });
+
+    const room = rooms.get(ROOM);
+    const state = makeRoomState(room, socket);
+
+    expect(state.myId).toBe(clientId);
+    expect(state.youAreModerator).toBe(false);
+    expect(state.users[clientId]).toBeDefined();
+    expect(state.users[clientId].isModerator).toBe(false);
   });
 });
