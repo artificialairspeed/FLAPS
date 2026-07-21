@@ -29,30 +29,17 @@
   </noscript>
 
   <header>
-    <div class="headerTop">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <img class="logoImg" src="/logo.png" alt="FLAPS - Fibonacci Lean Agile Pointing System" loading="lazy" width="125" height="125" />
-        </div>
-      </div>
+    <div class="appBrand">
+      <img class="appLogo" src="/app-icon.png" alt="FLAPS logo" />
+      <h1 class="appTitle">Fibonacci Lean Agile Pointing System</h1>
     </div>
-
     <div class="roombar" role="group" aria-label="Room and user controls">
-      <!-- Row 1: Create Room / Room Created + Share Link -->
-      <div class="roombarRow1">
-        <button id="createRoomBtn" class="primary" type="button">Create Room</button>
-        <button id="shareParticipantBtn" class="shareHeaderBtn hidden" type="button" aria-label="Share participant link">
-          <span class="shareHeaderIcon">🔗</span>
-          <span class="shareHeaderText">Share Participant Link</span>
-          <span class="shareHeaderIcon">👤</span>
-        </button>
-      </div>
-      
-      <!-- Row 2: Emoji + Name + Join -->
+      <!-- Single row: Emoji + Name + Create Room / Room Created (Join shares the
+           create slot for participants) + Share Link -->
       <div class="roombarRow2">
         <label class="vh" for="emoji">Choose your emoji</label>
         <select id="emoji" name="emoji" class="emojiSelect" aria-label="Choose your emoji" title="Choose your emoji">
-          <option value="">🙂</option>
+          <option value="🙂">🙂</option>
           <option value="😀">😀</option>
           <option value="😎">😎</option>
           <option value="🤓">🤓</option>
@@ -79,8 +66,14 @@
         </select>
         <label class="vh" for="name">Your Name</label>
         <input id="name" name="name" placeholder="Your Name" autocomplete="name"
-               inputmode="text" aria-label="Your Name" style="text-transform:uppercase" maxlength="20" />
+               inputmode="text" aria-label="Your Name" maxlength="20" />
+        <button id="createRoomBtn" class="primary" type="button">Create Room</button>
         <button id="joinBtn" class="primary" type="button">Join</button>
+        <button id="shareParticipantBtn" class="shareHeaderBtn hidden" type="button" aria-label="Share participant link">
+          <span class="shareHeaderIcon">🔗</span>
+          <span class="shareHeaderText">Share Participant Link</span>
+          <span class="shareHeaderIcon">👤</span>
+        </button>
       </div>
     </div>
   </header>
@@ -97,26 +90,47 @@
         <h3 class="resultsTitle">Add a Story</h3>
 
         <div class="storyInputCol">
-          <div class="jiraNumberField">
-            <label class="vh" for="jiraNumber">Jira Number</label>
-            <input id="jiraNumber" placeholder="Jira #" maxlength="12" />
+          <div class="jiraNumberRow">
+            <div class="jiraNumberField">
+              <label class="vh" for="jiraNumber">Jira Number</label>
+              <input id="jiraNumber" placeholder="Jira #" maxlength="12" />
+            </div>
+            <button id="addToQueueBtn" class="primary queueTitleBtn" type="button">Add Story To Queue</button>
           </div>
           <div class="storyTitleField">
             <label class="vh" for="storyTitle">Story Title</label>
             <input id="storyTitle" placeholder="Story Title" maxlength="100" />
           </div>
-          <div class="storyDescField">
-            <label class="vh" for="storyDesc">Story Description</label>
-            <textarea id="storyDesc" placeholder="Short Description (optional)" maxlength="100" rows="2"></textarea>
-          </div>
         </div>
 
-        <button id="addToQueueBtn" class="primary queueTitleBtn" type="button">Add Story To Queue</button>
-
-        <h3 class="resultsTitle">Story Queue</h3>
+        <h3 class="resultsTitle queueSectionTitle">Story Queue</h3>
         
         <div class="queueListWrap">
-          <ul id="storyQueueList" class="queueList"></ul>
+          <p id="queueEmptyAll" class="queueEmptyAll" hidden>Add A Story</p>
+
+          <section class="queueSection" data-section="pending">
+            <h4 class="queueGroupTitle">
+              Need Estimate <span id="queuePendingCount" class="queueGroupCount" aria-live="polite">(0)</span>
+            </h4>
+            <ul id="queuePendingList" class="queueList" aria-label="Stories needing an estimate"></ul>
+          </section>
+
+          <section class="queueSection" data-section="done">
+            <h4 class="queueGroupTitle">
+              Estimate Done <span id="queueDoneCount" class="queueGroupCount" aria-live="polite">(0)</span>
+            </h4>
+            <ul id="queueDoneList" class="queueList" aria-label="Stories with a finalized estimate"></ul>
+          </section>
+        </div>
+
+        <div class="queueExportControls" role="group" aria-label="Export story queue">
+          <span class="queueExportLabel">Export</span>
+          <button id="exportMdBtn" class="queueBtn exportBtn" type="button" aria-label="Export story queue to Markdown">
+            <span aria-hidden="true">⬇</span> .md
+          </button>
+          <button id="exportPdfBtn" class="queueBtn exportBtn" type="button" aria-label="Export story queue to PDF">
+            <span aria-hidden="true">⬇</span> .pdf
+          </button>
         </div>
       </div>
     </section>
@@ -166,7 +180,8 @@
 
   <footer>
     <div class="footerLeft">
-      <span class="footerTagline">Fibonacci Lean Agile Pointing System</span>
+      <img class="footerLogo" src="/app-icon.png" alt="FLAPS logo" />
+      <span class="footerTagline">FLAPS</span>
     </div>
     <div class="footerRight">
       <span class="footerItem">© <span id="currentYear"></span>&nbsp;&nbsp;&nbsp;GLM</span>
@@ -182,8 +197,12 @@
   </footer>
 
   <!-- Socket.IO client served by your server.js -->
+  <!-- socket.io loads first (classic deferred script) so the `io` global is
+       available before app.js runs. app.js is an ES module (it imports the
+       session state machine from session-machine.js); module scripts are
+       deferred and execute after the deferred socket.io script. -->
   <script src="/socket.io/socket.io.js" defer></script>
-  <script src="/app.js" defer></script>
+  <script src="/app.js" type="module"></script>
   <script>
     // Dynamically set current year
     document.getElementById('currentYear').textContent = new Date().getFullYear();

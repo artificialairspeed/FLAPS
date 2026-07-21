@@ -4,25 +4,27 @@
    ============================================================ */
 
 :root{
-  /* Surfaces — flat, differentiated by subtle tint + hairline border */
-  --bg:#0e1726;
-  --surface:#162131;
-  --surface-2:#1b2838;
-  --surface-3:#213144;
+  /* Surfaces — flat, differentiated by subtle tint + hairline border.
+     Palette aligned with the PDF export: base #121826 with a #1a2236
+     soft surface, stepped up for the higher tiers. */
+  --bg:#121826;
+  --surface:#1a2236;
+  --surface-2:#212c42;
+  --surface-3:#29344c;
 
-  /* Lines & text */
-  --border:#26364b;
-  --border-strong:#324459;
-  --text:#eef2f8;
-  --muted:#94a6c0;
-  --muted-2:#6f83a0;
+  /* Lines & text — matches PDF line / line-strong / ink / muted */
+  --border:#2a3244;
+  --border-strong:#3a4558;
+  --text:#e4e8f0;
+  --muted:#8a96a8;
+  --muted-2:#6b7688;
 
-  /* Accent (single, purposeful) */
-  --accent:#6b8afd;
-  --accent-hover:#82a0ff;
-  --accent-soft:rgba(107,138,253,.12);
-  --accent-soft-hover:rgba(107,138,253,.18);
-  --accent-border:rgba(107,138,253,.55);
+  /* Accent (single, purposeful) — PDF accent #7c9aff (124,154,255) */
+  --accent:#7c9aff;
+  --accent-hover:#93acff;
+  --accent-soft:rgba(124,154,255,.12);
+  --accent-soft-hover:rgba(124,154,255,.18);
+  --accent-border:rgba(124,154,255,.55);
 
   /* Semantic */
   --success:#34d399;
@@ -49,10 +51,10 @@
   --r-pill:999px;
 
   /* Focus */
-  --focus:#82a0ff;
+  --focus:#93acff;
 
   /* Layout */
-  --header-h:128px;
+  --header-h:64px;
   --header-pad-y:12px;
 }
 
@@ -90,16 +92,11 @@ header{
   position:relative;
   flex-shrink:0;
 }
-.headerTop{ flex-shrink:0; align-self:stretch; display:flex; align-items:center }
-.brand{ display:flex; flex-direction:column; gap:8px; align-items:center; height:100% }
-.logo{
-  height:100%; width:auto; aspect-ratio:1/1;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
-}
-.logoImg{ width:100%; height:100%; object-fit:contain; display:block }
-
 h1{ margin:0; font-size:18px; line-height:1.15; font-weight:700; letter-spacing:-.01em }
+
+/* Brand: logo + title grouped on the left of the header */
+.appBrand{ display:flex; align-items:center; gap:12px; flex-shrink:0 }
+.appLogo{ width:40px; height:40px; border-radius:8px; flex-shrink:0 }
 
 /* Share button in header */
 .shareHeaderBtn{
@@ -126,30 +123,29 @@ h1{ margin:0; font-size:18px; line-height:1.15; font-weight:700; letter-spacing:
 .shareHeaderIcon{ font-size:18px; line-height:1 }
 .shareHeaderText{ color:var(--text); white-space:nowrap }
 
-/* roombar: 2-row layout */
+/* roombar: single-row layout — emoji, name, create/room-created (join), share */
 .roombar{
   display:flex;
-  flex-direction:column;
   gap:10px;
   width:auto;
   flex-shrink:0;
-  align-items:flex-start;
+  align-items:center;
 }
-.roombarRow1{ display:flex; gap:10px; align-items:center }
 .roombarRow2{ display:flex; gap:10px; align-items:center }
-/* Collapse a roombar row entirely when all its controls are hidden,
+/* Collapse the row entirely when all its controls are hidden,
    so the lone Create Room button centers vertically in the header. */
-.roombarRow1:not(:has(> :not(.hidden))),
 .roombarRow2:not(:has(> :not(.hidden))){ display:none }
 #createRoomBtn{ width:140px; flex-shrink:0 }
 #joinBtn{ width:90px; flex-shrink:0 }
-#name{ width:240px !important; flex-shrink:0; min-width:240px }
+#name{ width:180px !important; flex-shrink:0; min-width:180px }
 .emojiSelect{
-  width:140px;
+  width:64px;
   flex-shrink:0;
   font-size:20px;
   text-align:center;
   cursor:pointer;
+  padding-left:8px;
+  padding-right:8px;
 }
 
 /* ---------------------------------------------------------------
@@ -383,6 +379,7 @@ h3{ margin:0; font-size:14px; font-weight:600 }
 }
 .storyForm > .resultsTitle{ margin-top:0; margin-bottom:12px }
 .storyForm > .resultsTitle:first-child{ margin-top:20px }
+.storyForm > .resultsTitle.queueSectionTitle{ margin-top:10px; margin-bottom:6px }
 #addToQueueBtn{ margin-bottom:0 }
 .voteTitle{ margin-top:20px }
 .resultsSection > .resultsTitle{ margin-bottom:16px }
@@ -447,12 +444,12 @@ h3{ margin:0; font-size:14px; font-weight:600 }
 --------------------------------------------------------------- */
 .storyForm{ display:flex; flex-direction:column; gap:10px; margin-top:0; flex:1 1 auto; min-height:0 }
 .storyInputCol{ display:flex; flex-direction:column; gap:10px; align-items:flex-start; width:100% }
+.jiraNumberRow{ display:flex; gap:10px; width:100%; align-items:stretch }
+.jiraNumberRow #addToQueueBtn{ flex:1 1 auto; margin:0 }
 .jiraNumberField{ display:flex; flex-direction:column; width:50% }
 .jiraNumberField input{ width:100% }
-.storyTitleField{ display:flex; flex-direction:column; width:100% }
+.storyTitleField{ display:flex; flex-direction:column; width:100%; margin-top:-8px }
 .storyTitleField input{ width:100% }
-.storyDescField{ display:flex; flex-direction:column; width:100% }
-.storyDescField textarea{ width:100%; min-height:52px; resize:vertical; max-height:80px }
 
 a{ color:var(--accent); text-decoration:none }
 a:hover{ text-decoration:underline }
@@ -493,10 +490,100 @@ a:hover{ text-decoration:underline }
 --------------------------------------------------------------- */
 .queueListWrap{
   margin-top:0;
-  margin-bottom:8px;
+  margin-bottom:10px;
   flex:1 1 auto;
   overflow-y:auto;
   min-height:0;
+}
+
+/* Two-section queue: "Need Estimate" and "Estimate Done" */
+.queueSection{ margin-bottom:12px }
+.queueSection:last-child{ margin-bottom:0 }
+.queueGroupTitle{
+  position:sticky;
+  top:0;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0 0 6px;
+  padding:4px 2px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text);
+  background:var(--surface);
+}
+.queueGroupTitle::before{
+  content:"";
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--accent);
+  flex-shrink:0;
+}
+.queueGroupCount{
+  font-weight:600;
+  color:var(--muted);
+  letter-spacing:.02em;
+}
+/* De-emphasize the completed section so actionable work stands out */
+.queueSection[data-section="done"] .queueList{ opacity:.85 }
+/* Per-section empty state row */
+.queueEmptySection{ justify-content:center; color:var(--muted) }
+.queueEmptyText{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+/* Whole-queue empty placeholder */
+.queueEmptyAll{
+  margin:0;
+  padding:12px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+}
+
+/* Export controls under the story queue */
+.queueExportControls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+  margin-top:0;
+  margin-bottom:0;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.queueExportLabel{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-right:auto;
+}
+.exportBtn{
+  width:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:700;
+}
+.exportBtn:hover:not(:disabled){
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+  color:var(--accent-hover);
 }
 .queueList{
   list-style:none; padding:0; margin:0;
@@ -506,9 +593,9 @@ a:hover{ text-decoration:underline }
 }
 .queueItem{
   display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-  padding:14px 12px;
+  padding:8px 12px;
   border-bottom:1px solid var(--border);
-  min-height:48px;
+  min-height:34px;
   transition:background .15s ease;
 }
 .queueItem:last-child{ border-bottom:none }
@@ -533,12 +620,10 @@ a:hover{ text-decoration:underline }
   letter-spacing:.04em;
   overflow:hidden;
   text-overflow:ellipsis;
-  word-wrap:break-word;
-  overflow-wrap:break-word;
-  hyphens:auto;
+  white-space:nowrap;
+  max-width:100%;
   line-height:1.35;
   margin-top:2px;
-  padding-left:9px;
 }
 .queueTitleBtn{
   font-weight:700 !important;
@@ -555,22 +640,70 @@ a:hover{ text-decoration:underline }
   text-transform:uppercase;
   letter-spacing:.04em;
 }
-.queueDesc{
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.45;
-  margin-top:4px;
-  white-space:normal;
-  word-wrap:break-word;
-  overflow-wrap:break-word;
-  hyphens:auto;
-  padding-left:9px;
-}
 .queueActive{
   background:var(--accent-soft);
-  box-shadow:inset 3px 0 0 0 var(--accent);
+  /* Full accent border in the same flat style as the former left pole */
+  box-shadow:inset 0 0 0 3px var(--accent);
 }
-.queueActions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:104px }
+.queueActions{ display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end; align-self:center; flex-shrink:0 }
+.queueActions:empty{ display:none }
+/* Compact icon-only action buttons (edit / delete) */
+.queueIconBtn{
+  width:auto;
+  min-width:34px;
+  padding:8px 10px;
+  line-height:1;
+}
+/* Final estimate status badge shown in the title row */
+.queueFinalBadge{
+  font-size:11px;
+  font-weight:600;
+  padding:2px 8px;
+  border:1px solid var(--border);
+  border-radius:var(--r-xs);
+  background:var(--surface-2);
+  color:var(--muted);
+  white-space:nowrap;
+  flex-shrink:0;
+  letter-spacing:.04em;
+}
+.queueFinalBadge.finalized{
+  border-color:var(--success-border);
+  background:var(--success-soft);
+  color:var(--success-text);
+}
+/* Final estimate chip shown in the actions area. Mirrors the "Final"
+   metric chip (.metricChip.isFinal) from the results/math area, scaled
+   down to be proportionate to the story card. */
+.queueFinalChip{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:5px 10px;
+  border:1px solid var(--success-border);
+  border-radius:var(--r-sm);
+  background:var(--success-soft);
+  color:var(--success-text);
+  /* Reserve a consistent content width for up to 3 digits so 1-, 2-,
+     and 3-character estimates all render at the same size. */
+  box-sizing:content-box;
+  min-width:3ch;
+}
+.queueFinalChipLabel{
+  font-size:8px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  line-height:1;
+  margin-bottom:3px;
+}
+.queueFinalChipValue{
+  font-size:14px;
+  font-weight:700;
+  color:var(--success-text);
+  line-height:1;
+}
 .queueBtn{
   padding:8px 12px;
   border-radius:var(--r-sm);
@@ -585,29 +718,19 @@ a:hover{ text-decoration:underline }
   font-weight:600;
   transition:border-color .15s ease, background .15s ease;
 }
+/* In the horizontal actions row, size buttons to their content */
+.queueActions .queueBtn{ width:auto }
+/* Tighten the primary Vote button so it reads clearly without extra width */
+.queueActions .queueBtn.primary{ padding:6px 10px }
 .queueBtn:hover:not(:disabled){ border-color:var(--border-strong); background:var(--surface-3) }
 .queueBtn.primary{ border-color:var(--accent-border); background:var(--accent); color:#0b1220 }
 .queueBtn.primary:hover:not(:disabled){ background:var(--accent-hover); border-color:var(--accent-hover) }
-.queueBtnConfirm{
-  border-color:var(--danger-border) !important;
-  background:var(--danger-soft) !important;
-  color:var(--danger-text) !important;
-  font-weight:700;
-}
 .queueBtn.activeEstimate{
   border-color:var(--accent) !important;
   background:var(--accent-soft) !important;
   color:#fff !important;
   box-shadow:inset 0 0 0 1px var(--accent);
 }
-.finalPill{ font-weight:600; cursor:default }
-.finalPill.finalized{
-  border-color:var(--success-border);
-  background:var(--success-soft);
-  color:var(--success-text);
-}
-.finalPill:disabled{ opacity:1; cursor:default }
-
 /* Inline story edit form */
 .queueItem.queueEditing{ align-items:stretch }
 .queueEditForm{ display:flex; flex-direction:column; gap:10px; width:100% }
@@ -626,7 +749,9 @@ a:hover{ text-decoration:underline }
   border-color:var(--accent);
   box-shadow:0 0 0 3px var(--accent-soft);
 }
-.queueEditDesc{ min-height:52px; max-height:80px; resize:vertical }
+.queueEditFieldsRow{ display:flex; gap:10px; width:100% }
+.queueEditFieldsRow .queueEditNumber{ flex:0 0 25%; width:25% }
+.queueEditFieldsRow .queueEditTitle{ flex:1 1 75%; width:75% }
 .queueEditActions{ display:flex; gap:10px }
 .queueEditActions .queueBtn{ width:auto; flex:1 }
 
@@ -672,7 +797,8 @@ footer{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 32px;
+  height:32px;
+  padding:0 32px;
   background:var(--surface);
   border-top:1px solid var(--border);
   gap:20px;
@@ -681,7 +807,8 @@ footer{
   flex-shrink:0;
   margin-top:auto;
 }
-.footerLeft{ display:flex; align-items:center }
+.footerLeft{ display:flex; align-items:center; gap:8px }
+.footerLogo{ width:18px; height:18px; border-radius:4px; flex-shrink:0 }
 .footerTagline{
   font-size:14px;
   font-weight:600;
@@ -754,7 +881,10 @@ footer{
   .queueTitle{ font-size:12px }
   .queueMeta{ font-size:10px }
   .queueBtn{ padding:6px 10px; font-size:10px }
-  .finalPill{ padding:6px 10px; font-size:10px }
+  .queueFinalBadge{ font-size:10px }
+  .queueFinalChip{ padding:4px 8px }
+  .queueFinalChipLabel{ font-size:7px }
+  .queueFinalChipValue{ font-size:13px }
   .users{ padding-top:4px }
   .users li{ padding:10px 8px; gap:8px; min-height:44px }
   .userGroupHeader{ padding:12px 8px 6px 8px !important; margin-top:6px; gap:6px }
@@ -764,16 +894,13 @@ footer{
   .finalPointsChips{ grid-template-columns:repeat(6, 1fr); gap:6px }
   .finalChip{ font-size:clamp(12px,3.2vw,16px) }
   .voteBottom{ gap:8px; margin-top:16px }
-  .roombar{ flex-direction:column }
-  .roombarRow1{ flex-direction:column; width:100% }
-  .roombarRow1 > *{ width:100% }
+  .roombar{ flex-direction:column; width:100% }
   .roombarRow2{ flex-direction:column; width:100% }
   .roombarRow2 > *{ width:100% }
   .shareHeaderBtn{ padding:10px 12px; font-size:13px; gap:6px; width:100% }
   .shareHeaderIcon{ font-size:16px }
   .shareHeaderText{ font-size:13px }
   header{ height:auto; flex-direction:column; align-items:center; padding:16px 16px 12px 16px; gap:16px }
-  .logo{ width:64px; height:64px }
   h1{ font-size:16px }
   h2{ font-size:16px }
   .pill{ font-size:11px; padding:5px 10px }
