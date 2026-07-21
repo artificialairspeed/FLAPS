@@ -1,0 +1,169 @@
+{
+  "timestamp": "2026-06-05T01:54:02.571Z",
+  "summary": {
+    "totalChecks": 19,
+    "successes": 16,
+    "warnings": 0,
+    "infos": 3
+  },
+  "breakpoints": [
+    {
+      "type": "success",
+      "breakpoint": 400,
+      "message": "Breakpoint 400px is defined with responsive styles"
+    },
+    {
+      "type": "success",
+      "breakpoint": 600,
+      "message": "Breakpoint 600px is defined with responsive styles"
+    },
+    {
+      "type": "success",
+      "breakpoint": 768,
+      "message": "Breakpoint 768px is defined with responsive styles"
+    },
+    {
+      "type": "success",
+      "breakpoint": 980,
+      "message": "Breakpoint 980px is defined with responsive styles"
+    },
+    {
+      "type": "success",
+      "breakpoint": 1810,
+      "message": "Breakpoint 1810px is defined with responsive styles"
+    },
+    {
+      "type": "info",
+      "category": "responsive-units",
+      "message": "Found 9 clamp() declarations, 9 vw units, 0 rem units"
+    }
+  ],
+  "interactiveStates": [
+    {
+      "type": "success",
+      "selector": "button",
+      "states": {
+        "hover": true,
+        "focus": true,
+        "active": false,
+        "focus-visible": true
+      },
+      "message": "button has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": "a",
+      "states": {
+        "hover": true,
+        "focus": true,
+        "active": true,
+        "focus-visible": false
+      },
+      "message": "a has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": "input",
+      "states": {
+        "hover": false,
+        "focus": true,
+        "active": false,
+        "focus-visible": false
+      },
+      "message": "input has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": "textarea",
+      "states": {
+        "hover": false,
+        "focus": true,
+        "active": false,
+        "focus-visible": false
+      },
+      "message": "textarea has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": "select",
+      "states": {
+        "hover": false,
+        "focus": true,
+        "active": false,
+        "focus-visible": false
+      },
+      "message": "select has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": ".deckBtn",
+      "states": {
+        "hover": true,
+        "focus": true,
+        "active": false,
+        "focus-visible": true
+      },
+      "message": ".deckBtn has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": ".shareHeaderBtn",
+      "states": {
+        "hover": true,
+        "focus": false,
+        "active": true,
+        "focus-visible": false
+      },
+      "message": ".shareHeaderBtn has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": ".queueBtn",
+      "states": {
+        "hover": true,
+        "focus": false,
+        "active": false,
+        "focus-visible": false
+      },
+      "message": ".queueBtn has interactive states defined"
+    },
+    {
+      "type": "success",
+      "selector": ".finalChip",
+      "states": {
+        "hover": true,
+        "focus": false,
+        "active": false,
+        "focus-visible": false
+      },
+      "message": ".finalChip has interactive states defined"
+    }
+  ],
+  "zIndexStacking": [
+    {
+      "type": "success",
+      "selector": "/* Toast notifications */\n.toast",
+      "value": "9999",
+      "message": "z-index 9999 on /* Toast notifications */\n.toast has documentation"
+    },
+    {
+      "type": "info",
+      "message": "Z-index values range from 9999 to 9999",
+      "values": [
+        9999
+      ]
+    }
+  ],
+  "visualRegression": [
+    {
+      "type": "info",
+      "category": "color-consistency",
+      "message": "Found 44 CSS custom property references and 45 potential hardcoded colors"
+    },
+    {
+      "type": "success",
+      "category": "spacing-consistency",
+      "message": "All spacing values follow the standard scale"
+    }
+  ]
+}

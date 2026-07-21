@@ -1,0 +1,2066 @@
+{
+  "summary": {
+    "totalFindings": 110,
+    "implemented": 3,
+    "deferred": 1,
+    "failed": 106,
+    "implementationRate": "2.7%",
+    "quickWinRate": "4.1%"
+  },
+  "analysis": {
+    "byCategory": {
+      "dead-code": 3,
+      "storage": 3,
+      "event": 3,
+      "optimization": 17,
+      "visual": 57,
+      "quality": 27
+    },
+    "bySeverity": {
+      "minor": 98,
+      "moderate": 12
+    },
+    "byEffort": {
+      "quick-win": 74,
+      "medium": 35,
+      "complex": 1
+    },
+    "quickWins": 74
+  },
+  "execution": {
+    "implemented": [
+      {
+        "finding": {
+          "id": "finding-1780606494111-yqiusa0",
+          "category": "dead-code",
+          "subcategory": "unused-css-class",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 20,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 479,
+          "description": "CSS class selector '.userItem' is defined but never used in HTML or JavaScript",
+          "recommendation": "Remove the '.userItem' selector and its associated styles from styles.css",
+          "codeSnippet": ".userItem",
+          "relatedFindings": [],
+          "priority": 135
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 15:54:54\n\u001b[2m   Duration \u001b[22m 660ms\u001b[2m (transform 19ms, setup 0ms, import 358ms, tests 471ms, environment 0ms)\u001b[22m\n\n"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494111-zthzzim",
+          "category": "dead-code",
+          "subcategory": "unused-css-class",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 10,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 472,
+          "description": "CSS class selector '.groupLabel' is defined but never used in HTML or JavaScript",
+          "recommendation": "Remove the '.groupLabel' selector and its associated styles from styles.css",
+          "codeSnippet": ".groupLabel",
+          "relatedFindings": [],
+          "priority": 105
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 15:54:55\n\u001b[2m   Duration \u001b[22m 645ms\u001b[2m (transform 19ms, setup 0ms, import 367ms, tests 448ms, environment 0ms)\u001b[22m\n\n"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494111-qgh1s4a",
+          "category": "dead-code",
+          "subcategory": "unused-css-class",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 10,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 467,
+          "description": "CSS class selector '.groupIcon' is defined but never used in HTML or JavaScript",
+          "recommendation": "Remove the '.groupIcon' selector and its associated styles from styles.css",
+          "codeSnippet": ".groupIcon",
+          "relatedFindings": [],
+          "priority": 105
+        },
+        "testOutput": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv4.1.0 \u001b[39m\u001b[90m/Users/glynmcmanus/Applications/FLAPS\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m\n\u001b[2m   Start at \u001b[22m 15:54:56\n\u001b[2m   Duration \u001b[22m 647ms\u001b[2m (transform 19ms, setup 0ms, import 373ms, tests 451ms, environment 0ms)\u001b[22m\n\n"
+      }
+    ],
+    "deferred": [
+      {
+        "finding": {
+          "id": "finding-1780606494173-tfg628u",
+          "category": "visual",
+          "subcategory": "color-palette-complexity",
+          "severity": "minor",
+          "effort": "complex",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 1,
+          "description": "Color palette contains 39 unique colors, which may be excessive",
+          "recommendation": "Review color palette and consolidate similar colors to simplify the design system",
+          "codeSnippet": "39 unique colors in use",
+          "relatedFindings": [],
+          "priority": 75
+        },
+        "reason": "Requires architectural design discussion"
+      }
+    ],
+    "failed": [
+      {
+        "finding": {
+          "id": "finding-1780606494112-u55yfyz",
+          "category": "storage",
+          "subcategory": "missing-storage-error-handling",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 148,
+          "description": "SessionStorage operation 'getItem' for key 'flaps_name' lacks try-catch error handling",
+          "recommendation": "Wrap this sessionStorage.getItem() call in a try-catch block to handle potential QuotaExceededError or other storage exceptions",
+          "codeSnippet": "const saved = sessionStorage.getItem('flaps_name');",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494112-1jdqd0z",
+          "category": "storage",
+          "subcategory": "missing-storage-error-handling",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 172,
+          "description": "SessionStorage operation 'setItem' for key 'flaps_room_id' lacks try-catch error handling",
+          "recommendation": "Wrap this sessionStorage.setItem() call in a try-catch block to handle potential QuotaExceededError or other storage exceptions",
+          "codeSnippet": "sessionStorage.setItem('flaps_room_id', roomIdToStore);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494112-x430cg1",
+          "category": "storage",
+          "subcategory": "missing-storage-error-handling",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 178,
+          "description": "SessionStorage operation 'setItem' for key 'flaps_user_name' lacks try-catch error handling",
+          "recommendation": "Wrap this sessionStorage.setItem() call in a try-catch block to handle potential QuotaExceededError or other storage exceptions",
+          "codeSnippet": "sessionStorage.setItem('flaps_user_name', userName);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494122-5c32fgb",
+          "category": "event",
+          "subcategory": "missing-event-cleanup",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 29,
+          "column": 2,
+          "description": "Event listener for 'DOMContentLoaded' event on document is added but never removed, potential memory leak",
+          "recommendation": "Add removeEventListener('DOMContentLoaded', initializeCachedElements) when the element is destroyed or no longer needed",
+          "codeSnippet": "document.addEventListener('DOMContentLoaded', initializeCachedElements);",
+          "relatedFindings": [],
+          "priority": 330
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494122-0aksbfx",
+          "category": "event",
+          "subcategory": "missing-event-cleanup",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 325,
+          "column": 0,
+          "description": "Event listener for 'keydown' event on nameField is added but never removed, potential memory leak",
+          "recommendation": "Add removeEventListener('keydown', handleNameFieldKeydown) when the element is destroyed or no longer needed",
+          "codeSnippet": "nameField?.addEventListener('keydown', handleNameFieldKeydown);",
+          "relatedFindings": [],
+          "priority": 330
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494122-4szals7",
+          "category": "event",
+          "subcategory": "missing-event-cleanup",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 327,
+          "column": 0,
+          "description": "Event listener for 'input' event on nameField is added but never removed, potential memory leak",
+          "recommendation": "Add removeEventListener('input', handleNameFieldInput) when the element is destroyed or no longer needed",
+          "codeSnippet": "nameField?.addEventListener('input', handleNameFieldInput);",
+          "relatedFindings": [],
+          "priority": 330
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494136-timmevj",
+          "category": "optimization",
+          "subcategory": "code-duplication",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 743,
+          "column": 0,
+          "description": "Duplicated code block found in 2 locations: app.js:743-748, app.js:769-774. Block spans 6 lines and contains 28 AST nodes.",
+          "recommendation": "Extract this duplicated logic into a reusable helper function 'checkHelper'. This will reduce code duplication by approximately 6 lines.",
+          "codeSnippet": "      if (container) {\n        container.querySelectorAll('.finalChip').forEach(c => {\n          c.classList.remove('selected');\n          c.setAttribute('aria-checked', 'false');\n        });\n      }",
+          "relatedFindings": [],
+          "priority": 255
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-3dnd2rj",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 15,
+          "column": 10,
+          "description": "Element 'name' is queried 9 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    name: el('name'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-gopda2w",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 16,
+          "column": 10,
+          "description": "Element 'main' is queried 4 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    main: document.querySelector('main'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-kbhj6m9",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 17,
+          "column": 12,
+          "description": "Element 'footer' is queried 4 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    footer: document.querySelector('footer'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-ccr4nqw",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 18,
+          "column": 19,
+          "description": "Element 'createRoomBtn' is queried 5 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    createRoomBtn: el('createRoomBtn'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-spla0xh",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 19,
+          "column": 14,
+          "description": "Element 'modePill' is queried 5 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    modePill: el('modePill'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-8zn4mx5",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 20,
+          "column": 16,
+          "description": "Element 'jiraNumber' is queried 3 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    jiraNumber: el('jiraNumber'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494163-eszras6",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 21,
+          "column": 16,
+          "description": "Element 'storyTitle' is queried 3 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    storyTitle: el('storyTitle'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494164-8e31lke",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 22,
+          "column": 15,
+          "description": "Element 'storyDesc' is queried 3 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    storyDesc: el('storyDesc'),",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494164-58g74ne",
+          "category": "optimization",
+          "subcategory": "repeated-dom-query",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 50,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 23,
+          "column": 10,
+          "description": "Element 'deck' is queried 4 times",
+          "recommendation": "Cache the element reference in a variable and reuse it instead of querying multiple times.",
+          "codeSnippet": "    deck: el('deck')",
+          "relatedFindings": [],
+          "priority": 225
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-s61ygof",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 709,
+          "column": 0,
+          "description": "Render function 'renderFinalPointsChips' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderFinalPointsChips(deck, canFinalize) {\n  const d = Array.isArray(deck) ? deck : [];\n  const container = el('finalPointsChips');\n  if (!container) return;\n  \n  // Filter out non-numeric values (?, ☕) for finalize options\n  const numericDeck = d.filter(v => v !== '?' && v !== '☕');\n  \n  // Check if current story is already finalized\n  const isFinalized = lastState?.story?.finalPoints !== null && lastState?.story?.finalPoints !== undefined;\n  ",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-ph09eg4",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 787,
+          "column": 0,
+          "description": "Render function 'renderDeck' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderDeck(deck, phase, hasActiveStory) {\n  const d = Array.isArray(deck) ? deck : [];\n  const deckDiv = el('deck');\n  deckDiv.innerHTML = '';\n  const frag = document.createDocumentFragment();\n\n  d.forEach((v) => {\n    const b = document.createElement('button');\n    b.className = 'deckBtn';\n    b.type = 'button';\n    b.textContent = v;",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-2o7yf4z",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 873,
+          "column": 0,
+          "description": "Render function 'renderUserGroup' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderUserGroup(users, phase, role, label, icon) {\n  const frag = document.createDocumentFragment();\n  \n  if (users.length > 0) {\n    frag.appendChild(createGroupHeader(label, icon));\n    users.forEach((u) => {\n      frag.appendChild(createUserItem(u, phase, role));\n    });\n  }\n  \n  return frag;",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-8au16a6",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 886,
+          "column": 0,
+          "description": "Render function 'renderUsers' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderUsers(users, phase) {\n  const list = el('usersList');\n  if (!list) return;\n  list.innerHTML = '';\n\n  const entries = Object.values(users ?? {});\n  const usersPill = el('usersPill');\n  if (usersPill) usersPill.textContent = String(entries.length);\n\n  // Separate facilitators and voters in one pass\n  const facilitators = [];",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-rj1ybm6",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 969,
+          "column": 0,
+          "description": "Render function 'renderPlaceholderMetrics' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderPlaceholderMetrics(r, finalValue = '—') {\n  const summary = document.createElement('div');\n  summary.className = 'summary';\n\n  const placeholderMetrics = [\n    { label: 'Final', value: finalValue },\n    { label: 'Min', value: '—' },\n    { label: 'Max', value: '—' },\n    { label: 'Avg', value: '—' },\n    { label: 'Median', value: '—' }\n  ];",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-gxnar18",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 989,
+          "column": 0,
+          "description": "Render function 'renderResults' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderResults(state) {\n  const r = el('results');\n\n  if (state.phase !== 'revealed') {\n    renderPlaceholderMetrics(r);\n    return;\n  }\n\n  const stats = calculateVoteStats(state.users);\n\n  if (!stats) {",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494168-ryci6xk",
+          "category": "optimization",
+          "subcategory": "redundant-re-render",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 60,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 1188,
+          "column": 0,
+          "description": "Render function 'renderQueue' may cause redundant re-renders without state change detection",
+          "recommendation": "Add a check to compare new state with previous state before updating the DOM. Consider caching previous values and only updating if they've changed. Example: if (prevValue !== newValue) { el.textContent = newValue; }",
+          "codeSnippet": "function renderQueue(state) {\n  const queue = Array.isArray(state.storyQueue) ? state.storyQueue : [];\n  const list = el('storyQueueList'); \n  \n  list.innerHTML = '';\n\n  if (!queue.length) {\n    // Only show \"No Stories In Queue\" placeholder for facilitators\n    if (state.youAreModerator) {\n      const li = document.createElement('li');\n      li.className = 'queueItem';",
+          "relatedFindings": [],
+          "priority": 220
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494175-496yxpf",
+          "category": "visual",
+          "subcategory": "missing-focus-state",
+          "severity": "moderate",
+          "effort": "quick-win",
+          "impact": 70,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 1,
+          "description": "Link selector '.footerLink' has :hover state but missing :focus state for keyboard accessibility",
+          "recommendation": "Add a :focus or :focus-visible style for '.footerLink' that mirrors or enhances the :hover state",
+          "codeSnippet": ".footerLink",
+          "relatedFindings": [],
+          "priority": 360
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494174-ghllj3f",
+          "category": "visual",
+          "subcategory": "absolute-font-sizes",
+          "severity": "moderate",
+          "effort": "medium",
+          "impact": 70,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 51,
+          "description": "Found 32 font-size declarations using absolute pixels. Absolute pixel values don't scale with user preferences or viewport size.",
+          "recommendation": "Convert absolute font-size values to responsive units using clamp() for fluid typography (e.g., 'font-size: clamp(14px, 2vw, 18px)') or use rem units for better accessibility.",
+          "codeSnippet": "Examples: h1: 18px; .shareHeaderBtn: 14px; .shareHeaderIcon: 18px",
+          "relatedFindings": [],
+          "priority": 240
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494172-msmcslc",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 61,
+          "description": "Hardcoded color 'rgba(43,90,134,.4)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(43,90,134,.4);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-go7i0py",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 72,
+          "description": "Hardcoded color 'rgba(43,90,134,.6)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(43,90,134,.6);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-5xaonsv",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 94,
+          "description": "Hardcoded color 'rgba(16,185,129,.95)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.95);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-9uw8oa9",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 95,
+          "description": "Hardcoded color 'rgba(16,185,129,.4)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border:1px solid rgba(16,185,129,.4);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-iim18jy",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 97,
+          "description": "Hardcoded color '#fff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#fff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-lmrro9v",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 102,
+          "description": "Hardcoded color 'rgba(0,0,0,.3)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow:0 4px 12px rgba(0,0,0,.3);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-5hzd6nj",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 170,
+          "description": "Hardcoded color '#2b5a86' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": ".primary{ border-color:rgba(122,162,255,.55); background:#2b5a86 }",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-u638wrp",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 172,
+          "description": "Hardcoded color 'rgba(110,231,183,.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color:rgba(110,231,183,.45) !important;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-gcz9orr",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 173,
+          "description": "Hardcoded color 'rgba(16,185,129,.2)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.2) !important;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-en709xl",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 174,
+          "description": "Hardcoded color '#bff7dd' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#bff7dd !important;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-1h26jz9",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 178,
+          "description": "Hardcoded color 'rgba(110,231,183,.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color:rgba(110,231,183,.45) !important;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-kysubpr",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 179,
+          "description": "Hardcoded color 'rgba(16,185,129,.2)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.2) !important;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-cdf1agz",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 201,
+          "description": "Hardcoded color 'rgba(0,0,0,.25)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow:0 4px 12px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.15);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-6jjxozi",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 201,
+          "description": "Hardcoded color 'rgba(0,0,0,.15)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow:0 4px 12px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.15);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-n4q5zjz",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 213,
+          "description": "Hardcoded color '#bff7dd' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": ".pill.good{ color:#bff7dd; border-color:rgba(110,231,183,.45) }",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-vyqdrte",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 213,
+          "description": "Hardcoded color 'rgba(110,231,183,.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": ".pill.good{ color:#bff7dd; border-color:rgba(110,231,183,.45) }",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-gn3yzqb",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 214,
+          "description": "Hardcoded color '#ffe4a3' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": ".pill.warn{ color:#ffe4a3; border-color:rgba(251,191,36,.45) }",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-ayd03az",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 242,
+          "description": "Hardcoded color 'rgba(110,231,183,.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color:rgba(110,231,183,.45);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-wjk5pqf",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 243,
+          "description": "Hardcoded color 'rgba(16,185,129,.2)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.2);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-5agguu2",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 244,
+          "description": "Hardcoded color '#bff7dd' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#bff7dd;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-lph4fdh",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 247,
+          "description": "Hardcoded color 'rgba(110,231,183,.65)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color:rgba(110,231,183,.65);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-w7aa2lz",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 248,
+          "description": "Hardcoded color 'rgba(16,185,129,.3)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.3);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-fp7mqvi",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 278,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color: #ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-uddjdtf",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 311,
+          "description": "Hardcoded color 'rgba(110, 231, 183, 0.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color: rgba(110, 231, 183, 0.45);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-8uh348x",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 312,
+          "description": "Hardcoded color 'rgba(16, 185, 129, 0.1)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background: rgba(16, 185, 129, 0.1);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-1lq6jyo",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 314,
+          "description": "Hardcoded color 'rgba(16, 185, 129, 0.2)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-n2czcdz",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 317,
+          "description": "Hardcoded color 'rgba(110, 231, 183, 0.75)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color: rgba(110, 231, 183, 0.75);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-g9m58dt",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 318,
+          "description": "Hardcoded color 'rgba(16, 185, 129, 0.25)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background: rgba(16, 185, 129, 0.25);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-8vwb46f",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 319,
+          "description": "Hardcoded color '#bff7dd' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color: #bff7dd;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-daffm8x",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 320,
+          "description": "Hardcoded color 'rgba(110, 231, 183, 0.25)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.25);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-kc6y6er",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 470,
+          "description": "Hardcoded color 'rgba(0,0,0,.3)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-uqdaqr1",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 486,
+          "description": "Hardcoded color 'transparent' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:transparent;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-3s56l1d",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 528,
+          "description": "Hardcoded color 'rgba(43,90,134,.35)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(43,90,134,.35);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-683a4m0",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 579,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color: #ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-r1s0e8w",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 640,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-p9etc55",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 648,
+          "description": "Hardcoded color 'rgba(110,231,183,.45)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "border-color:rgba(110,231,183,.45);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-8f9oc0l",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 649,
+          "description": "Hardcoded color 'rgba(16,185,129,.2)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(16,185,129,.2);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-p3zkg1h",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 650,
+          "description": "Hardcoded color '#bff7dd' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#bff7dd;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-k9d5ejh",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 678,
+          "description": "Hardcoded color '#fff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#fff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-ry6ok9g",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 698,
+          "description": "Hardcoded color 'rgba(0,0,0,.3)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "box-shadow:0 4px 12px rgba(0,0,0,.3);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-bu5yo1c",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 728,
+          "description": "Hardcoded color 'rgba(0,0,0,0.3)' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "background:rgba(0,0,0,0.3);",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-cq3ilj1",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 743,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-z17ry83",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 755,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-m10g64s",
+          "category": "visual",
+          "subcategory": "hardcoded-color",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 764,
+          "description": "Hardcoded color '#ffffff' should use a CSS custom property from the theme",
+          "recommendation": "Replace with an appropriate var(--*) reference from the color theme",
+          "codeSnippet": "color:#ffffff;",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494174-7vofzmo",
+          "category": "visual",
+          "subcategory": "similar-font-sizes",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 51,
+          "description": "Found 6 similar font sizes that differ by less than 2px: 18px (18.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px), 16px (16.0px). These should likely be the same size for consistency.",
+          "recommendation": "Consolidate these similar font sizes to a single value, preferably 16px (from recommended type scale).",
+          "codeSnippet": "Affected selectors: h1, h2, .metricValue, .footerTagline, .footerItem, .footerLink",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494174-6g4oftt",
+          "category": "visual",
+          "subcategory": "similar-font-sizes",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 65,
+          "description": "Found 11 similar font sizes that differ by less than 2px: 14px (14.0px), 13px (13.0px), 12px (12.0px), 13px (13.0px), 13px (13.0px), 13px (13.0px), 15px (15.0px), 15px (15.0px), 13px (13.0px), 12px (12.0px), 12px (12.0px). These should likely be the same size for consistency.",
+          "recommendation": "Consolidate these similar font sizes to a single value, preferably 13px (from recommended type scale).",
+          "codeSnippet": "Affected selectors: .shareHeaderBtn, .shareFeedback, .pill, .finalizeLabel, .shareHeaderBtn, input,textarea,button,select, .uname, .ustatus, .queueTitle, .queueDesc, .footerTagline",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494174-eo5a58s",
+          "category": "visual",
+          "subcategory": "similar-font-sizes",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 531,
+          "description": "Found 6 similar font sizes that differ by less than 2px: 10px (10.0px), 11px (11.0px), 11px (11.0px), 11px (11.0px), 11px (11.0px), 11px (11.0px). These should likely be the same size for consistency.",
+          "recommendation": "Consolidate these similar font sizes to a single value, preferably 10px (from recommended type scale).",
+          "codeSnippet": "Affected selectors: .metricLabel, .queueNumber, .queueMeta, .queueBtn, .footerItem, .footerLink",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494175-cqji6vc",
+          "category": "visual",
+          "subcategory": "missing-aria-css",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 1,
+          "description": "HTML uses aria-hidden attribute but CSS doesn't include [aria-hidden=\"true\"] selector for styling",
+          "recommendation": "Consider adding CSS rules for [aria-hidden=\"true\"] to ensure proper visual treatment",
+          "codeSnippet": "[aria-hidden=\"true\"]",
+          "relatedFindings": [],
+          "priority": 195
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494171-lbrttzg",
+          "category": "visual",
+          "subcategory": "similar-spacing-values",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 35,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 21,
+          "description": "Very similar spacing values found: 0, -2px, 2px, -1px. These differ by only 1-2px and should likely be consolidated.",
+          "recommendation": "Consolidate to a single standard value: 0px. Found at lines: 21, 400, 563 and 3 more.",
+          "codeSnippet": "0, -2px, 2px, -1px",
+          "relatedFindings": [],
+          "priority": 180
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494171-4htntxi",
+          "category": "visual",
+          "subcategory": "similar-spacing-values",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 35,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 30,
+          "description": "Very similar spacing values found: 16px, 18px, 14px. These differ by only 1-2px and should likely be consolidated.",
+          "recommendation": "Consolidate to a single standard value: 16px. Found at lines: 30, 30, 30 and 13 more.",
+          "codeSnippet": "16px, 18px, 14px",
+          "relatedFindings": [],
+          "priority": 180
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494171-een53ag",
+          "category": "visual",
+          "subcategory": "similar-spacing-values",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 35,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 43,
+          "description": "Very similar spacing values found: 8px, 10px, 6px, 9px. These differ by only 1-2px and should likely be consolidated.",
+          "recommendation": "Consolidate to a single standard value: 8px. Found at lines: 43, 58, 144 and 43 more.",
+          "codeSnippet": "8px, 10px, 6px, 9px",
+          "relatedFindings": [],
+          "priority": 180
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494171-8tt6cgn",
+          "category": "visual",
+          "subcategory": "similar-spacing-values",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 35,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 221,
+          "description": "Very similar spacing values found: 20px, 22px. These differ by only 1-2px and should likely be consolidated.",
+          "recommendation": "Consolidate to a single standard value: 20px. Found at lines: 221, 355.",
+          "codeSnippet": "20px, 22px",
+          "relatedFindings": [],
+          "priority": 180
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494171-10h4kx0",
+          "category": "visual",
+          "subcategory": "similar-spacing-values",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 35,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 392,
+          "description": "Very similar spacing values found: 5px, 4px, 3px. These differ by only 1-2px and should likely be consolidated.",
+          "recommendation": "Consolidate to a single standard value: 4px. Found at lines: 392, 402, 414 and 4 more.",
+          "codeSnippet": "5px, 4px, 3px",
+          "relatedFindings": [],
+          "priority": 180
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494173-ma7cepg",
+          "category": "visual",
+          "subcategory": "inconsistent-color-format",
+          "severity": "minor",
+          "effort": "quick-win",
+          "impact": 25,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/styles.css",
+          "line": 1,
+          "description": "Inconsistent color formats: 17 hex, 49 rgb/rgba, 1 named colors",
+          "recommendation": "Standardize to a single format (preferably hex for brevity or CSS variables)",
+          "codeSnippet": "Multiple color formats in use",
+          "relatedFindings": [],
+          "priority": 150
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-6kmv9e1",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 10,
+          "column": 26,
+          "description": "Magic number 60 found without explanation",
+          "recommendation": "Extract magic number 60 into a named constant with descriptive name",
+          "codeSnippet": "const ROOM_IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hour",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-twtxfp5",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 10,
+          "column": 31,
+          "description": "Magic number 60 found without explanation",
+          "recommendation": "Extract magic number 60 into a named constant with descriptive name",
+          "codeSnippet": "const ROOM_IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hour",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-ucu5482",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 11,
+          "column": 30,
+          "description": "Magic number 60 found without explanation",
+          "recommendation": "Extract magic number 60 into a named constant with descriptive name",
+          "codeSnippet": "const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-muvt71g",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 12,
+          "column": 29,
+          "description": "Magic number 18 found without explanation",
+          "recommendation": "Extract magic number 18 into a named constant with descriptive name",
+          "codeSnippet": "const MODERATOR_KEY_LENGTH = 18;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-65w5f14",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 13,
+          "column": 27,
+          "description": "Magic number 50 found without explanation",
+          "recommendation": "Extract magic number 50 into a named constant with descriptive name",
+          "codeSnippet": "const MAX_ROOM_ID_LENGTH = 50;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-hmqp9e1",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 14,
+          "column": 24,
+          "description": "Magic number 20 found without explanation",
+          "recommendation": "Extract magic number 20 into a named constant with descriptive name",
+          "codeSnippet": "const MAX_NAME_LENGTH = 20;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-rwiafd5",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 15,
+          "column": 32,
+          "description": "Magic number 50 found without explanation",
+          "recommendation": "Extract magic number 50 into a named constant with descriptive name",
+          "codeSnippet": "const MAX_STORY_NUMBER_LENGTH = 50;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-1rox8wo",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 16,
+          "column": 31,
+          "description": "Magic number 200 found without explanation",
+          "recommendation": "Extract magic number 200 into a named constant with descriptive name",
+          "codeSnippet": "const MAX_STORY_TITLE_LENGTH = 200;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-ar6rkl0",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 17,
+          "column": 30,
+          "description": "Magic number 2000 found without explanation",
+          "recommendation": "Extract magic number 2000 into a named constant with descriptive name",
+          "codeSnippet": "const MAX_STORY_DESC_LENGTH = 2000;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-sb9yez8",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 40,
+          "column": 24,
+          "description": "Magic number 301 found without explanation",
+          "recommendation": "Extract magic number 301 into a named constant with descriptive name",
+          "codeSnippet": "    return res.redirect(301, `https://${req.headers.host}${req.url}`);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-tipi140",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 81,
+          "column": 24,
+          "description": "Magic number 6 found without explanation",
+          "recommendation": "Extract magic number 6 into a named constant with descriptive name",
+          "codeSnippet": "function randomId(len = 6) {",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-4xezahv",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 178,
+          "column": 26,
+          "description": "Magic number 10000 found without explanation",
+          "recommendation": "Extract magic number 10000 into a named constant with descriptive name",
+          "codeSnippet": "const RATE_LIMIT_WINDOW = 10000; // 10 seconds",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-ivlv3s6",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 179,
+          "column": 23,
+          "description": "Magic number 50 found without explanation",
+          "recommendation": "Extract magic number 50 into a named constant with descriptive name",
+          "codeSnippet": "const RATE_LIMIT_MAX = 50; // max events per window",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-2hlb0p8",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 208,
+          "column": 22,
+          "description": "Magic number 5 found without explanation",
+          "recommendation": "Extract magic number 5 into a named constant with descriptive name",
+          "codeSnippet": "    roomId = randomId(5);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-ukpfn7s",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 213,
+          "column": 22,
+          "description": "Magic number 5 found without explanation",
+          "recommendation": "Extract magic number 5 into a named constant with descriptive name",
+          "codeSnippet": "    roomId = randomId(5);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-bxa0rub",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 325,
+          "column": 17,
+          "description": "Magic number 8 found without explanation",
+          "recommendation": "Extract magic number 8 into a named constant with descriptive name",
+          "codeSnippet": "    id: randomId(8),",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494178-05maim6",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/server.js",
+          "line": 487,
+          "column": 33,
+          "description": "Magic number 3000 found without explanation",
+          "recommendation": "Extract magic number 3000 into a named constant with descriptive name",
+          "codeSnippet": "const PORT = process.env.PORT || 3000;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-bm255m8",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 81,
+          "column": 11,
+          "description": "Magic number 2000 found without explanation",
+          "recommendation": "Extract magic number 2000 into a named constant with descriptive name",
+          "codeSnippet": "        }, 2000);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-ofep8nh",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 108,
+          "column": 37,
+          "description": "Magic number 300 found without explanation",
+          "recommendation": "Extract magic number 300 into a named constant with descriptive name",
+          "codeSnippet": "    setTimeout(() => toast.remove(), 300);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-ow2jby3",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 109,
+          "column": 5,
+          "description": "Magic number 4000 found without explanation",
+          "recommendation": "Extract magic number 4000 into a named constant with descriptive name",
+          "codeSnippet": "  }, 4000);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-phypclj",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 136,
+          "column": 32,
+          "description": "Magic number 5000 found without explanation",
+          "recommendation": "Extract magic number 5000 into a named constant with descriptive name",
+          "codeSnippet": "const RECONNECTION_TIMEOUT_MS = 5000; // Timeout for automatic reconnection attempts",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-ooyxrjq",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 376,
+          "column": 5,
+          "description": "Magic number 2000 found without explanation",
+          "recommendation": "Extract magic number 2000 into a named constant with descriptive name",
+          "codeSnippet": "  }, 2000);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-judm6qb",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 634,
+          "column": 55,
+          "description": "Magic number 5000 found without explanation",
+          "recommendation": "Extract magic number 5000 into a named constant with descriptive name",
+          "codeSnippet": "  setTimeout(() => setLoading('createRoomBtn', false), 5000);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-gl8iiai",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 1080,
+          "column": 9,
+          "description": "Magic number 3000 found without explanation",
+          "recommendation": "Extract magic number 3000 into a named constant with descriptive name",
+          "codeSnippet": "      }, 3000);",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494184-814sjo6",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 1107,
+          "column": 55,
+          "description": "Magic number 12 found without explanation",
+          "recommendation": "Extract magic number 12 into a named constant with descriptive name",
+          "codeSnippet": "    numberSpan.textContent = story.number.substring(0, 12); // Max 12 chars",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494185-py8nlh9",
+          "category": "quality",
+          "subcategory": "magic-number",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 40,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 1168,
+          "column": 25,
+          "description": "Magic number 50 found without explanation",
+          "recommendation": "Extract magic number 50 into a named constant with descriptive name",
+          "codeSnippet": "  const maxTitleLength = 50;",
+          "relatedFindings": [],
+          "priority": 130
+        },
+        "reason": "Not implemented"
+      },
+      {
+        "finding": {
+          "id": "finding-1780606494185-8dwlget",
+          "category": "quality",
+          "subcategory": "todo-comment",
+          "severity": "minor",
+          "effort": "medium",
+          "impact": 20,
+          "file": "/Users/glynmcmanus/Applications/FLAPS/public/app.js",
+          "line": 280,
+          "column": 5,
+          "description": "Note comment found: // Note: Don't set userJoined=true here - that should only be set when server confirms via room:state",
+          "recommendation": "Address or track the Note comment in issue tracking system",
+          "codeSnippet": "// Note: Don't set userJoined=true here - that should only be set when server confirms via room:state",
+          "relatedFindings": [],
+          "priority": 90
+        },
+        "reason": "Not implemented"
+      }
+    ]
+  },
+  "timestamp": "2026-06-04T20:54:56.815Z"
+}
