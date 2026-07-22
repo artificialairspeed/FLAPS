@@ -727,6 +727,11 @@ function armDisconnectGrace(room, roomId, userKey) {
     // Only remove if this record is still present and still disconnected
     // (i.e., no reconnect re-attached it in the meantime).
     if (current && current.connected === false) {
+      console.info(
+        `[armDisconnectGrace] Grace elapsed; removing user room=${roomId} ` +
+        `user=${userKey} (last socket=${current.socketId}). This is when the ` +
+        `user disappears from the roster.`
+      );
       delete room.users[userKey];
       room.lastActiveAt = Date.now();
       broadcastRoom(roomId);
@@ -751,11 +756,32 @@ function handleDisconnect(socket) {
   const user = room.users[userKey];
   if (!user) return;
 
+  // Ignore stale disconnects from a socket that has already been superseded.
+  // User records are keyed by the durable clientId, so on a reconnect the new
+  // socket (S2) resumes the record (connected=true, socketId=S2) BEFORE the old
+  // socket's (S1) delayed 'disconnect' arrives. Both sockets share the same
+  // clientId, so without this guard S1's disconnect would re-mark the LIVE
+  // record disconnected and arm a grace timer that deletes an online user ~45s
+  // later — the root cause of users flapping in and out. Only the socket
+  // currently bound to the record may transition it to disconnected.
+  if (user.socketId !== socket.id) {
+    console.warn(
+      `[handleDisconnect] Ignoring stale disconnect for room=${roomId} user=${userKey}: ` +
+      `disconnecting socket=${socket.id} but record is bound to socket=${user.socketId} ` +
+      `(a newer connection already took over).`
+    );
+    return;
+  }
+
   // Do NOT delete the user immediately. A disconnect may just be a transient
   // background-induced heartbeat lapse. Mark the user disconnected and arm a
   // grace timer; a reconnect within the grace window (Task 3.3) will cancel
   // this timer and resume the session. If the timer elapses without a
   // reconnect, the user is removed (covers intentional leaves too).
+  console.info(
+    `[handleDisconnect] room=${roomId} user=${userKey} socket=${socket.id} ` +
+    `marked disconnected; arming ${DISCONNECT_GRACE_MS}ms grace timer.`
+  );
   user.connected = false;
   user.disconnectedAt = Date.now();
 
