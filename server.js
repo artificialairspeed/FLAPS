@@ -11,10 +11,13 @@ import { Server } from "socket.io";
 const ROOM_IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hour
 const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 // Grace period during which a disconnected user's session is retained (marked
-// disconnected) rather than deleted, so a reconnect within this window can
-// resume it. Far shorter than ROOM_IDLE_TIMEOUT so grace-held sessions never
-// affect idle-room cleanup.
-const DISCONNECT_GRACE_MS = 45 * 1000; // 45 seconds
+// disconnected / "away") rather than deleted, so a reconnect within this window
+// resumes it and the participant does not disappear from the roster on a
+// transient lapse, sleep, or short absence. Bounded (minutes, not seconds) so
+// ghosts who never return are still swept automatically instead of lingering
+// forever, and still far shorter than ROOM_IDLE_TIMEOUT so grace-held sessions
+// never affect idle-room cleanup.
+const DISCONNECT_GRACE_MS = 10 * 60 * 1000; // 10 minutes
 const MODERATOR_KEY_LENGTH = 18;
 const MAX_ROOM_ID_LENGTH = 50;
 const MAX_NAME_LENGTH = 20;
@@ -45,7 +48,14 @@ const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || false,
     credentials: true
-  }
+  },
+  // Give briefly-backgrounded or laggy clients more room to answer the
+  // heartbeat before the server declares them dead. The default pingTimeout
+  // (20s) drops clients too eagerly on transient lapses, contributing to users
+  // flapping in and out; 30s tolerates short hiccups without meaningfully
+  // delaying detection of genuinely dead connections. pingInterval is left at
+  // its 25s default so it stays comfortably under typical proxy idle timeouts.
+  pingTimeout: 30000
 });
 
 // Enable gzip/brotli compression
@@ -329,7 +339,11 @@ function makeRoomState(room, socket) {
     Object.entries(room.users).map(([id, u]) => {
       const vote = room.phase === "revealed" ? u.vote : (u.vote ? "selected" : null);
       const isMod = u.isModerator || false;
-      return [id, { name: u.name, emoji: u.emoji || "", vote, isModerator: isMod }];
+      // `connected` drives the client's "away" indicator and the connected-only
+      // vote tally. A record is considered present unless explicitly marked
+      // disconnected during its grace window.
+      const connected = u.connected !== false;
+      return [id, { name: u.name, emoji: u.emoji || "", vote, isModerator: isMod, connected }];
     })
   );
 
@@ -573,6 +587,45 @@ function handleVoteReveal(socket, { roomId } = {}) {
   broadcastRoom(roomId);
 }
 
+// Facilitator-only removal of a participant. Because participants now persist
+// through a long "away" grace window rather than being auto-removed on
+// disconnect, the facilitator needs an explicit way to clear out someone who
+// has genuinely left. Moderators cannot be kicked (prevents a facilitator from
+// removing themselves / losing control of the room).
+function handleUserKick(socket, { roomId, userKey } = {}) {
+  roomId = normalizeRoomId(roomId) || socket.data.roomId;
+  const room = rooms.get(roomId);
+  if (!room) return;
+  if (!requireModerator(room, socket)) return;
+
+  const key = String(userKey || "");
+  const target = room.users[key];
+  if (!target) return;
+  if (target.isModerator) return; // Never kick a facilitator.
+
+  // Clear any pending grace timer so it can't fire against a now-removed record.
+  if (target.graceTimer) {
+    clearTimeout(target.graceTimer);
+    target.graceTimer = null;
+  }
+  delete room.users[key];
+
+  // If the kicked user still has a live socket, remove it from the room so it
+  // stops receiving updates and notify it so the client can reset to pre-join.
+  if (target.socketId) {
+    const kickedSocket = io.sockets.sockets.get(target.socketId);
+    if (kickedSocket) {
+      kickedSocket.leave(roomId);
+      kickedSocket.emit("kicked", { roomId });
+    }
+  }
+
+  console.info(`[handleUserKick] room=${roomId} removed user=${key} by facilitator socket=${socket.id}.`);
+
+  room.lastActiveAt = Date.now();
+  broadcastRoom(roomId);
+}
+
 function handleStoryQueueAdd(socket, { roomId, story } = {}) {
   if (!checkRateLimit(socket.id)) return;
 
@@ -803,6 +856,7 @@ io.on("connection", (socket) => {
   socket.on("vote:set", (data) => handleVoteSet(socket, data));
   socket.on("vote:clear", (data) => handleVoteClear(socket, data));
   socket.on("vote:reveal", (data) => handleVoteReveal(socket, data));
+  socket.on("room:kick", (data) => handleUserKick(socket, data));
   socket.on("storyQueue:add", (data) => handleStoryQueueAdd(socket, data));
   socket.on("storyQueue:edit", (data) => handleStoryQueueEdit(socket, data));
   socket.on("storyQueue:remove", (data) => handleStoryQueueRemove(socket, data));
@@ -892,6 +946,7 @@ export {
   handleVoteSet,
   handleVoteClear,
   handleVoteReveal,
+  handleUserKick,
   handleStoryQueueSetActive,
   handleDisconnect,
   startRoomCleanup,

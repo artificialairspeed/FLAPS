@@ -685,6 +685,23 @@ socket.on('error', ({ message }) => {
   showToast(message || 'An error occurred', 'error');
 });
 
+// The facilitator removed this participant. Clear the stored joined session so
+// the client does not immediately auto-rejoin (on reconnect or reload), reset
+// to the pre-join UI, and inform the user. They may still join again manually.
+socket.on('kicked', () => {
+  userJoined = false;
+  joinButtonClicked = false;
+  clearSessionData();
+  // Also clear the authoritative localStorage joined flag so bootstrap does not
+  // treat this as a resumable session on the next load.
+  try {
+    if (currentRoom) localStorage.removeItem('flaps_joined_' + currentRoom);
+  } catch {}
+  const ctx = { role: null, hasRoomInUrl: !!currentRoom, hasModKey: false };
+  render(deriveControls(STATES.INITIAL, ctx), STATES.INITIAL, ctx);
+  showToast('You were removed from the session by the facilitator.', 'warn');
+});
+
 // Only fall back to a manual re-join after Socket.IO has genuinely exhausted its
 // reconnection attempts — never merely because the tab was backgrounded. This is
 // the sole remaining path that surfaces the manual-rejoin fallback.
@@ -822,7 +839,10 @@ function updateButtonStates(state) {
   if (setStoryBtn) setStoryBtn.disabled = !state.youAreModerator;
   
   const hasActiveStory = !!state.activeStoryId;
-  const hasVotes = Object.values(state.users ?? {}).some(u => u.vote && u.vote !== null);
+  // Only connected participants count toward voting, so a lingering "away" vote
+  // never keeps Reveal/Clear enabled on its own.
+  const hasVotes = Object.values(state.users ?? {})
+    .some(u => u.connected !== false && u.vote && u.vote !== null);
   
   const revealBtn = el('revealBtn');
   if (revealBtn) {
@@ -902,7 +922,7 @@ function renderAllComponents(state, canFinalize) {
   const hasActiveStory = !!state.activeStoryId;
   renderDeck(state.deck, state.phase, hasActiveStory);
   renderFinalPointsChips(state.deck, canFinalize);
-  renderUsers(state.users, state.phase);
+  renderUsers(state.users, state.phase, state.youAreModerator);
   renderResults(state);
   renderQueue(state);
 }
@@ -1295,9 +1315,14 @@ function renderDeck(deck, phase, hasActiveStory) {
 }
 
 // Helper function to create user item element
-function createUserItem(user, phase, role) {
+function createUserItem(user, phase, role, key, youAreModerator) {
   const li = document.createElement('li');
   li.className = role === 'facilitator' ? 'userItem facilitatorItem' : 'userItem voterItem';
+
+  // A disconnected participant is retained as "away" during the grace window
+  // rather than removed, so mark it visually and for assistive tech.
+  const isAway = user.connected === false;
+  if (isAway) li.classList.add('isAway');
 
   const nameWrap = document.createElement('span');
   nameWrap.className = 'unameWrap';
@@ -1315,6 +1340,13 @@ function createUserItem(user, phase, role) {
   nameSpan.textContent = user.name ?? '';
   nameWrap.appendChild(nameSpan);
 
+  if (isAway) {
+    const awayBadge = document.createElement('span');
+    awayBadge.className = 'uaway';
+    awayBadge.textContent = 'Away';
+    nameWrap.appendChild(awayBadge);
+  }
+
   const statusSpan = document.createElement('span');
   statusSpan.className = 'ustatus';
   let statusText = '';
@@ -1329,11 +1361,30 @@ function createUserItem(user, phase, role) {
   // Enhanced accessibility
   li.setAttribute('role', 'listitem');
   const roleLabel = role === 'facilitator' ? 'Facilitator' : 'Voter';
-  li.setAttribute('aria-label', `${user.name}, ${roleLabel}, ${statusText}`);
+  const presenceLabel = isAway ? ', Away' : '';
+  li.setAttribute('aria-label', `${user.name}, ${roleLabel}${presenceLabel}, ${statusText}`);
 
   li.appendChild(nameWrap);
   li.appendChild(statusSpan);
-  
+
+  // Facilitator-only "remove participant" control. Shown for voters (never for
+  // facilitators, who cannot be kicked) when the viewer is the moderator and we
+  // have a stable key to target on the server.
+  if (youAreModerator && role !== 'facilitator' && key) {
+    const kickBtn = document.createElement('button');
+    kickBtn.type = 'button';
+    kickBtn.className = 'kickBtn';
+    kickBtn.textContent = '✕';
+    kickBtn.title = `Remove ${user.name ?? 'participant'}`;
+    kickBtn.setAttribute('aria-label', `Remove ${user.name ?? 'participant'}`);
+    kickBtn.addEventListener('click', () => {
+      if (currentRoom) {
+        socket.emit('room:kick', { roomId: currentRoom, userKey: key });
+      }
+    });
+    li.appendChild(kickBtn);
+  }
+
   return li;
 }
 
@@ -1345,48 +1396,51 @@ function createGroupHeader(label, icon) {
   return header;
 }
 
-// Helper function to render user group
-function renderUserGroup(users, phase, role, label, icon) {
+// Helper function to render user group. `entries` are { key, user } pairs so the
+// facilitator kick control can target the stable server-side key.
+function renderUserGroup(entries, phase, role, label, icon, youAreModerator) {
   const frag = document.createDocumentFragment();
-  
-  if (users.length > 0) {
+
+  if (entries.length > 0) {
     frag.appendChild(createGroupHeader(label, icon));
-    users.forEach((u) => {
-      frag.appendChild(createUserItem(u, phase, role));
+    entries.forEach(({ key, user }) => {
+      frag.appendChild(createUserItem(user, phase, role, key, youAreModerator));
     });
   }
-  
+
   return frag;
 }
 
-function renderUsers(users, phase) {
+function renderUsers(users, phase, youAreModerator) {
   const list = el('usersList');
   if (!list) return;
   list.innerHTML = '';
 
-  const entries = Object.values(users ?? {});
+  // Preserve the stable per-user key (clientId) alongside each record so the
+  // facilitator kick control can address the right server-side record.
+  const entries = Object.entries(users ?? {}).map(([key, user]) => ({ key, user }));
   const usersPill = el('usersPill');
   if (usersPill) usersPill.textContent = String(entries.length);
 
   // Separate facilitators and voters in one pass
   const facilitators = [];
   const voters = [];
-  entries.forEach(u => {
-    if (u.isModerator) {
-      facilitators.push(u);
+  entries.forEach(entry => {
+    if (entry.user.isModerator) {
+      facilitators.push(entry);
     } else {
-      voters.push(u);
+      voters.push(entry);
     }
   });
-  
+
   // Sort after separation
-  facilitators.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
-  voters.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  facilitators.sort((a, b) => (a.user.name ?? '').localeCompare(b.user.name ?? ''));
+  voters.sort((a, b) => (a.user.name ?? '').localeCompare(b.user.name ?? ''));
 
   const frag = document.createDocumentFragment();
-  frag.appendChild(renderUserGroup(facilitators, phase, 'facilitator', 'Facilitator', '👑'));
-  frag.appendChild(renderUserGroup(voters, phase, 'voter', 'Voters', '👤'));
-  
+  frag.appendChild(renderUserGroup(facilitators, phase, 'facilitator', 'Facilitator', '👑', youAreModerator));
+  frag.appendChild(renderUserGroup(voters, phase, 'voter', 'Voters', '👤', youAreModerator));
+
   list.appendChild(frag);
 }
 
@@ -1415,6 +1469,9 @@ function createMetricChips(metrics) {
 // Helper function to calculate vote statistics
 function calculateVoteStats(users) {
   const votes = Object.values(users ?? {})
+    // Count only currently-connected participants toward the tally. An "away"
+    // participant's stale vote must not skew min/max/avg/median.
+    .filter((u) => u.connected !== false)
     .map((u) => {
       const vote = u.vote;
       // Exclude coffee cup from calculations (represents break/pause, not an estimate)

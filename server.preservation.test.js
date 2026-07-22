@@ -46,6 +46,7 @@ import {
   stopRoomCleanup,
   ROOM_IDLE_TIMEOUT,
   CLEANUP_INTERVAL,
+  DISCONNECT_GRACE_MS,
 } from './server.js';
 
 /** Encodes the bug condition exactly as specified in bugfix.md / design.md. */
@@ -211,8 +212,9 @@ describe('3.2 Preservation — intentional leave removes the user', () => {
 
       // Allow any (future) grace window to elapse without a reconnect. On the
       // unfixed code removal is immediate; after the fix it happens once the
-      // grace timer fires. Either way the user must ultimately be gone.
-      vi.advanceTimersByTime(120000);
+      // grace timer fires. Either way the user must ultimately be gone. Advance
+      // past the actual grace window so the test tracks the configured TTL.
+      vi.advanceTimersByTime(DISCONNECT_GRACE_MS + 1000);
 
       expect(findUser(room, s)).toBeUndefined();
     } finally {
@@ -506,9 +508,9 @@ describe('Property 2 (PBT): baseline behavior is preserved across the non-buggy 
           const room = rooms.get(roomId);
           expect(findUser(room, s)).toBeDefined();
 
-          // Intentional leave: disconnect, then let any grace window elapse.
+          // Intentional leave: disconnect, then let the grace window elapse.
           handleDisconnect(s);
-          vi.advanceTimersByTime(120000);
+          vi.advanceTimersByTime(DISCONNECT_GRACE_MS + 1000);
 
           expect(findUser(room, s)).toBeUndefined();
         } finally {
