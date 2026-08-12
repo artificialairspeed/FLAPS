@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "start": "node server.js",
     "test": "vitest --run"
@@ -14,11 +17,8 @@
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
-    "@babel/generator": "^7.29.7",
-    "@babel/parser": "^7.29.7",
     "fast-check": "^4.6.0",
     "jsdom": "^29.0.0",
-    "socket.io-client": "^4.8.3",
     "vitest": "^4.1.0"
   }
 }
