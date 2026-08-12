@@ -11,19 +11,19 @@ Property numbers below refer to the Correctness Properties in `design.md`. They 
 ## Tasks
 
 - [ ] 1. Phase 0 — baseline manifest capture
-  - [-] 1.1 Confirm clean working tree and create the scratch directory
+  - [x] 1.1 Confirm clean working tree and create the scratch directory
     - Run `git status --porcelain` and require empty output, so "uncommitted changes" always means "the current step's work"
     - Create `/tmp/flaps-housekeeping/`
     - _Requirements: 3.2_
 
-  - [~] 1.2 Capture the file and test inventories
+  - [-] 1.2 Capture the file and test inventories
     - Write `git ls-files | sort` to `/tmp/flaps-housekeeping/files.txt`
     - Run `npx vitest --run --reporter=json --outputFile=/tmp/flaps-housekeeping/tests.json`, then reduce it with the `node -e` script from the design into sorted `<file> :: <fullName> :: <status>` lines in `tests.txt`
     - Confirm every captured test id has status `passed` before treating the baseline as usable
     - **Establishes baselines for Property 1 and Property 2**
     - _Requirements: 3.2, 4.1_
 
-  - [~] 1.3 Capture the interface and style-token inventories and open the removal log
+  - [-] 1.3 Capture the interface and style-token inventories and open the removal log
     - Build `interface.json` from the grep inventories: HTTP route paths in `server.js`, Socket.IO event names with payload key sets in `server.js` and `public/app.js`, persisted session-state field names (`localStorage`/`sessionStorage` keys, `STATE_FILE` shape)
     - Build `css-tokens.txt`: live id/class/attribute vocabulary from `public/index.html` plus JS-produced class names, and the baseline `public/styles.css` selector list
     - Create `removals.md` with the removal-log table header and an empty Requirement 4 edit allowlist section
@@ -197,7 +197,7 @@ Property numbers below refer to the Correctness Properties in `design.md`. They 
 
   - [~] 10.2 Re-diff the interface and file manifests
     - Re-run the HTTP route, Socket.IO event/payload, and persisted-field extractions and diff against `interface.json`; require every pre-cleanup name present in the same role with the same payload key set
-    - Diff final `git ls-files` against `files.txt`: removals must be exactly `analysis-tools/**`, `.kiro/changes/changes.json`, and the five Abandoned_Spec folders; the only addition is `README.md`
+    - Diff final `git ls-files` against `files.txt`: removals must be exactly `analysis-tools/**`, `.kiro/changes/changes.json`, the five Abandoned_Spec folders, and `public/repro-highlight.test.js`; the only addition is `README.md`
     - **Verifies Property 1 and Property 6**
     - _Requirements: 1.1, 1.2, 1.3, 2.3, 3.6, 5.1_
 
@@ -220,6 +220,7 @@ Property numbers below refer to the Correctness Properties in `design.md`. They 
 - No task creates a new test file. Verification is the existing Vitest suite plus the shell/`node -e` invariant checks, so Properties 1–8 are checked by enumeration at the gates rather than by generated tests.
 - Verification sub-steps are not marked optional: Requirement 3.2 makes a green gate a precondition for the next removal step, so skipping one invalidates the phase that follows.
 - A test reference is a retention signal. When a removal candidate is named by a test, reconsider the removal before editing the test; if the removal stands, make the smallest edit and append it to the Requirement 4 edit allowlist in `removals.md`.
+- `public/repro-highlight.test.js` was deleted during Phase 0 by user decision: it was a failing abandoned bug-reproduction artifact (failing at the baseline commit, with leftover `console.log` traces and no fix ever made), so Requirement 4.1's retention guarantee — which covers tests that pass both before and after the cleanup — does not apply to it. The Phase 0 baseline was re-captured from the post-deletion tree and is therefore all-passing (186 tests, `npm test` exit 0), with the pre-deletion manifests preserved as `files.pre-repro-delete.txt` / `tests.pre-repro-delete.txt` and the deletion recorded in the Requirement 4 edit allowlist in `removals.md`.
 - Recovery from a red gate: `git checkout -- <touched paths>`, re-run the gate to confirm green, then retry with a narrower removal set.
 
 ## Task Dependency Graph
