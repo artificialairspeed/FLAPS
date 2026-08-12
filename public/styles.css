@@ -455,24 +455,6 @@ h3{ margin:0; font-size:14px; font-weight:600 }
   line-height:1.4;
 }
 
-/* Facilitator-only control to remove a participant from the roster. */
-.kickBtn{
-  flex-shrink:0;
-  margin-left:8px;
-  width:22px;
-  height:22px;
-  padding:0;
-  border:none;
-  border-radius:6px;
-  background:transparent;
-  color:var(--muted);
-  font-size:13px;
-  line-height:1;
-  cursor:pointer;
-}
-.kickBtn:hover{ color:#fff; background:var(--danger, #c0392b) }
-.kickBtn:focus-visible{ outline:2px solid var(--accent, #4f8cff); outline-offset:2px }
-
 /* ---------------------------------------------------------------
    Story form
 --------------------------------------------------------------- */
@@ -759,6 +741,17 @@ a:hover{ text-decoration:underline }
 .queueBtn:hover:not(:disabled){ border-color:var(--border-strong); background:var(--surface-3) }
 .queueBtn.primary{ border-color:var(--accent-border); background:var(--accent); color:#0b1220 }
 .queueBtn.primary:hover:not(:disabled){ background:var(--accent-hover); border-color:var(--accent-hover) }
+/* Re-Vote control on a finalized story card. Sizing, radius, font, focus ring
+   (button:focus-visible) and transition all come from .queueBtn; the accent
+   matches .queueBtn.primary so the button reads as the card's one action
+   sitting beside the .queueFinalChip pill in .queueActions. */
+.queueBtn.queueRevoteBtn{
+  padding:6px 10px;
+  border-color:var(--accent-border);
+  background:var(--accent);
+  color:#0b1220;
+}
+.queueBtn.queueRevoteBtn:hover:not(:disabled){ background:var(--accent-hover); border-color:var(--accent-hover) }
 .queueBtn.activeEstimate{
   border-color:var(--accent) !important;
   background:var(--accent-soft) !important;

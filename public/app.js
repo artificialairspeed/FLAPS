@@ -30,6 +30,12 @@ import {
   loadDefaults,
   saveDefaults
 } from './session-identity.js';
+// Re-vote core (clear/re-vote a finalized story). `isFinalizedValue` is the
+// single definition of "finalized" shared by the client renderers and the
+// server handler, so queue partitioning, the card action area, the active-story
+// highlight, and the export summary can never disagree — a blank or
+// whitespace-only `finalPoints` is pending everywhere (Req 1.10, 6.1, 6.3, 6.8).
+import { isFinalizedValue, normalizeStoryId } from './story-revote.js';
 
 /** ---------- Config ---------- */
 const SOCKET_URL = window.location.origin;
@@ -685,23 +691,6 @@ socket.on('error', ({ message }) => {
   showToast(message || 'An error occurred', 'error');
 });
 
-// The facilitator removed this participant. Clear the stored joined session so
-// the client does not immediately auto-rejoin (on reconnect or reload), reset
-// to the pre-join UI, and inform the user. They may still join again manually.
-socket.on('kicked', () => {
-  userJoined = false;
-  joinButtonClicked = false;
-  clearSessionData();
-  // Also clear the authoritative localStorage joined flag so bootstrap does not
-  // treat this as a resumable session on the next load.
-  try {
-    if (currentRoom) localStorage.removeItem('flaps_joined_' + currentRoom);
-  } catch {}
-  const ctx = { role: null, hasRoomInUrl: !!currentRoom, hasModKey: false };
-  render(deriveControls(STATES.INITIAL, ctx), STATES.INITIAL, ctx);
-  showToast('You were removed from the session by the facilitator.', 'warn');
-});
-
 // Only fall back to a manual re-join after Socket.IO has genuinely exhausted its
 // reconnection attempts — never merely because the tab was backgrounded. This is
 // the sole remaining path that surfaces the manual-rejoin fallback.
@@ -922,7 +911,7 @@ function renderAllComponents(state, canFinalize) {
   const hasActiveStory = !!state.activeStoryId;
   renderDeck(state.deck, state.phase, hasActiveStory);
   renderFinalPointsChips(state.deck, canFinalize);
-  renderUsers(state.users, state.phase, state.youAreModerator);
+  renderUsers(state.users, state.phase);
   renderResults(state);
   renderQueue(state);
 }
@@ -984,12 +973,15 @@ socket.on('room:state', (state) => {
     }
   }
 
-  renderAllComponents(state, canFinalize);
-  
-  // Reset selection when phase changes or story changes
+  // Reset selection when phase changes or story changes. This MUST run before
+  // renderAllComponents so a stale selectedFinalPoint from a previous round
+  // cannot render a chip in the selected state on this broadcast (Req 6.5) —
+  // e.g. the voting-phase state that follows a re-vote.
   if (state.phase !== 'revealed' || !state.activeStoryId) {
     selectedFinalPoint = null;
   }
+
+  renderAllComponents(state, canFinalize);
 });
 
 /** ---------- UI → Server ---------- */
@@ -1315,7 +1307,7 @@ function renderDeck(deck, phase, hasActiveStory) {
 }
 
 // Helper function to create user item element
-function createUserItem(user, phase, role, key, youAreModerator) {
+function createUserItem(user, phase, role) {
   const li = document.createElement('li');
   li.className = role === 'facilitator' ? 'userItem facilitatorItem' : 'userItem voterItem';
 
@@ -1367,24 +1359,6 @@ function createUserItem(user, phase, role, key, youAreModerator) {
   li.appendChild(nameWrap);
   li.appendChild(statusSpan);
 
-  // Facilitator-only "remove participant" control. Shown for voters (never for
-  // facilitators, who cannot be kicked) when the viewer is the moderator and we
-  // have a stable key to target on the server.
-  if (youAreModerator && role !== 'facilitator' && key) {
-    const kickBtn = document.createElement('button');
-    kickBtn.type = 'button';
-    kickBtn.className = 'kickBtn';
-    kickBtn.textContent = '✕';
-    kickBtn.title = `Remove ${user.name ?? 'participant'}`;
-    kickBtn.setAttribute('aria-label', `Remove ${user.name ?? 'participant'}`);
-    kickBtn.addEventListener('click', () => {
-      if (currentRoom) {
-        socket.emit('room:kick', { roomId: currentRoom, userKey: key });
-      }
-    });
-    li.appendChild(kickBtn);
-  }
-
   return li;
 }
 
@@ -1396,50 +1370,47 @@ function createGroupHeader(label, icon) {
   return header;
 }
 
-// Helper function to render user group. `entries` are { key, user } pairs so the
-// facilitator kick control can target the stable server-side key.
-function renderUserGroup(entries, phase, role, label, icon, youAreModerator) {
+// Helper function to render user group
+function renderUserGroup(users, phase, role, label, icon) {
   const frag = document.createDocumentFragment();
 
-  if (entries.length > 0) {
+  if (users.length > 0) {
     frag.appendChild(createGroupHeader(label, icon));
-    entries.forEach(({ key, user }) => {
-      frag.appendChild(createUserItem(user, phase, role, key, youAreModerator));
+    users.forEach((u) => {
+      frag.appendChild(createUserItem(u, phase, role));
     });
   }
 
   return frag;
 }
 
-function renderUsers(users, phase, youAreModerator) {
+function renderUsers(users, phase) {
   const list = el('usersList');
   if (!list) return;
   list.innerHTML = '';
 
-  // Preserve the stable per-user key (clientId) alongside each record so the
-  // facilitator kick control can address the right server-side record.
-  const entries = Object.entries(users ?? {}).map(([key, user]) => ({ key, user }));
+  const entries = Object.values(users ?? {});
   const usersPill = el('usersPill');
   if (usersPill) usersPill.textContent = String(entries.length);
 
   // Separate facilitators and voters in one pass
   const facilitators = [];
   const voters = [];
-  entries.forEach(entry => {
-    if (entry.user.isModerator) {
-      facilitators.push(entry);
+  entries.forEach(u => {
+    if (u.isModerator) {
+      facilitators.push(u);
     } else {
-      voters.push(entry);
+      voters.push(u);
     }
   });
 
   // Sort after separation
-  facilitators.sort((a, b) => (a.user.name ?? '').localeCompare(b.user.name ?? ''));
-  voters.sort((a, b) => (a.user.name ?? '').localeCompare(b.user.name ?? ''));
+  facilitators.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  voters.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
   const frag = document.createDocumentFragment();
-  frag.appendChild(renderUserGroup(facilitators, phase, 'facilitator', 'Facilitator', '👑', youAreModerator));
-  frag.appendChild(renderUserGroup(voters, phase, 'voter', 'Voters', '👤', youAreModerator));
+  frag.appendChild(renderUserGroup(facilitators, phase, 'facilitator', 'Facilitator', '👑'));
+  frag.appendChild(renderUserGroup(voters, phase, 'voter', 'Voters', '👤'));
 
   list.appendChild(frag);
 }
@@ -1588,7 +1559,7 @@ function partitionStoryQueue(queue, activeStoryId) {
   const pending = [];
   const done = [];
   queue.forEach((story) => {
-    if (story && story.finalPoints) done.push(story);
+    if (story && isFinalizedValue(story.finalPoints)) done.push(story);
     else pending.push(story);
   });
 
@@ -1607,12 +1578,21 @@ function createDeleteButton(storyId, currentRoom, socket) {
   rmBtn.className = 'queueBtn';
   rmBtn.type = 'button';
   rmBtn.textContent = '❌';
+  // Without a label the accessible name is the bare ❌ emoji. Naming it here
+  // on the shared builder covers finalized and pending cards alike (Req 1.12).
+  rmBtn.setAttribute('aria-label', 'Delete story');
+  rmBtn.title = 'Delete story';
   rmBtn.dataset.storyId = storyId;
 
   rmBtn.onclick = (e) => {
     e.stopPropagation();
     socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: storyId });
   };
+
+  // A native <button> already activates on Enter/Space in a browser, but jsdom
+  // does not synthesize that click, so the helper makes Req 9.2 observable. It
+  // calls click(), which runs the same single-emit onclick above.
+  addKeyboardClickSupport(rmBtn);
 
   return rmBtn;
 }
@@ -1731,6 +1711,44 @@ function enterStoryEditMode(li, story) {
   titleInput.focus();
 }
 
+/**
+ * Build the Re-Vote control for a finalized story card. Facilitator-only; the
+ * caller decides whether to append it (Req 1.1, 1.2).
+ */
+function createRevoteButton(story) {
+  const btn = document.createElement('button');
+  btn.className = 'queueBtn queueRevoteBtn';
+  btn.type = 'button';                                  // Req 1.4
+  btn.textContent = 'Re-Vote';                          // Req 1.5
+  btn.setAttribute('aria-label', 'Re-vote story');      // Req 1.4
+  btn.title = 'Re-vote story';
+  btn.dataset.storyId = story.id;                       // Req 1.7
+  btn.disabled = false;                                 // Req 1.9, 2.7
+  // stopPropagation keeps the activation off the enclosing card (Req 2.6).
+  btn.onclick = (e) => { e.stopPropagation(); requestRevote(story.id); };
+  addKeyboardClickSupport(btn);                         // Req 2.1 (Enter / Space)
+  return btn;
+}
+
+/**
+ * Ask the server to clear a finalized estimate and reopen the story for voting.
+ * Guards run id → room → connection and each returns before any emit, so a
+ * blocked activation emits nothing and mutates no client state (Req 2.3, 2.4,
+ * 2.8). On the success path nothing here touches the DOM or `lastState` — the
+ * queue changes only when the broadcast arrives (Req 2.2, 2.5).
+ */
+function requestRevote(storyId) {
+  const id = normalizeStoryId(storyId);
+  if (!id) return showToast('Could not identify the story to re-vote', 'error');  // Req 2.8
+  if (!currentRoom) return showToast('Join a room first', 'error');               // Req 2.4
+  if (!socket || !socket.connected) return showToast('Not connected to server', 'error');  // Req 2.3
+
+  socket.emit('storyQueue:revote', { roomId: currentRoom, storyId: id }, (res) => {
+    // The button is never disabled, so a rejected request stays retryable (Req 2.7).
+    if (res && res.ok === false) showToast(res.reason || 'Re-vote failed', 'error');
+  });
+}
+
 // Helper function to create queue item actions
 function createQueueActions(story, state, li) {
   const actions = document.createElement('div');
@@ -1739,7 +1757,7 @@ function createQueueActions(story, state, li) {
   // A finalized story has moved to "Estimate Done" and is no longer
   // actionable, so no buttons are shown. The final estimate pill takes
   // the place of the removed action buttons, sized to match them.
-  if (story.finalPoints) {
+  if (isFinalizedValue(story.finalPoints)) {
     // Mirror the "Final" metric chip from the results/math area, scaled
     // down to suit the story card: a small "FINAL" label above the value.
     const finalChip = document.createElement('div');
@@ -1757,6 +1775,22 @@ function createQueueActions(story, state, li) {
     finalChip.appendChild(label);
     finalChip.appendChild(value);
     actions.appendChild(finalChip);
+    // The facilitator can remove a finalized story, or send it back for
+    // re-estimation. The pill is appended first and this branch returns
+    // immediately, so the facilitator's action area is exactly
+    // [pill, Delete, Re-Vote] and a participant's is exactly [pill] — no Vote
+    // and no edit control either way (Req 1.1, 1.2, 1.6, 1.11). The delete
+    // control is the same shared builder the pending cards use, so it emits
+    // the same `storyQueue:remove` event with the same payload, unguarded and
+    // without a confirmation prompt (Req 9.3, 9.5, 9.9). Nothing here consults
+    // `activeStoryId`, so a finalized active story gets both controls enabled
+    // like any other card (Req 1.9).
+    if (state.youAreModerator) {
+      const rmBtn = createDeleteButton(story.id, currentRoom, socket);
+      rmBtn.classList.add('queueIconBtn');   // same square icon sizing as pending cards
+      actions.appendChild(rmBtn);
+      actions.appendChild(createRevoteButton(story));
+    }
     return actions;
   }
 
@@ -1797,7 +1831,7 @@ function createQueueItemElement(story, state) {
   // The accent border marks the story currently being estimated. A finalized
   // story has moved to "Estimate Done" and is no longer the active story, so
   // it should not carry the selected/active highlight.
-  const isActive = state.activeStoryId === story.id && !story.finalPoints;
+  const isActive = state.activeStoryId === story.id && !isFinalizedValue(story.finalPoints);
 
   const li = document.createElement('li');
   li.className = 'queueItem' + (isActive ? ' queueActive' : '');
@@ -1887,10 +1921,14 @@ function getQueueForExport() {
   return Array.isArray(lastState?.storyQueue) ? lastState.storyQueue : [];
 }
 
-/** Determine whether a story has a usable final points value. */
+/**
+ * Determine whether a story has a usable final points value.
+ * Delegates to the shared `isFinalizedValue` predicate so the export summary
+ * agrees with queue partitioning, the card action area, and the active-story
+ * highlight (Req 6.8).
+ */
 function hasFinalPoints(story) {
-  const fp = story?.finalPoints;
-  return fp !== null && fp !== undefined && String(fp).trim() !== '';
+  return isFinalizedValue(story?.finalPoints);
 }
 
 /** Build room/date metadata used across export formats. */

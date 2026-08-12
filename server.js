@@ -5,6 +5,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
+// Pure re-vote core, shared verbatim with the browser (served from public/), so
+// client and server hold one definition of "finalized" and one transition.
+import { applyRevote } from "./public/story-revote.js";
 
 
 // Configuration constants
@@ -376,7 +379,13 @@ async function broadcastRoom(roomId) {
     // Efficient broadcast using Socket.IO's room broadcast
     const sockets = await io.in(roomId).fetchSockets();
     for (const s of sockets) {
-      s.emit("room:state", makeRoomState(room, s));
+      // Isolate each delivery: a throw from one socket must not starve the rest
+      // of the room, and applied state is never rolled back on a failed emit.
+      try {
+        s.emit("room:state", makeRoomState(room, s));
+      } catch (err) {
+        console.error(`[broadcastRoom] emit failed for ${s.id}:`, err);
+      }
     }
   } catch (err) {
     console.error(`[broadcastRoom] Error broadcasting to room ${roomId}:`, err);
@@ -587,45 +596,6 @@ function handleVoteReveal(socket, { roomId } = {}) {
   broadcastRoom(roomId);
 }
 
-// Facilitator-only removal of a participant. Because participants now persist
-// through a long "away" grace window rather than being auto-removed on
-// disconnect, the facilitator needs an explicit way to clear out someone who
-// has genuinely left. Moderators cannot be kicked (prevents a facilitator from
-// removing themselves / losing control of the room).
-function handleUserKick(socket, { roomId, userKey } = {}) {
-  roomId = normalizeRoomId(roomId) || socket.data.roomId;
-  const room = rooms.get(roomId);
-  if (!room) return;
-  if (!requireModerator(room, socket)) return;
-
-  const key = String(userKey || "");
-  const target = room.users[key];
-  if (!target) return;
-  if (target.isModerator) return; // Never kick a facilitator.
-
-  // Clear any pending grace timer so it can't fire against a now-removed record.
-  if (target.graceTimer) {
-    clearTimeout(target.graceTimer);
-    target.graceTimer = null;
-  }
-  delete room.users[key];
-
-  // If the kicked user still has a live socket, remove it from the room so it
-  // stops receiving updates and notify it so the client can reset to pre-join.
-  if (target.socketId) {
-    const kickedSocket = io.sockets.sockets.get(target.socketId);
-    if (kickedSocket) {
-      kickedSocket.leave(roomId);
-      kickedSocket.emit("kicked", { roomId });
-    }
-  }
-
-  console.info(`[handleUserKick] room=${roomId} removed user=${key} by facilitator socket=${socket.id}.`);
-
-  room.lastActiveAt = Date.now();
-  broadcastRoom(roomId);
-}
-
 function handleStoryQueueAdd(socket, { roomId, story } = {}) {
   if (!checkRateLimit(socket.id)) return;
 
@@ -731,6 +701,34 @@ function handleStoryQueueSetActive(socket, { roomId, storyId } = {}, ack) {
   for (const uid of Object.keys(room.users)) room.users[uid].vote = null;
 
   room.lastActiveAt = Date.now();
+  broadcastRoom(roomId);
+
+  if (typeof ack === "function") ack({ ok: true });
+}
+
+// Re-vote a finalized story: clear its stored estimate, make it the active
+// story, return the room to "voting", and discard every cast vote. The whole
+// transition (and its ordered validation) lives in applyRevote, so this handler
+// owns only I/O: room lookup, moderator resolution, one broadcast, one ack. No
+// checkRateLimit, matching every sibling story-queue handler.
+function handleStoryQueueRevote(socket, { roomId, storyId } = {}, ack) {
+  roomId = normalizeRoomId(roomId) || socket.data.roomId;
+  // rooms.get, never getOrCreateRoom: an unknown room id must not create a room.
+  const room = rooms.get(roomId);
+
+  const result = applyRevote(room, storyId, {
+    isFacilitator: !!room && requireModerator(room, socket),
+    now: Date.now()
+  });
+
+  if (!result.ok) {
+    // Rejection is reported to the requesting socket only: no broadcast, and
+    // lastActiveAt is left as applyRevote found it.
+    if (typeof ack === "function") ack({ ok: false, reason: result.reason });
+    return;
+  }
+
+  // Exactly one broadcast, after every state change has been applied.
   broadcastRoom(roomId);
 
   if (typeof ack === "function") ack({ ok: true });
@@ -856,11 +854,11 @@ io.on("connection", (socket) => {
   socket.on("vote:set", (data) => handleVoteSet(socket, data));
   socket.on("vote:clear", (data) => handleVoteClear(socket, data));
   socket.on("vote:reveal", (data) => handleVoteReveal(socket, data));
-  socket.on("room:kick", (data) => handleUserKick(socket, data));
   socket.on("storyQueue:add", (data) => handleStoryQueueAdd(socket, data));
   socket.on("storyQueue:edit", (data) => handleStoryQueueEdit(socket, data));
   socket.on("storyQueue:remove", (data) => handleStoryQueueRemove(socket, data));
   socket.on("storyQueue:setActive", (data, ack) => handleStoryQueueSetActive(socket, data, ack));
+  socket.on("storyQueue:revote", (data, ack) => handleStoryQueueRevote(socket, data, ack));
   socket.on("storyQueue:finalize", (data) => handleStoryQueueFinalize(socket, data));
   socket.on("disconnect", () => handleDisconnect(socket));
 });
@@ -946,8 +944,10 @@ export {
   handleVoteSet,
   handleVoteClear,
   handleVoteReveal,
-  handleUserKick,
+  handleStoryQueueRemove,
   handleStoryQueueSetActive,
+  handleStoryQueueRevote,
+  handleStoryQueueFinalize,
   handleDisconnect,
   startRoomCleanup,
   stopRoomCleanup
