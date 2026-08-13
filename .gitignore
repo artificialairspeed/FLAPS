@@ -7,8 +7,5 @@ node_modules/
 coverage/
 .vite-temp/
 
-# Generated analysis output
-analysis-tools/reports/
-
 # Persisted room state (contains moderator keys; local runtime state only)
 .rooms-state.json

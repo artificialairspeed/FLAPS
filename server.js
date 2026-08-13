@@ -5,16 +5,29 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
+// Pure re-vote core, shared verbatim with the browser (served from public/), so
+// client and server hold one definition of "finalized" and one transition.
+import { applyRevote } from "./public/story-revote.js";
 
 
 // Configuration constants
 const ROOM_IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hour
 const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 // Grace period during which a disconnected user's session is retained (marked
-// disconnected) rather than deleted, so a reconnect within this window can
-// resume it. Far shorter than ROOM_IDLE_TIMEOUT so grace-held sessions never
-// affect idle-room cleanup.
-const DISCONNECT_GRACE_MS = 45 * 1000; // 45 seconds
+// disconnected / "away") rather than deleted, so a reconnect within this window
+// resumes it and the participant does not disappear from the roster on a
+// transient lapse, sleep, or longer absence. Sized to cover a full session's
+// worth of absence (a laptop closed over a lunch break, a long meeting
+// interruption) so a returning participant keeps their role and vote. Still
+// bounded, so ghosts who never return are swept automatically instead of
+// lingering forever.
+//
+// Note: this now equals ROOM_IDLE_TIMEOUT. A grace-held record keeps its room
+// non-empty, and idle cleanup only reaps rooms that are BOTH empty and idle, so
+// an abandoned room is retained for up to DISCONNECT_GRACE_MS + ROOM_IDLE_TIMEOUT
+// (~2 hours) before being swept. That is a deliberate retention tradeoff, not a
+// leak: the sweep still happens, just later.
+const DISCONNECT_GRACE_MS = 60 * 60 * 1000; // 1 hour
 const MODERATOR_KEY_LENGTH = 18;
 const MAX_ROOM_ID_LENGTH = 50;
 const MAX_NAME_LENGTH = 20;
@@ -45,7 +58,14 @@ const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || false,
     credentials: true
-  }
+  },
+  // Give briefly-backgrounded or laggy clients more room to answer the
+  // heartbeat before the server declares them dead. The default pingTimeout
+  // (20s) drops clients too eagerly on transient lapses, contributing to users
+  // flapping in and out; 30s tolerates short hiccups without meaningfully
+  // delaying detection of genuinely dead connections. pingInterval is left at
+  // its 25s default so it stays comfortably under typical proxy idle timeouts.
+  pingTimeout: 30000
 });
 
 // Enable gzip/brotli compression
@@ -329,7 +349,11 @@ function makeRoomState(room, socket) {
     Object.entries(room.users).map(([id, u]) => {
       const vote = room.phase === "revealed" ? u.vote : (u.vote ? "selected" : null);
       const isMod = u.isModerator || false;
-      return [id, { name: u.name, emoji: u.emoji || "", vote, isModerator: isMod }];
+      // `connected` drives the client's "away" indicator and the connected-only
+      // vote tally. A record is considered present unless explicitly marked
+      // disconnected during its grace window.
+      const connected = u.connected !== false;
+      return [id, { name: u.name, emoji: u.emoji || "", vote, isModerator: isMod, connected }];
     })
   );
 
@@ -362,7 +386,13 @@ async function broadcastRoom(roomId) {
     // Efficient broadcast using Socket.IO's room broadcast
     const sockets = await io.in(roomId).fetchSockets();
     for (const s of sockets) {
-      s.emit("room:state", makeRoomState(room, s));
+      // Isolate each delivery: a throw from one socket must not starve the rest
+      // of the room, and applied state is never rolled back on a failed emit.
+      try {
+        s.emit("room:state", makeRoomState(room, s));
+      } catch (err) {
+        console.error(`[broadcastRoom] emit failed for ${s.id}:`, err);
+      }
     }
   } catch (err) {
     console.error(`[broadcastRoom] Error broadcasting to room ${roomId}:`, err);
@@ -683,6 +713,34 @@ function handleStoryQueueSetActive(socket, { roomId, storyId } = {}, ack) {
   if (typeof ack === "function") ack({ ok: true });
 }
 
+// Re-vote a finalized story: clear its stored estimate, make it the active
+// story, return the room to "voting", and discard every cast vote. The whole
+// transition (and its ordered validation) lives in applyRevote, so this handler
+// owns only I/O: room lookup, moderator resolution, one broadcast, one ack. No
+// checkRateLimit, matching every sibling story-queue handler.
+function handleStoryQueueRevote(socket, { roomId, storyId } = {}, ack) {
+  roomId = normalizeRoomId(roomId) || socket.data.roomId;
+  // rooms.get, never getOrCreateRoom: an unknown room id must not create a room.
+  const room = rooms.get(roomId);
+
+  const result = applyRevote(room, storyId, {
+    isFacilitator: !!room && requireModerator(room, socket),
+    now: Date.now()
+  });
+
+  if (!result.ok) {
+    // Rejection is reported to the requesting socket only: no broadcast, and
+    // lastActiveAt is left as applyRevote found it.
+    if (typeof ack === "function") ack({ ok: false, reason: result.reason });
+    return;
+  }
+
+  // Exactly one broadcast, after every state change has been applied.
+  broadcastRoom(roomId);
+
+  if (typeof ack === "function") ack({ ok: true });
+}
+
 function handleStoryQueueFinalize(socket, { roomId, storyId, finalPoints } = {}) {
   roomId = normalizeRoomId(roomId) || socket.data.roomId;
   const room = rooms.get(roomId);
@@ -727,6 +785,11 @@ function armDisconnectGrace(room, roomId, userKey) {
     // Only remove if this record is still present and still disconnected
     // (i.e., no reconnect re-attached it in the meantime).
     if (current && current.connected === false) {
+      console.info(
+        `[armDisconnectGrace] Grace elapsed; removing user room=${roomId} ` +
+        `user=${userKey} (last socket=${current.socketId}). This is when the ` +
+        `user disappears from the roster.`
+      );
       delete room.users[userKey];
       room.lastActiveAt = Date.now();
       broadcastRoom(roomId);
@@ -751,11 +814,32 @@ function handleDisconnect(socket) {
   const user = room.users[userKey];
   if (!user) return;
 
+  // Ignore stale disconnects from a socket that has already been superseded.
+  // User records are keyed by the durable clientId, so on a reconnect the new
+  // socket (S2) resumes the record (connected=true, socketId=S2) BEFORE the old
+  // socket's (S1) delayed 'disconnect' arrives. Both sockets share the same
+  // clientId, so without this guard S1's disconnect would re-mark the LIVE
+  // record disconnected and arm a grace timer that deletes an online user ~45s
+  // later — the root cause of users flapping in and out. Only the socket
+  // currently bound to the record may transition it to disconnected.
+  if (user.socketId !== socket.id) {
+    console.warn(
+      `[handleDisconnect] Ignoring stale disconnect for room=${roomId} user=${userKey}: ` +
+      `disconnecting socket=${socket.id} but record is bound to socket=${user.socketId} ` +
+      `(a newer connection already took over).`
+    );
+    return;
+  }
+
   // Do NOT delete the user immediately. A disconnect may just be a transient
   // background-induced heartbeat lapse. Mark the user disconnected and arm a
   // grace timer; a reconnect within the grace window (Task 3.3) will cancel
   // this timer and resume the session. If the timer elapses without a
   // reconnect, the user is removed (covers intentional leaves too).
+  console.info(
+    `[handleDisconnect] room=${roomId} user=${userKey} socket=${socket.id} ` +
+    `marked disconnected; arming ${DISCONNECT_GRACE_MS}ms grace timer.`
+  );
   user.connected = false;
   user.disconnectedAt = Date.now();
 
@@ -781,6 +865,7 @@ io.on("connection", (socket) => {
   socket.on("storyQueue:edit", (data) => handleStoryQueueEdit(socket, data));
   socket.on("storyQueue:remove", (data) => handleStoryQueueRemove(socket, data));
   socket.on("storyQueue:setActive", (data, ack) => handleStoryQueueSetActive(socket, data, ack));
+  socket.on("storyQueue:revote", (data, ack) => handleStoryQueueRevote(socket, data, ack));
   socket.on("storyQueue:finalize", (data) => handleStoryQueueFinalize(socket, data));
   socket.on("disconnect", () => handleDisconnect(socket));
 });
@@ -866,7 +951,10 @@ export {
   handleVoteSet,
   handleVoteClear,
   handleVoteReveal,
+  handleStoryQueueRemove,
   handleStoryQueueSetActive,
+  handleStoryQueueRevote,
+  handleStoryQueueFinalize,
   handleDisconnect,
   startRoomCleanup,
   stopRoomCleanup

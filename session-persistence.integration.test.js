@@ -114,7 +114,7 @@ describe('Integration (server): full disconnect/reconnect session flows', () => 
     expect(room.users[clientId].vote).toBe('5');
 
     // 3) Time passes but stays WITHIN the grace window, then the user returns.
-    vi.advanceTimersByTime(DISCONNECT_GRACE_MS - 5000); // e.g. 40s < 45s
+    vi.advanceTimersByTime(DISCONNECT_GRACE_MS - 5000); // just short of the window
     const sockB = makeSocket('sockB-1', { clientId });
     handleRoomJoin(sockB, { roomId: ROOM, name: 'Ada', clientId });
 
@@ -204,7 +204,7 @@ describe('Integration (server): full disconnect/reconnect session flows', () => 
     expect(room.users[clientId]).toBeDefined();
 
     // 3) Cross the full grace boundary: the grace timer fires and removes them.
-    vi.advanceTimersByTime(DISCONNECT_GRACE_MS + 15000); // 60s > 45s
+    vi.advanceTimersByTime(DISCONNECT_GRACE_MS + 15000); // past the window
     expect(room.users[clientId]).toBeUndefined();
     expect(Object.keys(room.users).length).toBe(0);
 

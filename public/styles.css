@@ -439,6 +439,22 @@ h3{ margin:0; font-size:14px; font-weight:600 }
   text-transform:uppercase;
 }
 
+/* A disconnected participant retained during the grace window is shown dimmed
+   with an "Away" tag rather than being removed from the roster. */
+.userItem.isAway{ opacity:.55 }
+.uaway{
+  flex-shrink:0;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  border:1px solid var(--muted);
+  border-radius:10px;
+  padding:1px 6px;
+  line-height:1.4;
+}
+
 /* ---------------------------------------------------------------
    Story form
 --------------------------------------------------------------- */
@@ -631,15 +647,6 @@ a:hover{ text-decoration:underline }
   text-transform:uppercase !important;
   letter-spacing:.04em !important;
 }
-.queueMeta{
-  font-size:11px;
-  color:var(--accent);
-  font-weight:600;
-  white-space:nowrap;
-  flex-shrink:0;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-}
 .queueActive{
   background:var(--accent-soft);
   /* Full accent border in the same flat style as the former left pole */
@@ -654,56 +661,21 @@ a:hover{ text-decoration:underline }
   padding:8px 10px;
   line-height:1;
 }
-/* Final estimate status badge shown in the title row */
-.queueFinalBadge{
-  font-size:11px;
-  font-weight:600;
-  padding:2px 8px;
-  border:1px solid var(--border);
-  border-radius:var(--r-xs);
-  background:var(--surface-2);
-  color:var(--muted);
-  white-space:nowrap;
-  flex-shrink:0;
-  letter-spacing:.04em;
-}
-.queueFinalBadge.finalized{
-  border-color:var(--success-border);
-  background:var(--success-soft);
-  color:var(--success-text);
-}
-/* Final estimate chip shown in the actions area. Mirrors the "Final"
-   metric chip (.metricChip.isFinal) from the results/math area, scaled
-   down to be proportionate to the story card. */
+/* Final estimate chip on a finalized story card, first in the action row so it
+   sits immediately left of the delete control. All of its formatting — label
+   stacked above the value, success palette — comes from .metricChip.isFinal in
+   the results/math area, which the element also carries. These rules stop the
+   chip stretching in the action row and scale it down for the card; its height
+   comes from the .queueActionsFinal block below. */
 .queueFinalChip{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  flex:0 0 auto;
   justify-content:center;
-  padding:5px 10px;
-  border:1px solid var(--success-border);
-  border-radius:var(--r-sm);
-  background:var(--success-soft);
-  color:var(--success-text);
-  /* Reserve a consistent content width for up to 3 digits so 1-, 2-,
-     and 3-character estimates all render at the same size. */
-  box-sizing:content-box;
-  min-width:3ch;
+  padding:0 10px;
+  min-width:44px;
+  white-space:nowrap;
 }
-.queueFinalChipLabel{
-  font-size:8px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  line-height:1;
-  margin-bottom:3px;
-}
-.queueFinalChipValue{
-  font-size:14px;
-  font-weight:700;
-  color:var(--success-text);
-  line-height:1;
-}
+.queueFinalChipLabel{ font-size:9px; margin-bottom:2px }
+.queueFinalChipValue{ font-size:13px }
 .queueBtn{
   padding:8px 12px;
   border-radius:var(--r-sm);
@@ -725,6 +697,37 @@ a:hover{ text-decoration:underline }
 .queueBtn:hover:not(:disabled){ border-color:var(--border-strong); background:var(--surface-3) }
 .queueBtn.primary{ border-color:var(--accent-border); background:var(--accent); color:#0b1220 }
 .queueBtn.primary:hover:not(:disabled){ background:var(--accent-hover); border-color:var(--accent-hover) }
+/* Re-Vote control on a finalized story card. Sizing, radius, font, focus ring
+   (button:focus-visible) and transition all come from .queueBtn; the accent
+   matches .queueBtn.primary so the button reads as the card's one action
+   sitting beside the .queueFinalChip in .queueActions. */
+.queueBtn.queueRevoteBtn{
+  padding:6px 10px;
+  border-color:var(--accent-border);
+  background:var(--accent);
+  color:#0b1220;
+}
+.queueBtn.queueRevoteBtn:hover:not(:disabled){ background:var(--accent-hover); border-color:var(--accent-hover) }
+/* Finalized story cards drive every control in the action row from one height
+   token, so the final estimate chip, the ❌ delete button and the Re-Vote button
+   are exactly the same height. The token replaces the vertical padding those
+   controls would otherwise size themselves from, hence the explicit centring.
+   29px is the natural height of the .queueIconBtn delete control: 11px text at
+   line-height 1, plus 8px padding and 1px border top and bottom (border-box).
+   These rules sit after .queueIconBtn and .queueRevoteBtn so their per-control
+   padding cannot reintroduce a height difference. */
+.queueActionsFinal{ --queue-action-h:29px }
+.queueActionsFinal .queueBtn,
+.queueActionsFinal .queueFinalChip{
+  height:var(--queue-action-h);
+  padding-top:0;
+  padding-bottom:0;
+}
+.queueActionsFinal .queueBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
 .queueBtn.activeEstimate{
   border-color:var(--accent) !important;
   background:var(--accent-soft) !important;
@@ -879,12 +882,13 @@ footer{
   .queueListWrap{ max-height:200px; min-height:80px; margin-bottom:0 }
   .queueItem{ padding:12px 10px; gap:8px }
   .queueTitle{ font-size:12px }
-  .queueMeta{ font-size:10px }
   .queueBtn{ padding:6px 10px; font-size:10px }
-  .queueFinalBadge{ font-size:10px }
-  .queueFinalChip{ padding:4px 8px }
-  .queueFinalChipLabel{ font-size:7px }
-  .queueFinalChipValue{ font-size:13px }
+  .queueFinalChip{ padding:0 8px; min-width:40px }
+  .queueFinalChipLabel{ font-size:8px; margin-bottom:1px }
+  .queueFinalChipValue{ font-size:12px }
+  /* Mobile shrinks .queueBtn to 10px text and 6px padding, so the shared row
+     height comes down with it. */
+  .queueActionsFinal{ --queue-action-h:24px }
   .users{ padding-top:4px }
   .users li{ padding:10px 8px; gap:8px; min-height:44px }
   .userGroupHeader{ padding:12px 8px 6px 8px !important; margin-top:6px; gap:6px }

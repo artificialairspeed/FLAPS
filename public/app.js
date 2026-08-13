@@ -30,6 +30,12 @@ import {
   loadDefaults,
   saveDefaults
 } from './session-identity.js';
+// Re-vote core (clear/re-vote a finalized story). `isFinalizedValue` is the
+// single definition of "finalized" shared by the client renderers and the
+// server handler, so queue partitioning, the card action area, the active-story
+// highlight, and the export summary can never disagree — a blank or
+// whitespace-only `finalPoints` is pending everywhere (Req 1.10, 6.1, 6.3, 6.8).
+import { isFinalizedValue, normalizeStoryId } from './story-revote.js';
 
 /** ---------- Config ---------- */
 const SOCKET_URL = window.location.origin;
@@ -822,7 +828,10 @@ function updateButtonStates(state) {
   if (setStoryBtn) setStoryBtn.disabled = !state.youAreModerator;
   
   const hasActiveStory = !!state.activeStoryId;
-  const hasVotes = Object.values(state.users ?? {}).some(u => u.vote && u.vote !== null);
+  // Only connected participants count toward voting, so a lingering "away" vote
+  // never keeps Reveal/Clear enabled on its own.
+  const hasVotes = Object.values(state.users ?? {})
+    .some(u => u.connected !== false && u.vote && u.vote !== null);
   
   const revealBtn = el('revealBtn');
   if (revealBtn) {
@@ -964,12 +973,15 @@ socket.on('room:state', (state) => {
     }
   }
 
-  renderAllComponents(state, canFinalize);
-  
-  // Reset selection when phase changes or story changes
+  // Reset selection when phase changes or story changes. This MUST run before
+  // renderAllComponents so a stale selectedFinalPoint from a previous round
+  // cannot render a chip in the selected state on this broadcast (Req 6.5) —
+  // e.g. the voting-phase state that follows a re-vote.
   if (state.phase !== 'revealed' || !state.activeStoryId) {
     selectedFinalPoint = null;
   }
+
+  renderAllComponents(state, canFinalize);
 });
 
 /** ---------- UI → Server ---------- */
@@ -1299,6 +1311,11 @@ function createUserItem(user, phase, role) {
   const li = document.createElement('li');
   li.className = role === 'facilitator' ? 'userItem facilitatorItem' : 'userItem voterItem';
 
+  // A disconnected participant is retained as "away" during the grace window
+  // rather than removed, so mark it visually and for assistive tech.
+  const isAway = user.connected === false;
+  if (isAway) li.classList.add('isAway');
+
   const nameWrap = document.createElement('span');
   nameWrap.className = 'unameWrap';
 
@@ -1315,6 +1332,13 @@ function createUserItem(user, phase, role) {
   nameSpan.textContent = user.name ?? '';
   nameWrap.appendChild(nameSpan);
 
+  if (isAway) {
+    const awayBadge = document.createElement('span');
+    awayBadge.className = 'uaway';
+    awayBadge.textContent = 'Away';
+    nameWrap.appendChild(awayBadge);
+  }
+
   const statusSpan = document.createElement('span');
   statusSpan.className = 'ustatus';
   let statusText = '';
@@ -1329,11 +1353,12 @@ function createUserItem(user, phase, role) {
   // Enhanced accessibility
   li.setAttribute('role', 'listitem');
   const roleLabel = role === 'facilitator' ? 'Facilitator' : 'Voter';
-  li.setAttribute('aria-label', `${user.name}, ${roleLabel}, ${statusText}`);
+  const presenceLabel = isAway ? ', Away' : '';
+  li.setAttribute('aria-label', `${user.name}, ${roleLabel}${presenceLabel}, ${statusText}`);
 
   li.appendChild(nameWrap);
   li.appendChild(statusSpan);
-  
+
   return li;
 }
 
@@ -1348,14 +1373,14 @@ function createGroupHeader(label, icon) {
 // Helper function to render user group
 function renderUserGroup(users, phase, role, label, icon) {
   const frag = document.createDocumentFragment();
-  
+
   if (users.length > 0) {
     frag.appendChild(createGroupHeader(label, icon));
     users.forEach((u) => {
       frag.appendChild(createUserItem(u, phase, role));
     });
   }
-  
+
   return frag;
 }
 
@@ -1378,7 +1403,7 @@ function renderUsers(users, phase) {
       voters.push(u);
     }
   });
-  
+
   // Sort after separation
   facilitators.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
   voters.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
@@ -1386,7 +1411,7 @@ function renderUsers(users, phase) {
   const frag = document.createDocumentFragment();
   frag.appendChild(renderUserGroup(facilitators, phase, 'facilitator', 'Facilitator', '👑'));
   frag.appendChild(renderUserGroup(voters, phase, 'voter', 'Voters', '👤'));
-  
+
   list.appendChild(frag);
 }
 
@@ -1415,6 +1440,9 @@ function createMetricChips(metrics) {
 // Helper function to calculate vote statistics
 function calculateVoteStats(users) {
   const votes = Object.values(users ?? {})
+    // Count only currently-connected participants toward the tally. An "away"
+    // participant's stale vote must not skew min/max/avg/median.
+    .filter((u) => u.connected !== false)
     .map((u) => {
       const vote = u.vote;
       // Exclude coffee cup from calculations (represents break/pause, not an estimate)
@@ -1531,7 +1559,7 @@ function partitionStoryQueue(queue, activeStoryId) {
   const pending = [];
   const done = [];
   queue.forEach((story) => {
-    if (story && story.finalPoints) done.push(story);
+    if (story && isFinalizedValue(story.finalPoints)) done.push(story);
     else pending.push(story);
   });
 
@@ -1550,6 +1578,10 @@ function createDeleteButton(storyId, currentRoom, socket) {
   rmBtn.className = 'queueBtn';
   rmBtn.type = 'button';
   rmBtn.textContent = '❌';
+  // Without a label the accessible name is the bare ❌ emoji. Naming it here
+  // on the shared builder covers finalized and pending cards alike (Req 1.12).
+  rmBtn.setAttribute('aria-label', 'Delete story');
+  rmBtn.title = 'Delete story';
   rmBtn.dataset.storyId = storyId;
 
   rmBtn.onclick = (e) => {
@@ -1557,11 +1589,42 @@ function createDeleteButton(storyId, currentRoom, socket) {
     socket.emit('storyQueue:remove', { roomId: currentRoom, storyId: storyId });
   };
 
+  // A native <button> already activates on Enter/Space in a browser, but jsdom
+  // does not synthesize that click, so the helper makes Req 9.2 observable. It
+  // calls click(), which runs the same single-emit onclick above.
+  addKeyboardClickSupport(rmBtn);
+
   return rmBtn;
 }
 
+/**
+ * Build the final estimate chip for a finalized story: an uppercase "FINAL"
+ * label stacked above the stored value. It carries the same classes as the
+ * "Final" metric chip in the results/math area (`.metricChip.isFinal` with
+ * `.metricLabel` / `.metricValue`), so the two are formatted identically and
+ * stay in sync. The extra `queueFinalChip*` classes only scale it down for the
+ * story card action row and keep existing selectors working.
+ */
+function createFinalChip(story) {
+  const finalChip = document.createElement('div');
+  finalChip.className = 'metricChip isFinal queueFinalChip';
+  finalChip.setAttribute('aria-label', `Final estimate: ${story.finalPoints}`);
+
+  const label = document.createElement('span');
+  label.className = 'metricLabel queueFinalChipLabel';
+  label.textContent = 'Final';
+
+  const value = document.createElement('span');
+  value.className = 'metricValue queueFinalChipValue';
+  value.textContent = story.finalPoints;
+
+  finalChip.appendChild(label);
+  finalChip.appendChild(value);
+  return finalChip;
+}
+
 // Helper function to create queue item title row
-function createQueueTitleRow(story, isActive) {
+function createQueueTitleRow(story) {
   const titleRow = document.createElement('div');
   titleRow.className = 'queueTitleRow';
 
@@ -1577,8 +1640,9 @@ function createQueueTitleRow(story, isActive) {
 
   // Active story is indicated by the full accent border on the card
   // (see .queueActive in styles.css), so no text badge is needed here.
-  // The final estimate pill is rendered in the actions area (see
-  // createQueueActions), taking the place of the removed action buttons.
+  // The final estimate chip lives in the action area at the start of the row,
+  // immediately left of the delete control (see createQueueActions), so the
+  // title row carries only the story number.
 
   return titleRow;
 }
@@ -1674,32 +1738,76 @@ function enterStoryEditMode(li, story) {
   titleInput.focus();
 }
 
+/**
+ * Build the Re-Vote control for a finalized story card. Facilitator-only; the
+ * caller decides whether to append it (Req 1.1, 1.2).
+ */
+function createRevoteButton(story) {
+  const btn = document.createElement('button');
+  btn.className = 'queueBtn queueRevoteBtn';
+  btn.type = 'button';                                  // Req 1.4
+  btn.textContent = 'Re-Vote';                          // Req 1.5
+  btn.setAttribute('aria-label', 'Re-vote story');      // Req 1.4
+  btn.title = 'Re-vote story';
+  btn.dataset.storyId = story.id;                       // Req 1.7
+  btn.disabled = false;                                 // Req 1.9, 2.7
+  // stopPropagation keeps the activation off the enclosing card (Req 2.6).
+  btn.onclick = (e) => { e.stopPropagation(); requestRevote(story.id); };
+  addKeyboardClickSupport(btn);                         // Req 2.1 (Enter / Space)
+  return btn;
+}
+
+/**
+ * Ask the server to clear a finalized estimate and reopen the story for voting.
+ * Guards run id → room → connection and each returns before any emit, so a
+ * blocked activation emits nothing and mutates no client state (Req 2.3, 2.4,
+ * 2.8). On the success path nothing here touches the DOM or `lastState` — the
+ * queue changes only when the broadcast arrives (Req 2.2, 2.5).
+ */
+function requestRevote(storyId) {
+  const id = normalizeStoryId(storyId);
+  if (!id) return showToast('Could not identify the story to re-vote', 'error');  // Req 2.8
+  if (!currentRoom) return showToast('Join a room first', 'error');               // Req 2.4
+  if (!socket || !socket.connected) return showToast('Not connected to server', 'error');  // Req 2.3
+
+  socket.emit('storyQueue:revote', { roomId: currentRoom, storyId: id }, (res) => {
+    // The button is never disabled, so a rejected request stays retryable (Req 2.7).
+    if (res && res.ok === false) showToast(res.reason || 'Re-vote failed', 'error');
+  });
+}
+
 // Helper function to create queue item actions
 function createQueueActions(story, state, li) {
   const actions = document.createElement('div');
   actions.className = 'queueActions';
 
   // A finalized story has moved to "Estimate Done" and is no longer
-  // actionable, so no buttons are shown. The final estimate pill takes
-  // the place of the removed action buttons, sized to match them.
-  if (story.finalPoints) {
-    // Mirror the "Final" metric chip from the results/math area, scaled
-    // down to suit the story card: a small "FINAL" label above the value.
-    const finalChip = document.createElement('div');
-    finalChip.className = 'queueFinalChip';
-    finalChip.setAttribute('aria-label', `Final estimate: ${story.finalPoints}`);
+  // actionable, so the Vote and edit buttons are not shown.
+  if (isFinalizedValue(story.finalPoints)) {
+    // The modifier class gives every control in this row one shared height, so
+    // the chip matches the delete and Re-Vote buttons (see styles.css).
+    actions.classList.add('queueActionsFinal');
 
-    const label = document.createElement('span');
-    label.className = 'queueFinalChipLabel';
-    label.textContent = 'Final';
+    // The final estimate chip leads the row so it sits immediately left of the
+    // delete control. It is appended for both roles — a participant still needs
+    // to read the agreed estimate even though they get no controls.
+    actions.appendChild(createFinalChip(story));
 
-    const value = document.createElement('span');
-    value.className = 'queueFinalChipValue';
-    value.textContent = story.finalPoints;
-
-    finalChip.appendChild(label);
-    finalChip.appendChild(value);
-    actions.appendChild(finalChip);
+    // The facilitator can remove a finalized story, or send it back for
+    // re-estimation. This branch returns immediately, so the facilitator's
+    // action area is exactly [Final chip, Delete, Re-Vote] and a participant's
+    // is [Final chip] — no Vote and no edit control either way (Req 1.1, 1.2,
+    // 1.6, 1.11). The delete control is the same shared builder the pending
+    // cards use, so it emits the same `storyQueue:remove` event with the same
+    // payload, unguarded and without a confirmation prompt (Req 9.3, 9.5, 9.9).
+    // Nothing here consults `activeStoryId`, so a finalized active story gets
+    // both controls enabled like any other card (Req 1.9).
+    if (state.youAreModerator) {
+      const rmBtn = createDeleteButton(story.id, currentRoom, socket);
+      rmBtn.classList.add('queueIconBtn');   // same square icon sizing as pending cards
+      actions.appendChild(rmBtn);
+      actions.appendChild(createRevoteButton(story));
+    }
     return actions;
   }
 
@@ -1740,7 +1848,7 @@ function createQueueItemElement(story, state) {
   // The accent border marks the story currently being estimated. A finalized
   // story has moved to "Estimate Done" and is no longer the active story, so
   // it should not carry the selected/active highlight.
-  const isActive = state.activeStoryId === story.id && !story.finalPoints;
+  const isActive = state.activeStoryId === story.id && !isFinalizedValue(story.finalPoints);
 
   const li = document.createElement('li');
   li.className = 'queueItem' + (isActive ? ' queueActive' : '');
@@ -1748,7 +1856,7 @@ function createQueueItemElement(story, state) {
   const left = document.createElement('div');
   left.className = 'queueLeft';
 
-  const titleRow = createQueueTitleRow(story, isActive);
+  const titleRow = createQueueTitleRow(story);
   left.appendChild(titleRow);
 
   // Display title on its own line
@@ -1830,10 +1938,14 @@ function getQueueForExport() {
   return Array.isArray(lastState?.storyQueue) ? lastState.storyQueue : [];
 }
 
-/** Determine whether a story has a usable final points value. */
+/**
+ * Determine whether a story has a usable final points value.
+ * Delegates to the shared `isFinalizedValue` predicate so the export summary
+ * agrees with queue partitioning, the card action area, and the active-story
+ * highlight (Req 6.8).
+ */
 function hasFinalPoints(story) {
-  const fp = story?.finalPoints;
-  return fp !== null && fp !== undefined && String(fp).trim() !== '';
+  return isFinalizedValue(story?.finalPoints);
 }
 
 /** Build room/date metadata used across export formats. */
@@ -1927,15 +2039,21 @@ function exportQueueMarkdown() {
 
 /** Build a self-contained, print-ready HTML document for the queue. */
 function buildExportHtml(queue, meta, summary) {
+  // The report is opened from a Blob URL, whose base URL is not the app's, so
+  // icon and logo paths are made absolute against the serving origin.
+  const assetBase = window.location.origin;
   const rows = queue.map((s, i) => {
     const ptsCell = hasFinalPoints(s)
       ? `<span class="pts">${escapeHtml(s.finalPoints)}</span>`
       : '<span class="ptsNone">Not estimated</span>';
+    // Uppercase before escaping so HTML entities (&amp;) stay intact while the
+    // story name itself renders — and copies out of the PDF — in ALL CAPS.
+    const titleUpper = String(s.title ?? '').toUpperCase();
     return `<tr>
         <td class="idx">${i + 1}</td>
         <td class="jira">${escapeHtml(s.number) || '<span class="dash">—</span>'}</td>
         <td class="story">
-          <div class="titleText">${escapeHtml(s.title) || '<span class="dash">—</span>'}</div>
+          <div class="titleText">${escapeHtml(titleUpper) || '<span class="dash">—</span>'}</div>
         </td>
         <td class="ptsCol">${ptsCell}</td>
       </tr>`;
@@ -1947,6 +2065,9 @@ function buildExportHtml(queue, meta, summary) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>FLAPS — Story Point Estimates</title>
+<link rel="icon" type="image/png" sizes="32x32" href="${assetBase}/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="${assetBase}/favicon-16.png" />
+<link rel="apple-touch-icon" href="${assetBase}/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
@@ -1976,8 +2097,10 @@ function buildExportHtml(queue, meta, summary) {
     gap:24px; padding-bottom:18px; margin-bottom:24px;
     border-bottom:3px solid var(--accent);
   }
+  .brandBlock{ display:flex; align-items:center; gap:14px; }
+  .brandLogo{ width:44px; height:44px; border-radius:8px; flex:none; }
   .brandBlock .title{ font-size:24px; font-weight:900; letter-spacing:-.02em; margin:0; }
-  .brandBlock .subtitle{ font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+  .brandBlock .subtitle{ font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:4px 0 0; }
   .metaBlock{ text-align:right; font-size:12px; color:var(--muted); }
 
   .summary{ display:flex; gap:12px; margin-bottom:26px; flex-wrap:wrap; }
@@ -2038,8 +2161,11 @@ function buildExportHtml(queue, meta, summary) {
   <div class="sheet">
     <header class="report">
       <div class="brandBlock">
-        <p class="title">Story Point Estimates</p>
-        <p class="subtitle">FLAPS · Fibonacci Lean Agile Pointing System</p>
+        <img class="brandLogo" src="${assetBase}/app-icon.png" alt="FLAPS logo" />
+        <div class="brandText">
+          <p class="title">Story Point Estimates</p>
+          <p class="subtitle">FLAPS · Fibonacci Lean Agile Pointing System</p>
+        </div>
       </div>
       <div class="metaBlock">
         <div>${escapeHtml(meta.dateStr)}</div>
@@ -2126,7 +2252,11 @@ function buildExportHtml(queue, meta, summary) {
 </html>`;
 }
 
-/** Export the story queue as a print-ready PDF via the browser print dialog. */
+/**
+ * Open the story queue as a print-ready HTML report in a new tab.
+ * The report is only displayed — printing stays a deliberate user action
+ * (Cmd/Ctrl+P in the report tab), where "Save as PDF" produces the document.
+ */
 function exportQueuePdf() {
   const queue = getQueueForExport();
   if (!queue.length) return showToast('No stories in the queue to export.', 'warn');
@@ -2135,25 +2265,21 @@ function exportQueuePdf() {
   const summary = summarizeQueue(queue);
   const html = buildExportHtml(queue, meta, summary);
 
-  const win = window.open('', '_blank');
-  if (!win) return showToast('Popup blocked. Allow popups to export a PDF.', 'error');
-
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-
-  // Wait for the document (and web fonts) to finish loading before printing.
-  const triggerPrint = () => {
-    win.focus();
-    win.print();
-  };
-  if (win.document.readyState === 'complete') {
-    setTimeout(triggerPrint, 400);
-  } else {
-    win.onload = () => setTimeout(triggerPrint, 400);
+  // Served from a Blob URL rather than written into `about:blank` so the tab is
+  // a real document: the browser then fetches the report's favicon links the
+  // way it would for any page.
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  const win = window.open(url, '_blank');
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return showToast('Popup blocked. Allow popups to open the report.', 'error');
   }
 
-  showToast('Opening print dialog — choose "Save as PDF".', 'success');
+  // Keep the URL alive long enough for the tab to load and for a reload or two,
+  // then release it so the Blob is not retained for the rest of the session.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+  showToast('✓ Report opened in a new tab', 'success');
 }
 
 /** Enable or disable export controls based on queue contents. */
