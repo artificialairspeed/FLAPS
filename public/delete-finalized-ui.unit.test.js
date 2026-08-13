@@ -185,24 +185,31 @@ describe('finalized delete control: rendered attributes and position (Req 1.11, 
     // It carries the id of the story whose card it sits on.
     expect(del.dataset.storyId).toBe(entry.id);
 
-    // Req 1.11 — position: first element of .queueActions and immediately
-    // before the Re-Vote control. The final estimate pill is not in the action
-    // area at all; it sits in the title row beside the story number pill.
+    // Req 1.11 — position: the delete control sits between the final estimate
+    // chip and the Re-Vote control, so the action row reads
+    // [Final chip, Delete, Re-Vote]. The chip is no longer in the title row.
     const revote = actions.querySelector('.queueRevoteBtn');
     expect(revote).not.toBeNull();
 
+    const chip = actions.querySelector('.queueFinalChip');
+    expect(chip).not.toBeNull();
+
     const order = Array.from(actions.children);
-    expect(order.length).toBe(2);
-    expect(order.indexOf(del)).toBe(0);
-    expect(order.indexOf(revote)).toBe(1);
-    expect(del.previousElementSibling).toBeNull();
+    expect(order.length).toBe(3);
+    expect(order.indexOf(chip)).toBe(0);
+    expect(order.indexOf(del)).toBe(1);
+    expect(order.indexOf(revote)).toBe(2);
+    expect(del.previousElementSibling).toBe(chip);
     expect(del.nextElementSibling).toBe(revote);
 
-    expect(actions.querySelector('.queueFinalChip')).toBeNull();
     const titleRow = card.querySelector('.queueTitleRow');
-    const pill = titleRow.querySelector('.queueFinalChip');
-    expect(pill).not.toBeNull();
-    expect(pill.previousElementSibling.classList.contains('queueNumber')).toBe(true);
+    expect(titleRow.querySelector('.queueFinalChip')).toBeNull();
+
+    // Formatted like the "Final" metric chip from the results area.
+    expect(chip.classList.contains('metricChip')).toBe(true);
+    expect(chip.classList.contains('isFinal')).toBe(true);
+    expect(chip.querySelector('.metricLabel').textContent).toBe('Final');
+    expect(chip.querySelector('.metricValue').textContent).toBe(String(entry.finalPoints));
   });
 });
 

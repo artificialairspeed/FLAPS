@@ -1598,21 +1598,24 @@ function createDeleteButton(storyId, currentRoom, socket) {
 }
 
 /**
- * Build the final estimate pill for a finalized story: a small "FINAL" label
- * beside the stored value, mirroring the "Final" metric chip from the
- * results/math area scaled down to suit the story card.
+ * Build the final estimate chip for a finalized story: an uppercase "FINAL"
+ * label stacked above the stored value. It carries the same classes as the
+ * "Final" metric chip in the results/math area (`.metricChip.isFinal` with
+ * `.metricLabel` / `.metricValue`), so the two are formatted identically and
+ * stay in sync. The extra `queueFinalChip*` classes only scale it down for the
+ * story card action row and keep existing selectors working.
  */
 function createFinalChip(story) {
   const finalChip = document.createElement('div');
-  finalChip.className = 'queueFinalChip';
+  finalChip.className = 'metricChip isFinal queueFinalChip';
   finalChip.setAttribute('aria-label', `Final estimate: ${story.finalPoints}`);
 
   const label = document.createElement('span');
-  label.className = 'queueFinalChipLabel';
+  label.className = 'metricLabel queueFinalChipLabel';
   label.textContent = 'Final';
 
   const value = document.createElement('span');
-  value.className = 'queueFinalChipValue';
+  value.className = 'metricValue queueFinalChipValue';
   value.textContent = story.finalPoints;
 
   finalChip.appendChild(label);
@@ -1621,7 +1624,7 @@ function createFinalChip(story) {
 }
 
 // Helper function to create queue item title row
-function createQueueTitleRow(story, isActive) {
+function createQueueTitleRow(story) {
   const titleRow = document.createElement('div');
   titleRow.className = 'queueTitleRow';
 
@@ -1637,11 +1640,9 @@ function createQueueTitleRow(story, isActive) {
 
   // Active story is indicated by the full accent border on the card
   // (see .queueActive in styles.css), so no text badge is needed here.
-  // The final estimate pill sits beside the story number, reading as story
-  // metadata, so the actions area holds only the card's actual controls.
-  if (isFinalizedValue(story.finalPoints)) {
-    titleRow.appendChild(createFinalChip(story));
-  }
+  // The final estimate chip lives in the action area at the start of the row,
+  // immediately left of the delete control (see createQueueActions), so the
+  // title row carries only the story number.
 
   return titleRow;
 }
@@ -1781,19 +1782,26 @@ function createQueueActions(story, state, li) {
   actions.className = 'queueActions';
 
   // A finalized story has moved to "Estimate Done" and is no longer
-  // actionable, so the Vote and edit buttons are not shown. The final estimate
-  // pill lives in the title row beside the story number
-  // (see createQueueTitleRow), not here.
+  // actionable, so the Vote and edit buttons are not shown.
   if (isFinalizedValue(story.finalPoints)) {
+    // The modifier class gives every control in this row one shared height, so
+    // the chip matches the delete and Re-Vote buttons (see styles.css).
+    actions.classList.add('queueActionsFinal');
+
+    // The final estimate chip leads the row so it sits immediately left of the
+    // delete control. It is appended for both roles — a participant still needs
+    // to read the agreed estimate even though they get no controls.
+    actions.appendChild(createFinalChip(story));
+
     // The facilitator can remove a finalized story, or send it back for
     // re-estimation. This branch returns immediately, so the facilitator's
-    // action area is exactly [Delete, Re-Vote] and a participant's is empty —
-    // no Vote and no edit control either way (Req 1.1, 1.2, 1.6, 1.11). The delete
-    // control is the same shared builder the pending cards use, so it emits
-    // the same `storyQueue:remove` event with the same payload, unguarded and
-    // without a confirmation prompt (Req 9.3, 9.5, 9.9). Nothing here consults
-    // `activeStoryId`, so a finalized active story gets both controls enabled
-    // like any other card (Req 1.9).
+    // action area is exactly [Final chip, Delete, Re-Vote] and a participant's
+    // is [Final chip] — no Vote and no edit control either way (Req 1.1, 1.2,
+    // 1.6, 1.11). The delete control is the same shared builder the pending
+    // cards use, so it emits the same `storyQueue:remove` event with the same
+    // payload, unguarded and without a confirmation prompt (Req 9.3, 9.5, 9.9).
+    // Nothing here consults `activeStoryId`, so a finalized active story gets
+    // both controls enabled like any other card (Req 1.9).
     if (state.youAreModerator) {
       const rmBtn = createDeleteButton(story.id, currentRoom, socket);
       rmBtn.classList.add('queueIconBtn');   // same square icon sizing as pending cards
@@ -1848,7 +1856,7 @@ function createQueueItemElement(story, state) {
   const left = document.createElement('div');
   left.className = 'queueLeft';
 
-  const titleRow = createQueueTitleRow(story, isActive);
+  const titleRow = createQueueTitleRow(story);
   left.appendChild(titleRow);
 
   // Display title on its own line
@@ -2031,15 +2039,21 @@ function exportQueueMarkdown() {
 
 /** Build a self-contained, print-ready HTML document for the queue. */
 function buildExportHtml(queue, meta, summary) {
+  // The report is opened from a Blob URL, whose base URL is not the app's, so
+  // icon and logo paths are made absolute against the serving origin.
+  const assetBase = window.location.origin;
   const rows = queue.map((s, i) => {
     const ptsCell = hasFinalPoints(s)
       ? `<span class="pts">${escapeHtml(s.finalPoints)}</span>`
       : '<span class="ptsNone">Not estimated</span>';
+    // Uppercase before escaping so HTML entities (&amp;) stay intact while the
+    // story name itself renders — and copies out of the PDF — in ALL CAPS.
+    const titleUpper = String(s.title ?? '').toUpperCase();
     return `<tr>
         <td class="idx">${i + 1}</td>
         <td class="jira">${escapeHtml(s.number) || '<span class="dash">—</span>'}</td>
         <td class="story">
-          <div class="titleText">${escapeHtml(s.title) || '<span class="dash">—</span>'}</div>
+          <div class="titleText">${escapeHtml(titleUpper) || '<span class="dash">—</span>'}</div>
         </td>
         <td class="ptsCol">${ptsCell}</td>
       </tr>`;
@@ -2051,6 +2065,9 @@ function buildExportHtml(queue, meta, summary) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>FLAPS — Story Point Estimates</title>
+<link rel="icon" type="image/png" sizes="32x32" href="${assetBase}/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="${assetBase}/favicon-16.png" />
+<link rel="apple-touch-icon" href="${assetBase}/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
@@ -2080,8 +2097,10 @@ function buildExportHtml(queue, meta, summary) {
     gap:24px; padding-bottom:18px; margin-bottom:24px;
     border-bottom:3px solid var(--accent);
   }
+  .brandBlock{ display:flex; align-items:center; gap:14px; }
+  .brandLogo{ width:44px; height:44px; border-radius:8px; flex:none; }
   .brandBlock .title{ font-size:24px; font-weight:900; letter-spacing:-.02em; margin:0; }
-  .brandBlock .subtitle{ font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+  .brandBlock .subtitle{ font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:4px 0 0; }
   .metaBlock{ text-align:right; font-size:12px; color:var(--muted); }
 
   .summary{ display:flex; gap:12px; margin-bottom:26px; flex-wrap:wrap; }
@@ -2142,8 +2161,11 @@ function buildExportHtml(queue, meta, summary) {
   <div class="sheet">
     <header class="report">
       <div class="brandBlock">
-        <p class="title">Story Point Estimates</p>
-        <p class="subtitle">FLAPS · Fibonacci Lean Agile Pointing System</p>
+        <img class="brandLogo" src="${assetBase}/app-icon.png" alt="FLAPS logo" />
+        <div class="brandText">
+          <p class="title">Story Point Estimates</p>
+          <p class="subtitle">FLAPS · Fibonacci Lean Agile Pointing System</p>
+        </div>
       </div>
       <div class="metaBlock">
         <div>${escapeHtml(meta.dateStr)}</div>
@@ -2230,7 +2252,11 @@ function buildExportHtml(queue, meta, summary) {
 </html>`;
 }
 
-/** Export the story queue as a print-ready PDF via the browser print dialog. */
+/**
+ * Open the story queue as a print-ready HTML report in a new tab.
+ * The report is only displayed — printing stays a deliberate user action
+ * (Cmd/Ctrl+P in the report tab), where "Save as PDF" produces the document.
+ */
 function exportQueuePdf() {
   const queue = getQueueForExport();
   if (!queue.length) return showToast('No stories in the queue to export.', 'warn');
@@ -2239,25 +2265,21 @@ function exportQueuePdf() {
   const summary = summarizeQueue(queue);
   const html = buildExportHtml(queue, meta, summary);
 
-  const win = window.open('', '_blank');
-  if (!win) return showToast('Popup blocked. Allow popups to export a PDF.', 'error');
-
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-
-  // Wait for the document (and web fonts) to finish loading before printing.
-  const triggerPrint = () => {
-    win.focus();
-    win.print();
-  };
-  if (win.document.readyState === 'complete') {
-    setTimeout(triggerPrint, 400);
-  } else {
-    win.onload = () => setTimeout(triggerPrint, 400);
+  // Served from a Blob URL rather than written into `about:blank` so the tab is
+  // a real document: the browser then fetches the report's favicon links the
+  // way it would for any page.
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  const win = window.open(url, '_blank');
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return showToast('Popup blocked. Allow popups to open the report.', 'error');
   }
 
-  showToast('Opening print dialog — choose "Save as PDF".', 'success');
+  // Keep the URL alive long enough for the tab to load and for a reload or two,
+  // then release it so the Blob is not retained for the rest of the session.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+  showToast('✓ Report opened in a new tab', 'success');
 }
 
 /** Enable or disable export controls based on queue contents. */

@@ -319,26 +319,30 @@ describe('Property 1: Finalized card action area is determined by viewer role', 
             expect(voteControls(li)).toHaveLength(0);
             expect(editControls(li)).toHaveLength(0);
 
-            // The final estimate pill is metadata, not an action: exactly one
-            // per finalized card, in the title row after the story number pill
-            // and never in the action area, for either role.
+            // The final estimate chip leads the action row: exactly one per
+            // finalized card, first in the action area and never in the title
+            // row, for either role. It is formatted as the results-area "Final"
+            // metric chip (.metricChip.isFinal).
             expect(pills(li)).toHaveLength(1);
-            expect(pills(actions)).toHaveLength(0);
-            const pill = pills(titleRowOf(li))[0];
+            expect(pills(titleRowOf(li))).toHaveLength(0);
+            const pill = pills(actions)[0];
             expect(pill).toBeDefined();
-            expect(pill.previousElementSibling.classList.contains('queueNumber')).toBe(true);
+            expect(pill).toBe(children[0]);
+            expect(pill.previousElementSibling).toBeNull();
+            expect(pill.classList.contains('metricChip')).toBe(true);
+            expect(pill.classList.contains('isFinal')).toBe(true);
 
             if (youAreModerator) {
-              expect(children).toHaveLength(2);
+              expect(children).toHaveLength(3);
 
-              const del = children[0];
+              const del = children[1];
               expect(del.tagName).toBe('BUTTON');
               expect(del.type).toBe('button');
               expect(del.textContent).toBe('❌');
               expect(del.getAttribute('aria-label')).toBe('Delete story');
               expect(del.disabled).toBe(false);
 
-              const revote = children[1];
+              const revote = children[2];
               expect(revote.tagName).toBe('BUTTON');
               expect(revote.type).toBe('button');
               expect(revote.textContent).toBe('Re-Vote');
@@ -348,7 +352,8 @@ describe('Property 1: Finalized card action area is determined by viewer role', 
               expect(deleteControls(li)).toHaveLength(1);
               expect(revoteControls(li)).toHaveLength(1);
             } else {
-              expect(children).toHaveLength(0);
+              // Participants get the chip only — no controls.
+              expect(children).toHaveLength(1);
               expect(revoteControls(li)).toHaveLength(0);
               expect(deleteControls(li)).toHaveLength(0);
             }

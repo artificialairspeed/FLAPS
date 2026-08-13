@@ -16,11 +16,18 @@ const CLEANUP_INTERVAL = 10 * 60 * 1000; // 10 minutes
 // Grace period during which a disconnected user's session is retained (marked
 // disconnected / "away") rather than deleted, so a reconnect within this window
 // resumes it and the participant does not disappear from the roster on a
-// transient lapse, sleep, or short absence. Bounded (minutes, not seconds) so
-// ghosts who never return are still swept automatically instead of lingering
-// forever, and still far shorter than ROOM_IDLE_TIMEOUT so grace-held sessions
-// never affect idle-room cleanup.
-const DISCONNECT_GRACE_MS = 10 * 60 * 1000; // 10 minutes
+// transient lapse, sleep, or longer absence. Sized to cover a full session's
+// worth of absence (a laptop closed over a lunch break, a long meeting
+// interruption) so a returning participant keeps their role and vote. Still
+// bounded, so ghosts who never return are swept automatically instead of
+// lingering forever.
+//
+// Note: this now equals ROOM_IDLE_TIMEOUT. A grace-held record keeps its room
+// non-empty, and idle cleanup only reaps rooms that are BOTH empty and idle, so
+// an abandoned room is retained for up to DISCONNECT_GRACE_MS + ROOM_IDLE_TIMEOUT
+// (~2 hours) before being swept. That is a deliberate retention tradeoff, not a
+// leak: the sweep still happens, just later.
+const DISCONNECT_GRACE_MS = 60 * 60 * 1000; // 1 hour
 const MODERATOR_KEY_LENGTH = 18;
 const MAX_ROOM_ID_LENGTH = 50;
 const MAX_NAME_LENGTH = 20;
