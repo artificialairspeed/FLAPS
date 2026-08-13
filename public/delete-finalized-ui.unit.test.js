@@ -185,20 +185,24 @@ describe('finalized delete control: rendered attributes and position (Req 1.11, 
     // It carries the id of the story whose card it sits on.
     expect(del.dataset.storyId).toBe(entry.id);
 
-    // Req 1.11 — position: immediately after the final estimate pill and
-    // immediately before the Re-Vote control, inside .queueActions.
-    const pill = actions.querySelector('.queueFinalChip');
+    // Req 1.11 — position: first element of .queueActions and immediately
+    // before the Re-Vote control. The final estimate pill is not in the action
+    // area at all; it sits in the title row beside the story number pill.
     const revote = actions.querySelector('.queueRevoteBtn');
-    expect(pill).not.toBeNull();
     expect(revote).not.toBeNull();
 
     const order = Array.from(actions.children);
-    expect(order.length).toBe(3);
-    expect(order.indexOf(pill)).toBe(0);
-    expect(order.indexOf(del)).toBe(1);
-    expect(order.indexOf(revote)).toBe(2);
-    expect(del.previousElementSibling).toBe(pill);
+    expect(order.length).toBe(2);
+    expect(order.indexOf(del)).toBe(0);
+    expect(order.indexOf(revote)).toBe(1);
+    expect(del.previousElementSibling).toBeNull();
     expect(del.nextElementSibling).toBe(revote);
+
+    expect(actions.querySelector('.queueFinalChip')).toBeNull();
+    const titleRow = card.querySelector('.queueTitleRow');
+    const pill = titleRow.querySelector('.queueFinalChip');
+    expect(pill).not.toBeNull();
+    expect(pill.previousElementSibling.classList.contains('queueNumber')).toBe(true);
   });
 });
 

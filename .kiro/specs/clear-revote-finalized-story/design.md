@@ -49,7 +49,7 @@ Findings from reading `server.js`, `public/app.js`, and the test suite that shap
 | Report failures through the `ack` callback, reusing the exact string `"Not facilitator / moderator"` | Matches `storyQueue:setActive`. An ack is delivered to the emitting socket by construction, which is precisely Requirement 4.1's "requesting socket only and to no other socket". |
 | Do not add `checkRateLimit` to the re-vote handler | `setActive`, `finalize`, `remove`, and `voteClear` all omit it, and a rate-limit rejection is not one of the five ordered checks Requirement 4.7 enumerates. Adding a sixth outcome would put the handler outside the specified response set. |
 | Validate fully, then mutate; snapshot and restore on throw | Requirement 3.12 requires all-or-nothing. Every mutation is a plain field assignment on already-validated data, so the only realistic failure is a frozen or otherwise hostile room object — a snapshot/restore wrapper covers it without spreading rollback logic through the handler. |
-| Reuse `queueBtn` styling; add no new design tokens | Requirement 1 asks for a button in the existing action area. The existing `.queueBtn` / `.queueBtn.primary` classes already size and space controls to match the `.queueFinalChip` beside it. |
+| Reuse `queueBtn` styling; add no new design tokens | Requirement 1 asks for a button in the existing action area. The existing `.queueBtn` / `.queueBtn.primary` classes already size and space controls to match the other controls in that area. |
 | Render the finalized delete control by calling the existing `createDeleteButton`, not a new builder | Requirement 9.5 requires the finalized delete to emit the same event with the same two payload fields as the pending delete, and 9.9 requires the same unguarded behavior. Sharing the builder makes both true by construction instead of by parallel maintenance, and reduces the client change to two lines in `createQueueActions`. |
 | Add `aria-label="Delete story"` inside `createDeleteButton` rather than at the finalized call site | Requirement 1.12 needs the accessible name on finalized cards. Putting it in the shared builder also fixes the pending cards, whose accessible name is currently the bare `❌` emoji. It is a label-only change: no class, event, payload, or layout moves, so the pending-card contract is unaffected. |
 | Add `addKeyboardClickSupport(rmBtn)` inside `createDeleteButton` even though a native `<button>` already activates on Enter and Space | Requirement 9.2 is genuinely satisfied by the element type in a browser, but jsdom does not synthesize a click from a `keydown`, so without the helper the requirement is untestable in the harness this spec already uses. The helper is idempotent in effect (it calls `click()`, which runs the same single-emit `onclick`), so the browser behavior is unchanged while the requirement becomes observable. The rejected alternative — asserting only that the element is a `<button>` and calling Requirement 9.2 satisfied by delegation to the platform — leaves a requirement with no executable check. |
@@ -250,23 +250,21 @@ State is never rolled back on a delivery failure (Requirement 7.5); the affected
 
 ### 4. `public/app.js` — Re-Vote and Delete controls on finalized cards
 
-`createQueueActions` currently appends the final pill and returns early for any truthy `finalPoints`. That early return is where both controls go, and the truthiness test becomes the shared predicate:
+`createQueueActions` returns early for any truthy `finalPoints`. That early return is where both controls go, and the truthiness test becomes the shared predicate. The final pill is built by `createFinalChip(story)` and appended by `createQueueTitleRow`, so it is metadata beside the story number pill and never an entry in the action area:
 
 ```js
 if (isFinalizedValue(story.finalPoints)) {
-  // ... existing queueFinalChip construction, unchanged ...
-  actions.appendChild(finalChip);
   if (state.youAreModerator) {
     const rmBtn = createDeleteButton(story.id, currentRoom, socket);  // REQ 1.11, 1.12, 9.5
     rmBtn.classList.add('queueIconBtn');                              // same sizing as pending cards
-    actions.appendChild(rmBtn);                                       // REQ 1.11: pill -> Delete
+    actions.appendChild(rmBtn);                                       // REQ 1.11: Delete first
     actions.appendChild(createRevoteButton(story));                   // REQ 1.1: Delete -> Re-Vote
   }
   return actions;                                                     // REQ 1.6
 }
 ```
 
-Append order is the requirement. The pill goes in first, then the delete control, then the Re-Vote control, so the facilitator's finalized action area is exactly `[pill, Delete, Re-Vote]` and the participant's is exactly `[pill]` (Requirements 1.1, 1.2, 1.6, 1.11). The branch still returns immediately, so no Vote control and no edit control ever reaches a finalized card for either role (Requirement 1.6). Re-rendering happens per broadcast from `renderQueue`, so a `youAreModerator` flip adds or removes *both* controls within the same render pass with no reload (Requirement 1.8). Nothing in the branch consults `activeStoryId`, so a finalized *active* story gets both controls enabled like any other (Requirement 1.9), and the delete of an active story is therefore reachable from this card — which is what makes the server's active-story reset path live for finalized deletes.
+Append order is the requirement. The delete control goes in first, then the Re-Vote control, so the facilitator's finalized action area is exactly `[Delete, Re-Vote]` and the participant's is empty — `.queueActions:empty { display:none }` collapses it — with the pill in the title row for both roles (Requirements 1.1, 1.2, 1.6, 1.11). The branch still returns immediately, so no Vote control and no edit control ever reaches a finalized card for either role (Requirement 1.6). Re-rendering happens per broadcast from `renderQueue`, so a `youAreModerator` flip adds or removes *both* controls within the same render pass with no reload (Requirement 1.8). Nothing in the branch consults `activeStoryId`, so a finalized *active* story gets both controls enabled like any other (Requirement 1.9), and the delete of an active story is therefore reachable from this card — which is what makes the server's active-story reset path live for finalized deletes.
 
 Two calls, one `if`. That is the entire client change for the delete enhancement outside the shared builder.
 
@@ -407,7 +405,7 @@ One rule, reusing existing tokens rather than introducing new ones:
 .queueBtn.queueRevoteBtn { /* inherits .queueBtn sizing/spacing; accent to match .queueBtn.primary */ }
 ```
 
-Sizing, radius, focus ring, and hover all come from `.queueBtn`, keeping the button visually consistent with the `.queueFinalChip` it sits beside.
+Sizing, radius, focus ring, and hover all come from `.queueBtn`, keeping the button visually consistent with the delete control it sits beside.
 
 ## Data Models
 
@@ -517,7 +515,7 @@ The prework analysis reduced 110 acceptance criteria to the 38 non-redundant pro
 
 ### Property 1: Finalized card action area is determined by viewer role
 
-*For any* story queue and *for any* viewer role, every rendered finalized story card's action area contains, when the viewer is the facilitator, exactly three elements in this order — the final estimate pill, then exactly one enabled `button` with `type="button"`, visible text `❌`, and accessible name "Delete story", then exactly one enabled `button` with `type="button"`, visible text "Re-Vote", and accessible name "Re-vote story" — or, when the viewer is a participant, the final estimate pill alone with zero Re-Vote controls and zero delete controls; no finalized card carries a Vote control or an edit control for either role; and every pending card carries zero Re-Vote controls with its existing action set unchanged.
+*For any* story queue and *for any* viewer role, every rendered finalized story card's action area contains, when the viewer is the facilitator, exactly two elements in this order — exactly one enabled `button` with `type="button"`, visible text `❌`, and accessible name "Delete story", then exactly one enabled `button` with `type="button"`, visible text "Re-Vote", and accessible name "Re-vote story" — or, when the viewer is a participant, no elements at all with zero Re-Vote controls and zero delete controls; every finalized card carries exactly one final estimate pill, in its title row immediately after the story number pill and never in its action area, for either role; no finalized card carries a Vote control or an edit control for either role; and every pending card carries zero Re-Vote controls with its existing action set unchanged.
 
 **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.9, 1.11, 1.12, 11.3**
 

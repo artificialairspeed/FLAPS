@@ -688,34 +688,32 @@ a:hover{ text-decoration:underline }
   background:var(--success-soft);
   color:var(--success-text);
 }
-/* Final estimate chip shown in the actions area. Mirrors the "Final"
-   metric chip (.metricChip.isFinal) from the results/math area, scaled
-   down to be proportionate to the story card. */
+/* Final estimate chip shown in the title row, beside the story number pill.
+   Mirrors the "Final" metric chip (.metricChip.isFinal) from the results/math
+   area, laid out horizontally and sized to match .queueNumber so the two pills
+   read as one metadata line above the story title. */
 .queueFinalChip{
-  display:flex;
-  flex-direction:column;
+  display:inline-flex;
+  flex-direction:row;
   align-items:center;
-  justify-content:center;
-  padding:5px 10px;
+  gap:5px;
+  padding:2px 8px;
   border:1px solid var(--success-border);
-  border-radius:var(--r-sm);
+  border-radius:var(--r-xs);
   background:var(--success-soft);
   color:var(--success-text);
-  /* Reserve a consistent content width for up to 3 digits so 1-, 2-,
-     and 3-character estimates all render at the same size. */
-  box-sizing:content-box;
-  min-width:3ch;
+  white-space:nowrap;
+  flex-shrink:0;
 }
 .queueFinalChipLabel{
-  font-size:8px;
+  font-size:9px;
   color:var(--muted);
   text-transform:uppercase;
   letter-spacing:.08em;
   line-height:1;
-  margin-bottom:3px;
 }
 .queueFinalChipValue{
-  font-size:14px;
+  font-size:12px;
   font-weight:700;
   color:var(--success-text);
   line-height:1;
@@ -909,9 +907,9 @@ footer{
   .queueMeta{ font-size:10px }
   .queueBtn{ padding:6px 10px; font-size:10px }
   .queueFinalBadge{ font-size:10px }
-  .queueFinalChip{ padding:4px 8px }
-  .queueFinalChipLabel{ font-size:7px }
-  .queueFinalChipValue{ font-size:13px }
+  .queueFinalChip{ padding:2px 7px; gap:4px }
+  .queueFinalChipLabel{ font-size:8px }
+  .queueFinalChipValue{ font-size:11px }
   .users{ padding-top:4px }
   .users li{ padding:10px 8px; gap:8px; min-height:44px }
   .userGroupHeader{ padding:12px 8px 6px 8px !important; margin-top:6px; gap:6px }

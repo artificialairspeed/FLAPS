@@ -1597,6 +1597,29 @@ function createDeleteButton(storyId, currentRoom, socket) {
   return rmBtn;
 }
 
+/**
+ * Build the final estimate pill for a finalized story: a small "FINAL" label
+ * beside the stored value, mirroring the "Final" metric chip from the
+ * results/math area scaled down to suit the story card.
+ */
+function createFinalChip(story) {
+  const finalChip = document.createElement('div');
+  finalChip.className = 'queueFinalChip';
+  finalChip.setAttribute('aria-label', `Final estimate: ${story.finalPoints}`);
+
+  const label = document.createElement('span');
+  label.className = 'queueFinalChipLabel';
+  label.textContent = 'Final';
+
+  const value = document.createElement('span');
+  value.className = 'queueFinalChipValue';
+  value.textContent = story.finalPoints;
+
+  finalChip.appendChild(label);
+  finalChip.appendChild(value);
+  return finalChip;
+}
+
 // Helper function to create queue item title row
 function createQueueTitleRow(story, isActive) {
   const titleRow = document.createElement('div');
@@ -1614,8 +1637,11 @@ function createQueueTitleRow(story, isActive) {
 
   // Active story is indicated by the full accent border on the card
   // (see .queueActive in styles.css), so no text badge is needed here.
-  // The final estimate pill is rendered in the actions area (see
-  // createQueueActions), taking the place of the removed action buttons.
+  // The final estimate pill sits beside the story number, reading as story
+  // metadata, so the actions area holds only the card's actual controls.
+  if (isFinalizedValue(story.finalPoints)) {
+    titleRow.appendChild(createFinalChip(story));
+  }
 
   return titleRow;
 }
@@ -1755,31 +1781,14 @@ function createQueueActions(story, state, li) {
   actions.className = 'queueActions';
 
   // A finalized story has moved to "Estimate Done" and is no longer
-  // actionable, so no buttons are shown. The final estimate pill takes
-  // the place of the removed action buttons, sized to match them.
+  // actionable, so the Vote and edit buttons are not shown. The final estimate
+  // pill lives in the title row beside the story number
+  // (see createQueueTitleRow), not here.
   if (isFinalizedValue(story.finalPoints)) {
-    // Mirror the "Final" metric chip from the results/math area, scaled
-    // down to suit the story card: a small "FINAL" label above the value.
-    const finalChip = document.createElement('div');
-    finalChip.className = 'queueFinalChip';
-    finalChip.setAttribute('aria-label', `Final estimate: ${story.finalPoints}`);
-
-    const label = document.createElement('span');
-    label.className = 'queueFinalChipLabel';
-    label.textContent = 'Final';
-
-    const value = document.createElement('span');
-    value.className = 'queueFinalChipValue';
-    value.textContent = story.finalPoints;
-
-    finalChip.appendChild(label);
-    finalChip.appendChild(value);
-    actions.appendChild(finalChip);
     // The facilitator can remove a finalized story, or send it back for
-    // re-estimation. The pill is appended first and this branch returns
-    // immediately, so the facilitator's action area is exactly
-    // [pill, Delete, Re-Vote] and a participant's is exactly [pill] — no Vote
-    // and no edit control either way (Req 1.1, 1.2, 1.6, 1.11). The delete
+    // re-estimation. This branch returns immediately, so the facilitator's
+    // action area is exactly [Delete, Re-Vote] and a participant's is empty —
+    // no Vote and no edit control either way (Req 1.1, 1.2, 1.6, 1.11). The delete
     // control is the same shared builder the pending cards use, so it emits
     // the same `storyQueue:remove` event with the same payload, unguarded and
     // without a confirmation prompt (Req 9.3, 9.5, 9.9). Nothing here consults

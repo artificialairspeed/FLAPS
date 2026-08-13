@@ -142,6 +142,7 @@ const pendingCards = () => cards('queuePendingList');
 const doneCards = () => cards('queueDoneList');
 
 const actionsOf = (li) => li.querySelector('.queueActions');
+const titleRowOf = (li) => li.querySelector('.queueTitleRow');
 const titleOf = (li) => li.querySelector('.queueTitle').textContent;
 
 function buttonsWithText(root, text) {
@@ -318,31 +319,36 @@ describe('Property 1: Finalized card action area is determined by viewer role', 
             expect(voteControls(li)).toHaveLength(0);
             expect(editControls(li)).toHaveLength(0);
 
+            // The final estimate pill is metadata, not an action: exactly one
+            // per finalized card, in the title row after the story number pill
+            // and never in the action area, for either role.
+            expect(pills(li)).toHaveLength(1);
+            expect(pills(actions)).toHaveLength(0);
+            const pill = pills(titleRowOf(li))[0];
+            expect(pill).toBeDefined();
+            expect(pill.previousElementSibling.classList.contains('queueNumber')).toBe(true);
+
             if (youAreModerator) {
-              expect(children).toHaveLength(3);
+              expect(children).toHaveLength(2);
 
-              expect(children[0].classList.contains('queueFinalChip')).toBe(true);
-
-              const del = children[1];
+              const del = children[0];
               expect(del.tagName).toBe('BUTTON');
               expect(del.type).toBe('button');
               expect(del.textContent).toBe('❌');
               expect(del.getAttribute('aria-label')).toBe('Delete story');
               expect(del.disabled).toBe(false);
 
-              const revote = children[2];
+              const revote = children[1];
               expect(revote.tagName).toBe('BUTTON');
               expect(revote.type).toBe('button');
               expect(revote.textContent).toBe('Re-Vote');
               expect(revote.getAttribute('aria-label')).toBe('Re-vote story');
               expect(revote.disabled).toBe(false);
 
-              expect(pills(li)).toHaveLength(1);
               expect(deleteControls(li)).toHaveLength(1);
               expect(revoteControls(li)).toHaveLength(1);
             } else {
-              expect(children).toHaveLength(1);
-              expect(children[0].classList.contains('queueFinalChip')).toBe(true);
+              expect(children).toHaveLength(0);
               expect(revoteControls(li)).toHaveLength(0);
               expect(deleteControls(li)).toHaveLength(0);
             }
