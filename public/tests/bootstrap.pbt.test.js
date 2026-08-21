@@ -41,8 +41,8 @@ import {
   STATES,
   EVENTS,
   createSessionMachine
-} from './session-machine.js';
-import { joinPayload, getClientId } from './session-identity.js';
+} from '../session-machine.js';
+import { joinPayload, getClientId } from '../session-identity.js';
 
 const NUM_RUNS = 100;
 

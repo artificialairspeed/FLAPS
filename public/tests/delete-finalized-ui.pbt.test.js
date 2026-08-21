@@ -40,7 +40,7 @@ import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isFinalizedValue } from './story-revote.js';
+import { isFinalizedValue } from '../story-revote.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -100,7 +100,7 @@ let fakeSocket;
 let capturedBlobs = [];
 
 beforeAll(async () => {
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
   document.body.innerHTML = html
     .replace(/[\s\S]*<body[^>]*>/i, '')
     .replace(/<\/body>[\s\S]*/i, '');
@@ -148,7 +148,7 @@ beforeAll(async () => {
   globalThis.io = () => fakeSocket;
   window.io = globalThis.io;
 
-  await import('./app.js');
+  await import('../app.js');
 });
 
 beforeEach(() => {

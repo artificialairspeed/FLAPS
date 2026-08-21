@@ -23,7 +23,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
-import { io, rooms, getOrCreateRoom, handleStoryQueueRevote } from './server.js';
+import { io, rooms, getOrCreateRoom, handleStoryQueueRevote } from '../../server.js';
 
 // ---------------------------------------------------------------------------
 // Fake socket (the `makeSocket` pattern from server.exploration.test.js, with

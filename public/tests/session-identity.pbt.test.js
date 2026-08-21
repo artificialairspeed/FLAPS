@@ -30,7 +30,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import fc from 'fast-check';
 
 const NUM_RUNS = 100;
-const MODULE_PATH = './session-identity.js';
+const MODULE_PATH = '../session-identity.js';
 
 /**
  * Create a minimal in-memory localStorage stub implementing the subset of the
@@ -199,7 +199,7 @@ describe('Feature: create-join-flow-overhaul, Property 7 — client identity per
  *       round-trips exactly, including the empty string.
  */
 
-import { saveDefaults, loadDefaults } from './session-identity.js';
+import { saveDefaults, loadDefaults } from '../session-identity.js';
 
 describe('Feature: create-join-flow-overhaul, Property 9 — remembered defaults round-trip', () => {
   // Over arbitrary non-empty names and arbitrary emoji strings (including ''),
@@ -264,7 +264,7 @@ describe('Feature: create-join-flow-overhaul, Property 9 — remembered defaults
  *   simple oracle: (typeof s === 'string' && s.trim().length > 0).
  */
 
-import { isJoinable } from './session-identity.js';
+import { isJoinable } from '../session-identity.js';
 
 /** Oracle for the joinable predicate, expressed independently of the impl. */
 const expectedJoinable = (s) => typeof s === 'string' && s.trim().length > 0;
@@ -384,7 +384,7 @@ describe('Feature: create-join-flow-overhaul, Property 5 — join enabled iff na
  *   well-defined store to read/write.
  */
 
-import { joinPayload, getClientId } from './session-identity.js';
+import { joinPayload, getClientId } from '../session-identity.js';
 
 describe('Feature: create-join-flow-overhaul, Property 8 — every create/join emit carries the stored clientId', () => {
   // Over arbitrary `extra` objects, the built payload's clientId equals

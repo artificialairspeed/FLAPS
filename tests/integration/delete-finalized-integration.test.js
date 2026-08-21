@@ -55,7 +55,7 @@ import {
   handleStoryQueueSetActive,
   handleStoryQueueFinalize,
   handleStoryQueueRemove
-} from './server.js';
+} from '../../server.js';
 
 const ROOM = 'DELINT1';
 
@@ -415,7 +415,7 @@ describe('Integration: joining after a finalized story was deleted', () => {
 // ---------------------------------------------------------------------------
 
 describe('Integration: debounced persistence after deleting a finalized story', () => {
-  const SERVER_PATH = fileURLToPath(new URL('./server.js', import.meta.url));
+  const SERVER_PATH = fileURLToPath(new URL('../../server.js', import.meta.url));
   const REPO_STATE_FILE = path.join(path.dirname(SERVER_PATH), '.rooms-state.json');
   const PERSIST_ROOM = 'DELPERS9';
   /** Mirrors server.js's PERSIST_DEBOUNCE_MS, which is not exported. */
@@ -451,7 +451,7 @@ describe('Integration: debounced persistence after deleting a finalized story', 
     };
 
     vi.resetModules();
-    live = await import('./server.js');
+    live = await import('../../server.js');
 
     // Restore argv immediately: only the import above needed the live branch.
     process.argv[1] = prevArgv1;

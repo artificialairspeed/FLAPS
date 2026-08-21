@@ -58,7 +58,7 @@ import {
   handleStoryQueueRemove,
   handleStoryQueueRevote,
   handleStoryQueueFinalize
-} from './server.js';
+} from '../../server.js';
 import {
   NUM_RUNS,
   ROOM_DECK,
@@ -72,7 +72,7 @@ import {
   unknownRoomId,
   coerceStoryId,
   resolveRequestRoomId
-} from './public/story-revote.pbt.test.js';
+} from '../../public/tests/story-revote.pbt.test.js';
 
 // ---------------------------------------------------------------------------
 // Fake socket (the `makeSocket` pattern from server.exploration.test.js).

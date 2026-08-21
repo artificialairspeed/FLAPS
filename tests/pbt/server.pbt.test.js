@@ -54,7 +54,7 @@ import {
   DISCONNECT_GRACE_MS,
   ROOM_IDLE_TIMEOUT,
   CLEANUP_INTERVAL,
-} from './server.js';
+} from '../../server.js';
 
 const NUM_RUNS = 100;
 

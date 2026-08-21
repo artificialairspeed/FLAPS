@@ -53,7 +53,7 @@ import {
   handleStoryQueueFinalize,
   handleStoryQueueRevote,
   handleDisconnect
-} from './server.js';
+} from '../../server.js';
 
 const ROOM = 'REVOTE1';
 
@@ -330,7 +330,7 @@ describe('Integration: joining and rejoining after a re-vote', () => {
 // ---------------------------------------------------------------------------
 
 describe('Integration: debounced persistence after a re-vote', () => {
-  const SERVER_PATH = fileURLToPath(new URL('./server.js', import.meta.url));
+  const SERVER_PATH = fileURLToPath(new URL('../../server.js', import.meta.url));
   const REPO_STATE_FILE = path.join(path.dirname(SERVER_PATH), '.rooms-state.json');
   const PERSIST_ROOM = 'PERSIST9';
   /** Mirrors server.js's PERSIST_DEBOUNCE_MS, which is not exported. */
@@ -366,7 +366,7 @@ describe('Integration: debounced persistence after a re-vote', () => {
     };
 
     vi.resetModules();
-    live = await import('./server.js');
+    live = await import('../../server.js');
 
     // Restore argv immediately: only the import above needed the live branch.
     process.argv[1] = prevArgv1;

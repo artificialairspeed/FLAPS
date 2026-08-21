@@ -29,8 +29,8 @@ import {
   handleVoteSet,
   handleDisconnect,
   DISCONNECT_GRACE_MS
-} from './server.js';
-import { deriveControls, STATES } from './public/session-machine.js';
+} from '../../server.js';
+import { deriveControls, STATES } from '../../public/session-machine.js';
 
 const NUM_RUNS = 100;
 

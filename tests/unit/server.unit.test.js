@@ -26,7 +26,7 @@ import {
   handleVoteSet,
   handleDisconnect,
   DISCONNECT_GRACE_MS,
-} from './server.js';
+} from '../../server.js';
 
 /**
  * Minimal fake Socket.IO socket that drives the server handlers. Mirrors the

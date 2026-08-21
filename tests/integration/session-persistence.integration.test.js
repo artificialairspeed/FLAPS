@@ -46,7 +46,7 @@ import {
   handleStoryQueueSetActive,
   handleDisconnect,
   DISCONNECT_GRACE_MS,
-} from './server.js';
+} from '../../server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -259,7 +259,7 @@ describe('Integration (client): connection pill visual feedback across a transie
 
   beforeAll(async () => {
     // Inject the real application DOM so app.js can wire up its handlers.
-    const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf-8');
+    const html = fs.readFileSync(path.join(__dirname, '..', '..', 'public', 'index.html'), 'utf-8');
     const bodyInner = html
       .replace(/[\s\S]*<body[^>]*>/i, '')
       .replace(/<\/body>[\s\S]*/i, '');
@@ -283,7 +283,7 @@ describe('Integration (client): connection pill visual feedback across a transie
     // session state machine), so load it via dynamic import AFTER the DOM,
     // URL, storage, and io globals above are in place. Its top-level wiring
     // runs on import, just as the previous eval did.
-    await import('./public/app.js');
+    await import('../../public/app.js');
   });
 
   beforeEach(() => {

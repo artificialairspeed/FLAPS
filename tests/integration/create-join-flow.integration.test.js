@@ -52,7 +52,7 @@ import {
   handleVoteSet,
   handleDisconnect,
   DISCONNECT_GRACE_MS,
-} from './server.js';
+} from '../../server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -64,7 +64,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let bodyInner;
 
 beforeAll(() => {
-  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', '..', 'public', 'index.html'), 'utf-8');
   bodyInner = html
     .replace(/[\s\S]*<body[^>]*>/i, '')
     .replace(/<\/body>[\s\S]*/i, '');
@@ -168,7 +168,7 @@ async function bootClient({ url, local = {}, session = {} }) {
   globalThis.io = () => fakeSocket;
   window.io = globalThis.io;
 
-  await import('./public/app.js');
+  await import('../../public/app.js');
   return fakeSocket;
 }
 

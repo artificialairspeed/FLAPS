@@ -46,7 +46,7 @@ import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isFinalizedValue } from './story-revote.js';
+import { isFinalizedValue } from '../story-revote.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,7 +74,7 @@ function createFakeSocket() {
 let fakeSocket;
 
 beforeAll(async () => {
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
   const bodyInner = html.replace(/[\s\S]*<body[^>]*>/i, '').replace(/<\/body>[\s\S]*/i, '');
   document.body.innerHTML = bodyInner;
   window.history.replaceState({}, '', `/room/${ROOM}?mod=KEY`);
@@ -94,7 +94,7 @@ beforeAll(async () => {
   globalThis.io = () => fakeSocket;
   window.io = globalThis.io;
 
-  await import('./app.js');
+  await import('../app.js');
 });
 
 /* ------------------------------------------------------------------ *

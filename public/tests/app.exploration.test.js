@@ -61,7 +61,7 @@ function toastMessages() {
 
 beforeAll(async () => {
   // 1) Inject the real application DOM so app.js can wire up its handlers.
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
   const bodyInner = html.replace(/[\s\S]*<body[^>]*>/i, '').replace(/<\/body>[\s\S]*/i, '');
   document.body.innerHTML = bodyInner;
 
@@ -83,7 +83,7 @@ beforeAll(async () => {
   //    session state machine), so load it via dynamic import AFTER the DOM,
   //    URL, storage, and io globals above are in place. Its top-level wiring
   //    runs on import, just as the previous eval did.
-  await import('./app.js');
+  await import('../app.js');
 });
 
 describe('Property 1 (client): no repeated connection error notifications', () => {

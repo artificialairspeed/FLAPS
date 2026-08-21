@@ -34,7 +34,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { REVOTE_REASONS } from './story-revote.js';
+import { REVOTE_REASONS } from '../story-revote.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -76,7 +76,7 @@ function createRecordingSocket() {
 let fakeSocket;
 
 beforeAll(async () => {
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
   document.body.innerHTML = html
     .replace(/[\s\S]*<body[^>]*>/i, '')
     .replace(/<\/body>[\s\S]*/i, '');
@@ -106,7 +106,7 @@ beforeAll(async () => {
   globalThis.io = () => fakeSocket;
   window.io = globalThis.io;
 
-  await import('./app.js');
+  await import('../app.js');
 });
 
 beforeEach(() => {
@@ -274,7 +274,7 @@ describe('REVOTE_REASONS: the five rejection strings, pinned (Req 3.12, 4.1 – 
     // storyQueue:setActive rejection, so a facilitator sees one wording for
     // "you are not the facilitator" regardless of which request was refused.
     // server.js is read as source text — importing it would start a listener.
-    const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf-8');
+    const source = fs.readFileSync(path.join(__dirname, '..', '..', 'server.js'), 'utf-8');
     const setActive = source.slice(source.indexOf('function handleStoryQueueSetActive'));
     expect(setActive.startsWith('function handleStoryQueueSetActive')).toBe(true);
 
