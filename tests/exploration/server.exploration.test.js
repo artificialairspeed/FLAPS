@@ -35,7 +35,7 @@ import {
   handleRoomJoin,
   handleVoteSet,
   handleDisconnect,
-} from './server.js';
+} from '../../server.js';
 
 /** Encodes the bug condition exactly as specified in bugfix.md / design.md. */
 function isBugCondition(x) {

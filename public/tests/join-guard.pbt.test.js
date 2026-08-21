@@ -27,8 +27,8 @@
 
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { STATES, EVENTS, transition } from './session-machine.js';
-import { isJoinable } from './session-identity.js';
+import { STATES, EVENTS, transition } from '../session-machine.js';
+import { isJoinable } from '../session-identity.js';
 
 const NUM_RUNS = 100;
 

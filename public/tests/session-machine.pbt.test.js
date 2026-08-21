@@ -24,7 +24,7 @@
 
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { STATES, EVENTS, transition, deriveControls } from './session-machine.js';
+import { STATES, EVENTS, transition, deriveControls } from '../session-machine.js';
 
 const NUM_RUNS = 100;
 

@@ -47,7 +47,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { rooms, makeRoomState, handleRoomJoin } from '../server.js';
+import { rooms, makeRoomState, handleRoomJoin } from '../../server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const NUM_RUNS = 100;
@@ -144,7 +144,7 @@ beforeAll(async () => {
   installLocalStorage();
 
   // 1) Inject the real app DOM.
-  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
   const bodyInner = html
     .replace(/[\s\S]*<body[^>]*>/i, '')
     .replace(/<\/body>[\s\S]*/i, '');
@@ -163,7 +163,7 @@ beforeAll(async () => {
   window.io = globalThis.io;
 
   // 5) Load the real client wiring (top-level wiring runs on import).
-  await import('./app.js');
+  await import('../app.js');
 
   // 6) Drive the client into JOINED as a participant, via the real server.
   rooms.clear();

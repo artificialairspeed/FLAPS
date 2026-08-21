@@ -24,7 +24,7 @@
 
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { isFinalizedValue, normalizeStoryId } from './story-revote.js';
+import { isFinalizedValue, normalizeStoryId } from '../story-revote.js';
 
 /** Iterations every property in this file runs at. */
 export const NUM_RUNS = 100;
@@ -807,7 +807,7 @@ describe('clear-revote-finalized-story: delete generators (Task 13.4)', () => {
  * clone taken before the call.
  * ------------------------------------------------------------------------- */
 
-import { REVOTE_REASONS, validateRevote, applyRevote } from './story-revote.js';
+import { REVOTE_REASONS, validateRevote, applyRevote } from '../story-revote.js';
 
 /**
  * A structural clone of `room`, taken before a mutating call so "unchanged"

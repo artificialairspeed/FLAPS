@@ -47,7 +47,7 @@ import {
   ROOM_IDLE_TIMEOUT,
   CLEANUP_INTERVAL,
   DISCONNECT_GRACE_MS,
-} from './server.js';
+} from '../../server.js';
 
 /** Encodes the bug condition exactly as specified in bugfix.md / design.md. */
 function isBugCondition(x) {
